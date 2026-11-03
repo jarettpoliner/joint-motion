@@ -1,14 +1,16 @@
 # RESUME.md — how to continue this campaign
 
-Last updated: 2026-11-03 10:12 (session 2).
+Last updated: 2026-11-03 15:35 (session 3).
 
 ## Current stage
-All nine pilots completed. Stage dev_eval (3 seeds) is running, chained behind the pilots by
-<data_root>/logs/chain_dev_eval.sh (log: chain_dev_eval.log; prints CHAIN_DEV_EVAL_DONE). It writes
-<data_root>/runs/eval_dev, reports/tables/dev/{table.md,comparison.md}, reports/figures/dev/*.
-NEXT after inspecting those results: `campaign --stage posttrain --seeds 0,1,2` (RL + filtered-SFT +
-extra-SFT per seed, then their matched dev evaluation), `--stage freeze`, `--stage final_eval`,
-`--stage report`, then refresh demos and slides (see Visualization pipeline).
+Freeze done (manifests/freeze.json). Stage final_eval RUNNING: `campaign --stage final_eval`
+(pid in <data_root>/logs/campaign_final_eval.log; 24 methods × 10 conditions × 1,000 locked scenes;
+≈ 4–6 h on the shared GPU). It writes <data_root>/runs/eval_final/<method>/<condition>/per_scene.npz,
+then reports/tables/final/{table,comparison}.md and reports/figures/final/*. If interrupted: re-run the
+same command — completed (method, condition) outputs are NOT skipped by evaluate.py (it re-runs the
+whole stage), so check <eval_final>/summary_all.json first; the stage itself is skipped once it exists.
+NEXT: `campaign --stage report`; demos for final deliverables (M0 vs M1, Mind vs M0, M1 vs RL vs
+selection on dev scenes — the final set is for metrics only); slides with --final-eval; STATUS.
 
 ## Metric qualification (done before RL)
 Overlap audit v2 and validity-masked metrics are in place (D-028a/b). The RL reward is an approximate

@@ -1,0 +1,189 @@
+{
+ "condition": "clean",
+ "n_scenes": 500,
+ "rule": "eligible = agent with valid logged final step and logged final displacement > 5 m; stopped = predicted final displacement < 1 m; counted per (agent, joint sample); 6 samples/scene (select_m1: best 6 of 32 by reward); torch seed 0; descriptive only, no threshold",
+ "methods": {
+  "m1_pilot": {
+   "n_eligible": 17082,
+   "n_stopped": 73,
+   "frequency": 0.004273504273504274,
+   "seeds": "0,1,2"
+  },
+  "select_m1": {
+   "n_eligible": 17082,
+   "n_stopped": 75,
+   "frequency": 0.0043905865823674044,
+   "seeds": "0,1,2"
+  },
+  "extra_sft_pilot": {
+   "n_eligible": 17082,
+   "n_stopped": 74,
+   "frequency": 0.004332045427935839,
+   "seeds": "0,1,2"
+  },
+  "filtered_sft_pilot": {
+   "n_eligible": 17082,
+   "n_stopped": 99,
+   "frequency": 0.005795574288724974,
+   "seeds": "0,1,2"
+  },
+  "rl_pilot": {
+   "n_eligible": 17082,
+   "n_stopped": 596,
+   "frequency": 0.034890528041212975,
+   "seeds": "0,1,2"
+  },
+  "m0_pilot": {
+   "n_eligible": 17082,
+   "n_stopped": 89,
+   "frequency": 0.00521016274440932,
+   "seeds": "0,1,2"
+  }
+ },
+ "per_seed": {
+  "m1_pilot_s0": {
+   "n_eligible": 5694,
+   "n_stopped": 22,
+   "frequency": 0.003863716192483316,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "m1_pilot_s1": {
+   "n_eligible": 5694,
+   "n_stopped": 27,
+   "frequency": 0.004741833508956797,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "m1_pilot_s2": {
+   "n_eligible": 5694,
+   "n_stopped": 24,
+   "frequency": 0.004214963119072708,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s2/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "select_m1_s0": {
+   "n_eligible": 5694,
+   "n_stopped": 26,
+   "frequency": 0.0045662100456621,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 32
+  },
+  "select_m1_s1": {
+   "n_eligible": 5694,
+   "n_stopped": 26,
+   "frequency": 0.0045662100456621,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 32
+  },
+  "select_m1_s2": {
+   "n_eligible": 5694,
+   "n_stopped": 23,
+   "frequency": 0.004039339655778012,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s2/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 32
+  },
+  "extra_sft_pilot_s0": {
+   "n_eligible": 5694,
+   "n_stopped": 20,
+   "frequency": 0.0035124692658939235,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s0/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "extra_sft_pilot_s1": {
+   "n_eligible": 5694,
+   "n_stopped": 31,
+   "frequency": 0.005444327362135582,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s1/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "extra_sft_pilot_s2": {
+   "n_eligible": 5694,
+   "n_stopped": 23,
+   "frequency": 0.004039339655778012,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s2/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "filtered_sft_pilot_s0": {
+   "n_eligible": 5694,
+   "n_stopped": 28,
+   "frequency": 0.004917456972251493,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/filtered_sft_pilot_s0/ckpt_final.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "filtered_sft_pilot_s1": {
+   "n_eligible": 5694,
+   "n_stopped": 36,
+   "frequency": 0.006322444678609062,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/filtered_sft_pilot_s1/ckpt_final.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "filtered_sft_pilot_s2": {
+   "n_eligible": 5694,
+   "n_stopped": 35,
+   "frequency": 0.006146821215314366,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/filtered_sft_pilot_s2/ckpt_final.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "rl_pilot_s0": {
+   "n_eligible": 5694,
+   "n_stopped": 228,
+   "frequency": 0.040042149631190724,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s0/ckpt_final.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "rl_pilot_s1": {
+   "n_eligible": 5694,
+   "n_stopped": 225,
+   "frequency": 0.03951527924130664,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s1/ckpt_final.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "rl_pilot_s2": {
+   "n_eligible": 5694,
+   "n_stopped": 143,
+   "frequency": 0.02511415525114155,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s2/ckpt_final.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "m0_pilot_s0": {
+   "n_eligible": 5694,
+   "n_stopped": 30,
+   "frequency": 0.005268703898840885,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s0/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "m0_pilot_s1": {
+   "n_eligible": 5694,
+   "n_stopped": 31,
+   "frequency": 0.005444327362135582,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s1/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  },
+  "m0_pilot_s2": {
+   "n_eligible": 5694,
+   "n_stopped": 28,
+   "frequency": 0.004917456972251493,
+   "checkpoint": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s2/ckpt_best.pt",
+   "samples": 6,
+   "candidates": 6
+  }
+ }
+}

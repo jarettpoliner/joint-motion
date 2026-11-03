@@ -60,66 +60,66 @@ Sampling: learned models 6 samples (joint metrics) + 32-sample audit; cp/cv dete
 
 ## Q5a Bounded RL vs its M1 initialisation (rl − m1)
 
-| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap32 Δ (pp) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
-|---|---|---|---|---|---|---|
-| 0 | +0.943 [+0.781, +1.114] (+26.5%) | +1.578 [+1.401, +1.750] (+36.5%) | -10.42 [-11.99, -9.03] | -10.38 [-11.94, -8.99] | -1.18 [-1.69, -0.70] | -1.63 [-1.92, -1.33] |
-| 1 | +0.928 [+0.760, +1.098] (+26.7%) | +1.512 [+1.335, +1.680] (+35.7%) | -11.90 [-13.57, -10.34] | -11.82 [-13.53, -10.29] | -1.33 [-1.77, -0.90] | -1.18 [-1.46, -0.92] |
-| 2 | +0.644 [+0.463, +0.831] (+18.4%) | +1.044 [+0.893, +1.197] (+24.7%) | -9.01 [-10.40, -7.62] | -8.94 [-10.34, -7.56] | -1.16 [-1.59, -0.74] | -0.98 [-1.25, -0.74] |
-| sign agreement | consistent | consistent | consistent | consistent | consistent | consistent |
+| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap6 Δ (pp; the method's own 6 outputs) | clean overlap32 Δ (pp; 32-sample pool — for select_m1 this is the UNSELECTED pool) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
+|---|---|---|---|---|---|---|---|
+| 0 | +0.943 [+0.781, +1.114] (+26.5%) | +1.578 [+1.401, +1.750] (+36.5%) | -10.55 [-12.45, -8.85] | -10.42 [-11.99, -9.03] | -10.38 [-11.94, -8.99] | -1.18 [-1.69, -0.70] | -1.63 [-1.92, -1.33] |
+| 1 | +0.928 [+0.760, +1.098] (+26.7%) | +1.512 [+1.335, +1.680] (+35.7%) | -9.95 [-11.91, -8.17] | -11.90 [-13.57, -10.34] | -11.82 [-13.53, -10.29] | -1.33 [-1.77, -0.90] | -1.18 [-1.46, -0.92] |
+| 2 | +0.644 [+0.463, +0.831] (+18.4%) | +1.044 [+0.893, +1.197] (+24.7%) | -8.48 [-10.34, -6.68] | -9.01 [-10.40, -7.62] | -8.94 [-10.34, -7.56] | -1.16 [-1.59, -0.74] | -0.98 [-1.25, -0.74] |
+| sign agreement | consistent | consistent | consistent | consistent | consistent | consistent | consistent |
 
 ## Q5b Extra-SFT control vs M1 (extra_sft − m1)
 
-| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap32 Δ (pp) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
-|---|---|---|---|---|---|---|
-| 0 | -0.107 [-0.244, +0.030] (-3.0%) | -0.027 [-0.087, +0.040] (-0.6%) | +1.05 [+0.34, +1.78] | +1.06 [+0.36, +1.78] | +0.09 [-0.21, +0.40] | +0.06 [-0.11, +0.24] |
-| 1 | -0.011 [-0.140, +0.130] (-0.3%) | -0.028 [-0.090, +0.035] (-0.7%) | -1.03 [-1.76, -0.32] | -1.01 [-1.74, -0.29] | -0.21 [-0.56, +0.12] | -0.02 [-0.17, +0.13] |
-| 2 | -0.003 [-0.126, +0.120] (-0.1%) | +0.032 [-0.034, +0.103] (+0.8%) | -0.06 [-0.83, +0.67] | -0.01 [-0.77, +0.71] | +0.22 [-0.11, +0.55] | +0.02 [-0.15, +0.18] |
-| sign agreement | consistent | MIXED | MIXED | MIXED | MIXED | MIXED |
+| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap6 Δ (pp; the method's own 6 outputs) | clean overlap32 Δ (pp; 32-sample pool — for select_m1 this is the UNSELECTED pool) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
+|---|---|---|---|---|---|---|---|
+| 0 | -0.107 [-0.244, +0.030] (-3.0%) | -0.027 [-0.087, +0.040] (-0.6%) | +0.00 [-1.57, +1.57] | +1.05 [+0.34, +1.78] | +1.06 [+0.36, +1.78] | +0.09 [-0.21, +0.40] | +0.06 [-0.11, +0.24] |
+| 1 | -0.011 [-0.140, +0.130] (-0.3%) | -0.028 [-0.090, +0.035] (-0.7%) | -0.67 [-2.04, +0.77] | -1.03 [-1.76, -0.32] | -1.01 [-1.74, -0.29] | -0.21 [-0.56, +0.12] | -0.02 [-0.17, +0.13] |
+| 2 | -0.003 [-0.126, +0.120] (-0.1%) | +0.032 [-0.034, +0.103] (+0.8%) | -0.37 [-1.77, +1.07] | -0.06 [-0.83, +0.67] | -0.01 [-0.77, +0.71] | +0.22 [-0.11, +0.55] | +0.02 [-0.15, +0.18] |
+| sign agreement | consistent | MIXED | MIXED | MIXED | MIXED | MIXED | MIXED |
 
 ## Q5c Reward-filtered-SFT control vs M1 (filtered_sft − m1)
 
-| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap32 Δ (pp) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
-|---|---|---|---|---|---|---|
-| 0 | +0.047 [-0.080, +0.173] (+1.3%) | +0.050 [-0.020, +0.115] (+1.1%) | +0.33 [-0.42, +1.11] | +0.29 [-0.44, +1.05] | +0.16 [-0.15, +0.46] | -0.02 [-0.21, +0.17] |
-| 1 | +0.078 [-0.037, +0.192] (+2.2%) | +0.154 [+0.087, +0.224] (+3.6%) | -1.88 [-2.68, -1.08] | -1.92 [-2.72, -1.12] | -0.10 [-0.43, +0.23] | +0.01 [-0.14, +0.15] |
-| 2 | -0.007 [-0.126, +0.111] (-0.2%) | +0.084 [+0.007, +0.161] (+2.0%) | -1.33 [-2.14, -0.58] | -1.29 [-2.10, -0.53] | +0.11 [-0.21, +0.44] | +0.02 [-0.14, +0.17] |
-| sign agreement | MIXED | consistent | MIXED | MIXED | MIXED | MIXED |
+| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap6 Δ (pp; the method's own 6 outputs) | clean overlap32 Δ (pp; 32-sample pool — for select_m1 this is the UNSELECTED pool) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
+|---|---|---|---|---|---|---|---|
+| 0 | +0.047 [-0.080, +0.173] (+1.3%) | +0.050 [-0.020, +0.115] (+1.1%) | -0.60 [-2.13, +1.00] | +0.33 [-0.42, +1.11] | +0.29 [-0.44, +1.05] | +0.16 [-0.15, +0.46] | -0.02 [-0.21, +0.17] |
+| 1 | +0.078 [-0.037, +0.192] (+2.2%) | +0.154 [+0.087, +0.224] (+3.6%) | +0.07 [-1.44, +1.50] | -1.88 [-2.68, -1.08] | -1.92 [-2.72, -1.12] | -0.10 [-0.43, +0.23] | +0.01 [-0.14, +0.15] |
+| 2 | -0.007 [-0.126, +0.111] (-0.2%) | +0.084 [+0.007, +0.161] (+2.0%) | -1.00 [-2.61, +0.57] | -1.33 [-2.14, -0.58] | -1.29 [-2.10, -0.53] | +0.11 [-0.21, +0.44] | +0.02 [-0.14, +0.17] |
+| sign agreement | MIXED | consistent | MIXED | MIXED | MIXED | MIXED | MIXED |
 
 ## Q5d Reward-based candidate selection vs M1 (select − m1)
 
-| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap32 Δ (pp) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
-|---|---|---|---|---|---|---|
-| 0 | -0.230 [-0.348, -0.108] (-6.5%) | -0.241 [-0.319, -0.164] (-5.6%) | +0.19 [-0.43, +0.79] | +0.15 [-0.47, +0.74] | -3.26 [-3.76, -2.78] | +0.08 [-0.05, +0.22] |
-| 1 | -0.208 [-0.322, -0.090] (-6.0%) | -0.210 [-0.283, -0.141] (-5.0%) | +0.06 [-0.61, +0.72] | +0.04 [-0.64, +0.68] | -3.07 [-3.56, -2.57] | -0.03 [-0.18, +0.11] |
-| 2 | -0.162 [-0.284, -0.039] (-4.6%) | -0.143 [-0.224, -0.063] (-3.4%) | -0.59 [-1.23, +0.04] | -0.56 [-1.20, +0.07] | -3.05 [-3.54, -2.58] | +0.16 [+0.03, +0.27] |
-| sign agreement | consistent | consistent | MIXED | MIXED | consistent | MIXED |
+| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap6 Δ (pp; the method's own 6 outputs) | clean overlap32 Δ (pp; 32-sample pool — for select_m1 this is the UNSELECTED pool) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
+|---|---|---|---|---|---|---|---|
+| 0 | -0.230 [-0.348, -0.108] (-6.5%) | -0.241 [-0.319, -0.164] (-5.6%) | -14.76 [-16.93, -12.86] | +0.19 [-0.43, +0.79] | +0.15 [-0.47, +0.74] | -3.26 [-3.76, -2.78] | +0.08 [-0.05, +0.22] |
+| 1 | -0.208 [-0.322, -0.090] (-6.0%) | -0.210 [-0.283, -0.141] (-5.0%) | -13.66 [-15.67, -11.68] | +0.06 [-0.61, +0.72] | +0.04 [-0.64, +0.68] | -3.07 [-3.56, -2.57] | -0.03 [-0.18, +0.11] |
+| 2 | -0.162 [-0.284, -0.039] (-4.6%) | -0.143 [-0.224, -0.063] (-3.4%) | -12.89 [-14.96, -11.00] | -0.59 [-1.23, +0.04] | -0.56 [-1.20, +0.07] | -3.05 [-3.54, -2.58] | +0.16 [+0.03, +0.27] |
+| sign agreement | consistent | consistent | consistent | MIXED | MIXED | consistent | MIXED |
 
 ## Q5e RL vs extra-SFT control (rl − extra_sft)
 
-| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap32 Δ (pp) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
-|---|---|---|---|---|---|---|
-| 0 | +1.050 [+0.864, +1.234] (+30.4%) | +1.606 [+1.431, +1.781] (+37.3%) | -11.47 [-13.13, -9.96] | -11.45 [-13.12, -9.92] | -1.28 [-1.79, -0.80] | -1.69 [-1.96, -1.40] |
-| 1 | +0.940 [+0.769, +1.113] (+27.1%) | +1.540 [+1.365, +1.710] (+36.6%) | -10.87 [-12.48, -9.41] | -10.80 [-12.39, -9.35] | -1.12 [-1.52, -0.70] | -1.16 [-1.43, -0.90] |
-| 2 | +0.647 [+0.465, +0.838] (+18.5%) | +1.012 [+0.863, +1.157] (+23.8%) | -8.94 [-10.24, -7.58] | -8.93 [-10.23, -7.57] | -1.38 [-1.84, -0.94] | -1.00 [-1.26, -0.74] |
-| sign agreement | consistent | consistent | consistent | consistent | consistent | consistent |
+| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap6 Δ (pp; the method's own 6 outputs) | clean overlap32 Δ (pp; 32-sample pool — for select_m1 this is the UNSELECTED pool) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
+|---|---|---|---|---|---|---|---|
+| 0 | +1.050 [+0.864, +1.234] (+30.4%) | +1.606 [+1.431, +1.781] (+37.3%) | -10.55 [-12.63, -8.73] | -11.47 [-13.13, -9.96] | -11.45 [-13.12, -9.92] | -1.28 [-1.79, -0.80] | -1.69 [-1.96, -1.40] |
+| 1 | +0.940 [+0.769, +1.113] (+27.1%) | +1.540 [+1.365, +1.710] (+36.6%) | -9.29 [-11.19, -7.56] | -10.87 [-12.48, -9.41] | -10.80 [-12.39, -9.35] | -1.12 [-1.52, -0.70] | -1.16 [-1.43, -0.90] |
+| 2 | +0.647 [+0.465, +0.838] (+18.5%) | +1.012 [+0.863, +1.157] (+23.8%) | -8.12 [-9.87, -6.31] | -8.94 [-10.24, -7.58] | -8.93 [-10.23, -7.57] | -1.38 [-1.84, -0.94] | -1.00 [-1.26, -0.74] |
+| sign agreement | consistent | consistent | consistent | consistent | consistent | consistent | consistent |
 
 ## Q5f RL vs reward-filtered-SFT control (rl − filtered_sft)
 
-| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap32 Δ (pp) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
-|---|---|---|---|---|---|---|
-| 0 | +0.896 [+0.715, +1.069] (+24.8%) | +1.529 [+1.369, +1.695] (+34.9%) | -10.75 [-12.31, -9.38] | -10.67 [-12.21, -9.31] | -1.35 [-1.81, -0.89] | -1.61 [-1.90, -1.31] |
-| 1 | +0.851 [+0.688, +1.016] (+23.9%) | +1.357 [+1.206, +1.506] (+30.9%) | -10.02 [-11.48, -8.66] | -9.90 [-11.34, -8.53] | -1.23 [-1.66, -0.80] | -1.19 [-1.46, -0.92] |
-| 2 | +0.651 [+0.483, +0.832] (+18.7%) | +0.959 [+0.820, +1.099] (+22.3%) | -7.67 [-8.90, -6.43] | -7.65 [-8.87, -6.42] | -1.27 [-1.78, -0.80] | -1.00 [-1.23, -0.78] |
-| sign agreement | consistent | consistent | consistent | consistent | consistent | consistent |
+| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap6 Δ (pp; the method's own 6 outputs) | clean overlap32 Δ (pp; 32-sample pool — for select_m1 this is the UNSELECTED pool) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
+|---|---|---|---|---|---|---|---|
+| 0 | +0.896 [+0.715, +1.069] (+24.8%) | +1.529 [+1.369, +1.695] (+34.9%) | -9.95 [-12.00, -8.15] | -10.75 [-12.31, -9.38] | -10.67 [-12.21, -9.31] | -1.35 [-1.81, -0.89] | -1.61 [-1.90, -1.31] |
+| 1 | +0.851 [+0.688, +1.016] (+23.9%) | +1.357 [+1.206, +1.506] (+30.9%) | -10.02 [-12.01, -8.32] | -10.02 [-11.48, -8.66] | -9.90 [-11.34, -8.53] | -1.23 [-1.66, -0.80] | -1.19 [-1.46, -0.92] |
+| 2 | +0.651 [+0.483, +0.832] (+18.7%) | +0.959 [+0.820, +1.099] (+22.3%) | -7.48 [-9.17, -5.88] | -7.67 [-8.90, -6.43] | -7.65 [-8.87, -6.42] | -1.27 [-1.78, -0.80] | -1.00 [-1.23, -0.78] |
+| sign agreement | consistent | consistent | consistent | consistent | consistent | consistent | consistent |
 
 ## Q5g RL vs reward-based candidate selection (rl − select_m1; select draws 32 candidates per scene)
 
-| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap32 Δ (pp) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
-|---|---|---|---|---|---|---|
-| 0 | +1.173 [+0.998, +1.339] (+35.2%) | +1.819 [+1.653, +1.987] (+44.5%) | -10.61 [-12.18, -9.20] | -10.53 [-12.10, -9.13] | +2.08 [+1.60, +2.57] | -1.71 [-1.99, -1.43] |
-| 1 | +1.137 [+0.952, +1.325] (+34.7%) | +1.722 [+1.558, +1.885] (+42.8%) | -11.96 [-13.59, -10.42] | -11.85 [-13.51, -10.26] | +1.73 [+1.32, +2.15] | -1.15 [-1.43, -0.89] |
-| 2 | +0.806 [+0.627, +0.995] (+24.2%) | +1.187 [+1.047, +1.332] (+29.1%) | -8.41 [-9.75, -7.08] | -8.38 [-9.72, -7.07] | +1.88 [+1.43, +2.34] | -1.14 [-1.38, -0.90] |
-| sign agreement | consistent | consistent | consistent | consistent | consistent | consistent |
+| seed | clean jminADE Δ | core-suite jminADE Δ | clean overlap6 Δ (pp; the method's own 6 outputs) | clean overlap32 Δ (pp; 32-sample pool — for select_m1 this is the UNSELECTED pool) | clean overlap32 jointly-valid Δ (pp) | clean offroad Δ (pp) | clean diversity32 Δ (m) |
+|---|---|---|---|---|---|---|---|
+| 0 | +1.173 [+0.998, +1.339] (+35.2%) | +1.819 [+1.653, +1.987] (+44.5%) | +4.21 [+3.01, +5.41] | -10.61 [-12.18, -9.20] | -10.53 [-12.10, -9.13] | +2.08 [+1.60, +2.57] | -1.71 [-1.99, -1.43] |
+| 1 | +1.137 [+0.952, +1.325] (+34.7%) | +1.722 [+1.558, +1.885] (+42.8%) | +3.71 [+2.61, +4.88] | -11.96 [-13.59, -10.42] | -11.85 [-13.51, -10.26] | +1.73 [+1.32, +2.15] | -1.15 [-1.43, -0.89] |
+| 2 | +0.806 [+0.627, +0.995] (+24.2%) | +1.187 [+1.047, +1.332] (+29.1%) | +4.41 [+3.21, +5.81] | -8.41 [-9.75, -7.08] | -8.38 [-9.72, -7.07] | +1.88 [+1.43, +2.34] | -1.14 [-1.38, -0.90] |
+| sign agreement | consistent | consistent | consistent | consistent | consistent | consistent | consistent |
 
 ## Q6b Post-training behaviour summary (clean dev; scene-level means over seeds; 6-sample metrics unless 32 noted)
 

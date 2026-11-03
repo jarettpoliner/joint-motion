@@ -254,10 +254,10 @@ def fig_rl_controls(data, grp, seeds, out, label, sources):
         if key.endswith("overlap_rate") and ("oracle_log", "clean") in data and "overlap_rate" in data[("oracle_log", "clean")]:
             ax.axhline(100 * np.nanmean(data[("oracle_log", "clean")]["overlap_rate"]), color="k", ls=":", lw=1)
         ax.set_xticks(range(len(bases)))
-        ax.set_xticklabels([SHORT[b] for b in bases], fontsize=6.5)
+        ax.set_xticklabels([{"m1_pilot": "M1", "select_m1": "M1+sel", "extra_sft_pilot": "M1+xSFT", "filtered_sft_pilot": "M1+fSFT", "rl_pilot": "M1+RL"}.get(b, b) for b in bases], fontsize=7)
         ax.set_title(ttl, fontsize=8)
         ax.spines[["top", "right"]].set_visible(False)
-    fig.suptitle(f"Bounded RL vs controls (all initialised from the dev-selected M1 checkpoint) — mean over seeds {seeds}, group-bootstrap 95 % CI; dotted = log-playback overlap reference — {label}", fontsize=8.5)
+    fig.suptitle(f"Bounded RL vs controls (all from the dev-selected M1 checkpoint; sel = best 6 of 32 by reward, xSFT = extra SFT, fSFT = reward-filtered SFT) — mean over seeds {seeds}, group-bootstrap 95 % CI — {label}", fontsize=8.5)
     save(fig, out, "fig_rl_controls", sources)
 
 

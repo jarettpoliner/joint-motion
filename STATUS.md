@@ -1,6 +1,6 @@
 # STATUS.md
 
-Updated: 2026-11-03 11:20 (session 2). Last commit: see `git log -1`.
+Updated: 2026-11-03 15:35 (session 3). Last commit: see `git log -1`.
 
 ## Overall: REAL-DATA CAMPAIGN RUNNING — data, manifests, calibration and overfit gates passed; pilots training
 
@@ -20,8 +20,10 @@ Updated: 2026-11-03 11:20 (session 2). Last commit: see `git log -1`.
 | 4a' Preliminary matched dev eval (seed 0; cp/cv/oracle/M0/M1/Mind, 500 scenes, 10 conditions) | done | <data_root>/runs/eval_dev_prelim; reports/tables/dev_prelim/{table.md,comparison.md} |
 | 6' Preliminary deliverables | done (PRELIMINARY) | reports/figures/{fig_architecture,fig_real_scenes}.{pdf,svg,png}; reports/figures/dev_prelim/*; reports/demos/prelim_*/*.{gif,mp4}; slides/waymo_av_results_prelim.{pptx,pdf} |
 | 4b Matched dev evaluation, 3 seeds (cp/cv/oracle_log, M0/M1/Mind × 3, select-control × 3; 10 conditions; 500 scenes) | done | <data_root>/runs/eval_dev; reports/tables/dev/{table,comparison}.md; reports/figures/dev/*; D-029 |
-| 5 RL + controls (rl, filtered_sft, extra_sft × 3 seeds) + their dev eval | RUNNING (<data_root>/logs/campaign_posttrain.log) | registry/runs/{rl,filtered_sft,extra_sft}_pilot_s*.json |
-| 6 Freeze, final evaluation, report, animations | pending | — |
+| 5 RL + controls (rl, filtered_sft, extra_sft × 3 seeds) + matched dev eval (90/90 outputs verified) | done — MIXED/NEGATIVE RL outcome (D-031) | registry/runs/{rl,filtered_sft,extra_sft}_pilot_s*.json; reports/tables/dev/comparison.md Q5–Q6; manifests/stopping_diagnostic.json |
+| 6a Freeze | done | manifests/freeze.json (21 learned methods + cp/cv/oracle_log; sampling 6/32, T 1.0, top-p 0.95; thresholds; comparison rules) |
+| 6b Locked final evaluation (1,000 scenes × 10 conditions × 24 methods) | RUNNING (<data_root>/logs/campaign_final_eval.log) | <data_root>/runs/eval_final → reports/tables/final, reports/figures/final |
+| 6c Final report, deck, animations | pending final_eval | — |
 
 ## Resource use so far
 
@@ -38,6 +40,7 @@ Updated: 2026-11-03 11:20 (session 2). Last commit: see `git log -1`.
 - Q3 M1 vs M0 clean: jminADE −5.7/−5.1/−7.2 % (significant); offroad lower in all seeds; overlap mixed (CIs include 0).
 - Q4 seeds: same sign in all seeds for Q1-overlap, Q2, Q3-clean/offroad. Preregistered verdict: PASS 1/3 (overlap guardrail ≤ +0.5 pp met only for seed 2; no CI excludes 0).
 - Overlap reference (jointly valid intervals): 1.0 % of logged dev futures; model overlap ≈ 15 % (6 samples, full horizon); best-6-of-32 reward selection: 0.6–1.8 %.
+- RL vs M1 (dev, D-031): overlap32 −9 to −12 pp, offroad −1.2 pp, BUT clean jminADE +18–27 %, diversity −1.0 to −1.7 m, excessive stopping 3.5 % vs 0.4 % → fails the frozen rule; selection control dominates (clean −5 %, overlap 1 %, offroad −3 pp) at 32-sample cost.
 
 ## Known gaps
 - Official Waymo metrics package could not be installed (D-019a); custom metrics audited on analytic cases and oracles only.

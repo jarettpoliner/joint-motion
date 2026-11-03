@@ -262,3 +262,29 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   pre-RL methods). GPUs 0 and 1 are each occupied by an unrelated user process (another project,
   ≈ 3.6 GB, ≈ 95 % util, not terminated); evaluation shares GPU 0 (< 2 GB, inference only), which
   slows both and is recorded as a timing caveat only. GPU-hours used before resumption: 2.26.
+- D-031 (2026-11-03) — Bounded RL and controls, matched development evaluation (3 seeds; 500 dev
+  scenes; identical conditions/sampling; group-bootstrap CIs; reports/tables/dev/comparison.md
+  Q5–Q6; all runs initialised from the dev-selected M1 checkpoint; RL = REINFORCE K=8, LOO
+  baseline, KL 0.1, replay, 600 steps, lr 2e-5; controls matched in steps/lr).
+  RL − M1 (clean): joint minADE@6 +0.94/+0.93/+0.64 m (+26.5/+26.7/+18.4 %), core suite
+  +36.5/+35.7/+24.7 %, overlap (32 samples) −10.4/−11.9/−9.0 pp (jointly-valid: same), offroad
+  −1.2/−1.3/−1.2 pp, diversity (mean pairwise FDE, 32) −1.6/−1.2/−1.0 m; implausible-kinematics
+  rate unchanged (≈ 0). All signs consistent across seeds. Excessive-stopping diagnostic
+  (manifests/stopping_diagnostic.json; eligible = agent with valid logged final step moving
+  > 5 m; stopped = predicted final displacement < 1 m; 17,082 eligible (agent, sample) pairs
+  pooled over seeds; descriptive, no threshold): RL 3.49 % vs M1 0.43 %, extra-SFT 0.43 %,
+  filtered-SFT 0.58 %, selection 0.44 %, M0 0.52 % — RL stops eligible agents ≈ 8× more often.
+  Controls − M1: extra-SFT ≈ 0 on every axis (clean −3.0/−0.3/−0.1 %, overlap32 +1.1/−1.0/−0.1
+  pp); reward-filtered SFT ≈ 0 on accuracy, overlap32 +0.3/−1.9/−1.3 pp; inference-time
+  selection (best 6 of 32): clean −6.5/−6.0/−4.6 %, core suite −5.6/−5.0/−3.4 %, own-output
+  overlap (6) 1.1/0.6/1.8 % vs M1 15.8/14.2/14.7 %, offroad −3.1 to −3.3 pp, diversity ≈
+  unchanged, at the cost of 32 candidate rollouts + reward scoring per scene (≈ 5× the sampling).
+  Frozen rule (manifests/freeze.json): an RL effect counts only if it beats both SFT controls
+  on overlap without clean jminADE worsening > 3 %. RL beats the controls on overlap by ≈ 10 pp
+  but worsens clean jminADE by 18–27 % → the RL effect does NOT count; outcome recorded as
+  MIXED/NEGATIVE: the policy trades accuracy and diversity for fewer box overlaps, partly by
+  stopping (reward exploitation of the approximate geometric objective), and is dominated on
+  every reported axis by the reward-based candidate-selection control. No further RL tuning
+  (the experiment is not extended; D-028a/b caveat: the overlap reward is an approximate
+  geometric-consistency objective, not a verified safety measure). Wall-clock timings in the
+  tables are descriptive (shared GPU) and establish no speed ranking.

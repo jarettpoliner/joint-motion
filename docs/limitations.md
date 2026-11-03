@@ -38,3 +38,9 @@
   objective, not a verified safety measure.
 - **Bootstrap unit.** CIs resample heuristic source-segment groups (D-025a); the grouping is
   derived from SDC motion matching and cannot guarantee independence.
+- **RL outcome (D-031).** Bounded REINFORCE post-training lowered box overlap but worsened clean
+  accuracy by 18–27 % and diversity, with ≈ 8× more excessive stopping; by the frozen rule the
+  RL effect does not count, and the inference-time candidate-selection control dominates it.
+  Reward curves during training are not held-out improvements.
+- **Timings.** Seconds-per-scene figures were measured on a GPU shared with unrelated jobs; they
+  are descriptive and do not rank methods by speed. Sampling counts per scene are the cost driver.
