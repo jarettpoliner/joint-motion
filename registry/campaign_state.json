@@ -2,23 +2,51 @@
  "stages": {
   "audit": {
    "status": "completed",
-   "t": "2026-11-03T07:19:39",
+   "t": "2026-11-03T08:13:27",
    "gpu_hours_used": 0.006271430850028991,
    "disk": {
-    "free_bytes": 1011425640448,
-    "free_after": 1011425640448,
-    "project_bytes": 225472473,
+    "free_bytes": 985198665728,
+    "free_after": 985198665728,
+    "project_bytes": 26429309668,
     "min_free": 386547056640,
     "max_project": 107374182400
    },
    "gcloud_auth": true,
-   "nvidia_smi": "0, NVIDIA RTX 4000 Ada Generation, 351 MiB, 20475 MiB, 0 %\n1, NVIDIA RTX 4000 Ada Generation, 6023 MiB, 20475 MiB, 8 %"
+   "nvidia_smi": "0, NVIDIA RTX 4000 Ada Generation, 351 MiB, 20475 MiB, 3 %\n1, NVIDIA RTX 4000 Ada Generation, 6100 MiB, 20475 MiB, 42 %"
   },
   "download": {
    "status": "completed",
-   "t": "2026-11-03T07:37:14",
-   "train_shards": 24,
-   "val_shards": 8
+   "t": "2026-11-03T08:13:27",
+   "skipped": true,
+   "train_shards": 48,
+   "val_shards": 12
+  },
+  "preprocess": {
+   "status": "completed",
+   "t": "2026-11-03T08:13:28"
+  },
+  "manifests": {
+   "status": "completed",
+   "t": "2026-11-03T08:13:28",
+   "skipped": true
+  },
+  "calibrate": {
+   "status": "completed",
+   "t": "2026-11-03T08:13:28",
+   "skipped": true
+  },
+  "overfit": {
+   "status": "completed",
+   "t": "2026-11-03T08:14:56",
+   "best": {
+    "score": 0.09314770238688652,
+    "step": 200,
+    "dev": {
+     "nll_clean": 0.012900752405966482,
+     "jminADE6_clean": 0.09314770238688652,
+     "selection_score": 0.09314770238688652
+    }
+   }
   }
  }
 }

@@ -10,3 +10,6 @@
 {"t": "2026-11-02T22:54:36", "name": "synthetic_fsft_smoke", "kind": "filtered_sft", "status": "registered", "commit": "ea127b1"}
 {"t": "2026-11-02T22:54:36", "name": "synthetic_fsft_smoke", "status": "running"}
 {"t": "2026-11-02T22:54:41", "name": "synthetic_fsft_smoke", "status": "completed", "step": 12, "elapsed_s": 5.457495450973511, "ckpt_final": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_fsft_smoke/ckpt_final.pt"}
+{"t": "2026-11-03T08:13:30", "name": "m0_overfit", "kind": "train", "status": "registered", "commit": "d4d65b8"}
+{"t": "2026-11-03T08:13:30", "name": "m0_overfit", "status": "running", "step": 0}
+{"t": "2026-11-03T08:14:55", "name": "m0_overfit", "status": "completed", "step": 600, "elapsed_s": 84.89717411994934, "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_overfit/ckpt_best.pt", "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_overfit/ckpt_last.pt"}

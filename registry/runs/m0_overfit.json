@@ -1,0 +1,80 @@
+{
+ "name": "m0_overfit",
+ "kind": "train",
+ "created": "2026-11-03T08:13:30",
+ "status": "completed",
+ "events": [
+  {
+   "t": "2026-11-03T08:13:30",
+   "status": "registered",
+   "pid": 1123972
+  },
+  {
+   "t": "2026-11-03T08:13:30",
+   "status": "running",
+   "pid": 1123972
+  },
+  {
+   "t": "2026-11-03T08:14:55",
+   "status": "completed",
+   "pid": 1123972
+  }
+ ],
+ "config": {
+  "run_name": "m0_overfit",
+  "train_manifest": "manifests/overfit.json",
+  "dev_manifest": "manifests/overfit.json",
+  "corruption": "clean",
+  "seed": 0,
+  "model": {
+   "d_model": 128,
+   "n_heads": 4,
+   "d_ff": 512,
+   "n_latents": 64,
+   "enc_layers": 2,
+   "dec_layers": 4,
+   "dropout": 0.0,
+   "max_agent_slots": 32
+  },
+  "batch_size": 16,
+  "lr": 0.0005,
+  "warmup_steps": 50,
+  "total_steps": 600,
+  "schedule": "cosine",
+  "weight_decay": 0.01,
+  "grad_clip": 1.0,
+  "log_every": 25,
+  "eval_every": 200,
+  "dev_eval_scenes": 32,
+  "eval_batch_size": 32,
+  "num_workers": 4,
+  "amp": true,
+  "planned_gpu_hours": 0.1
+ },
+ "code_commit": "d4d65b8",
+ "code_dirty": true,
+ "pid": 1123972,
+ "run_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_overfit",
+ "n_params": 1787049,
+ "n_train": 32,
+ "n_dev": 32,
+ "device": "cuda:0",
+ "step": 600,
+ "best": {
+  "score": 0.09314770238688652,
+  "step": 200,
+  "dev": {
+   "nll_clean": 0.012900752405966482,
+   "jminADE6_clean": 0.09314770238688652,
+   "selection_score": 0.09314770238688652
+  }
+ },
+ "elapsed_s": 84.89717411994934,
+ "last_dev": {
+  "nll_clean": 0.00021393120813229915,
+  "jminADE6_clean": 0.09314770238688652,
+  "selection_score": 0.09314770238688652
+ },
+ "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_overfit/ckpt_best.pt",
+ "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_overfit/ckpt_last.pt"
+}

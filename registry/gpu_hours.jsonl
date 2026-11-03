@@ -5,3 +5,6 @@
 {"t": "2026-11-02T22:54:33", "run": "synthetic_rl_smoke", "gpu_seconds": 2.835948944091797, "note": "step 12"}
 {"t": "2026-11-02T22:54:38", "run": "synthetic_fsft_smoke", "gpu_seconds": 2.807589054107666, "note": "step 6"}
 {"t": "2026-11-02T22:54:41", "run": "synthetic_fsft_smoke", "gpu_seconds": 2.5540788173675537, "note": "step 12"}
+{"t": "2026-11-03T08:13:58", "run": "m0_overfit", "gpu_seconds": 28.3698787689209, "note": "step 200"}
+{"t": "2026-11-03T08:14:27", "run": "m0_overfit", "gpu_seconds": 28.196298360824585, "note": "step 400"}
+{"t": "2026-11-03T08:14:55", "run": "m0_overfit", "gpu_seconds": 28.288939237594604, "note": "step 600"}
