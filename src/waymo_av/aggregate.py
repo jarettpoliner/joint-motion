@@ -85,7 +85,7 @@ def aggregate(eval_dir: Path, reference: str | None, out_dir: Path, n_boot: int 
     json.dump(summary, open(out_dir / "summary.json", "w"), indent=1, default=float)
     json.dump(paired, open(out_dir / "paired_vs_reference.json", "w"), indent=1, default=float)
     # markdown table
-    lines = ["| method | condition | n | joint minADE@6 8s | joint minFDE@6 8s | marginal minADE 8s | overlap rate (6) | overlap (32) | offroad frac | implausible | diversity FDE |", "|---|---|---|---|---|---|---|---|---|---|---|"]
+    lines = ["| method | condition | n | joint minADE@6 8s | joint minFDE@6 8s | marginal minADE 8s | overlap rate (6, full horizon) | overlap jointly-valid (6) | overlap (32) | offroad frac | implausible | diversity FDE |", "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for c in conds:
         for m in methods:
             s = summary.get(f"{m}|{c}")
@@ -98,7 +98,7 @@ def aggregate(eval_dir: Path, reference: str | None, out_dir: Path, n_boot: int 
                 lo, hi = s[k + "_ci"]
                 return f"{s[k]:.{p}f} [{lo:.{p}f}, {hi:.{p}f}]"
 
-            lines.append(f"| {m} | {c} | {s['n']} | {f('joint_minADE_8s')} | {f('joint_minFDE_8s')} | {f('marginal_minADE_8s')} | {f('overlap_rate',4)} | {f('audit32_overlap_rate',4)} | {f('offroad_frac',4)} | {f('implausible_rate',4)} | {f('diversity_fde',2)} |")
+            lines.append(f"| {m} | {c} | {s['n']} | {f('joint_minADE_8s')} | {f('joint_minFDE_8s')} | {f('marginal_minADE_8s')} | {f('overlap_rate',4)} | {f('overlap_rate_jointvalid',4)} | {f('audit32_overlap_rate',4)} | {f('offroad_frac',4)} | {f('implausible_rate',4)} | {f('diversity_fde',2)} |")
     if paired:
         unit = next(iter(paired.values()))["joint_minADE_8s"].get("unit", "scenario")
         lines += ["", f"Paired differences vs `{reference}` (method − reference; {unit}-level bootstrap 95% CI; groups = heuristic source-segment components, D-025):", "", "| method | condition | Δ joint minADE@6 8s | rel. Δ | Δ overlap rate (pp) | n |", "|---|---|---|---|---|---|"]
@@ -107,6 +107,7 @@ def aggregate(eval_dir: Path, reference: str | None, out_dir: Path, n_boot: int 
             d = v["joint_minADE_8s"]
             o = v.get("overlap_rate", {"delta": np.nan, "ci_low": np.nan, "ci_high": np.nan})
             lines.append(f"| {m} | {c} | {d['delta']:+.3f} [{d['ci_low']:+.3f}, {d['ci_high']:+.3f}] | {100*d['rel_delta']:+.1f}% [{100*d['rel_ci_low']:+.1f}%, {100*d['rel_ci_high']:+.1f}%] | {100*o['delta']:+.2f} [{100*o['ci_low']:+.2f}, {100*o['ci_high']:+.2f}] | {d['n']} |")
+    lines += ["", "Denominators: `overlap rate (6, full horizon)` = fraction of (scene, sample) pairs with any box overlap over the full 80-step generated horizon, scenes with initial overlap excluded, NaN for logged futures; `overlap jointly-valid` = same test restricted to sub-steps where both targets have valid logged labels (defined for generated and logged trajectories on identical intervals; the oracle_log row is the reference rate); `offroad frac` = vehicle targets only, full horizon (logged: valid steps only); cp/cv are deterministic single trajectories; learned models use 6 joint samples (32 for the audit columns)."]
     (out_dir / "table.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     return summary, paired
