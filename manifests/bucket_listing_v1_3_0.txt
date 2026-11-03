@@ -1,0 +1,6 @@
+gs://waymo_open_dataset_motion_v_1_3_0/uncompressed/scenario/testing/
+gs://waymo_open_dataset_motion_v_1_3_0/uncompressed/scenario/testing_interactive/
+gs://waymo_open_dataset_motion_v_1_3_0/uncompressed/scenario/training/
+gs://waymo_open_dataset_motion_v_1_3_0/uncompressed/scenario/training_20s/
+gs://waymo_open_dataset_motion_v_1_3_0/uncompressed/scenario/validation/
+gs://waymo_open_dataset_motion_v_1_3_0/uncompressed/scenario/validation_interactive/

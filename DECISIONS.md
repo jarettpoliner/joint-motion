@@ -100,3 +100,38 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
 - D-020 (2026-11-02) — Fresh-environment verification: a new venv built from requirements/train.lock
   + `pip install -e .` + scripts/build_protos.sh passed all 28 tests (CPU). The verification venv was
   deleted afterwards to save space; the procedure is in README.md.
+- D-021 (2026-11-03) — Authenticated WOMD access verified (`gcloud auth list` shows the licence
+  account; bucket listing and `gsutil cp` succeed). Dataset: gs://waymo_open_dataset_motion_v_1_3_0
+  scenario format (training shards ≈ 450 MB, ≈ 496 scenarios each; validation shards ≈ 270 MB).
+  Training shard 0: 496 records → 200 usable windows; 287 have no 2-agent `objects_of_interest`
+  pair (excluded by the data contract D-007), 9 (1.8 %) fail the 10 Hz uniform-timestamp assertion
+  (one dropped frame, dt = 0.2 s) and are EXCLUDED rather than interpolated. Exclusion counts are
+  recorded per shard in <processed>/<split>/manifest_<shard>.json.
+- D-022 (2026-11-03) — Shard count raised from 24 to 48 training shards (≈ 9.6k usable windows,
+  matching the brief's ~10k pilot size; +≈ 11 GB raw, well inside the 100 GiB ceiling) and 8
+  validation shards (≈ 1.6k usable windows for dev-independent final selection). Dev (500) is drawn
+  from training shards and removed from train; final (1000) is drawn from validation shards and
+  locked before any model evaluation.
+- D-023 (2026-11-03) — Real-scene visual inspection (reports/figures/inspect_training_shard0.png,
+  six random windows): targets lie inside lanes with headings along lane direction, road-edge
+  polylines bound the drivable area, traffic-signal stop points show red/green states on the
+  matching lanes, history and future are continuous; pedestrian targets render with small boxes.
+  No coordinate-frame or map-type mismatch observed. Map points saturate the 3000-point cap in
+  dense scenes; the per-target feature builder keeps the nearest 1024 (features.py), unchanged.
+- D-024 (2026-11-03) — Timestamp contract audit (scripts/audit_timestamps.py →
+  manifests/timestamp_audit.json; first 24 training + 8 validation shards, 14,128 scenarios).
+  372 scenarios (2.6 %) violate uniform 10 Hz spacing (|dt − 0.1| > 2 ms). Causes differ:
+  (a) dropped frames: one or more dt ≈ 0.2/0.3 s (224 + 11 scenarios), which shift every later
+  frame index by ≥ 0.1 s so the label indices 10+5k no longer sit at 0.5 s multiples;
+  (b) first-interval jitter: only dt[0] deviates (0.057–0.109 s, 129 scenarios), time span still
+  ≈ 9 s — this is the 0.05866 s example seen in shard 0; (c) one scenario with 2.2–2.5 ms jitter.
+  Among scenarios WITH an `objects_of_interest` pair (the only ones the project uses) the failures
+  are 98 of 5,705 (1.7 %): 92 single dropped frame, 5 multiple dropped frames, 1 small jitter
+  (0.102/0.098 s); none has first-interval jitter. RULE (unchanged, not loosened): a window is used
+  only if all 90 intervals satisfy |dt − 0.1 s| ≤ 2 ms, because the model, tokenizer (Verlet step =
+  0.5 s), corruption schedule and metrics all index time by frame number; interpolating dropped
+  frames would fabricate observations. The single 2.5 ms-jitter pair scenario is excluded by the
+  same rule (negligible loss; documented rather than special-cased). Note: the per-shard
+  `n_contract_errors` in processed manifests counts ALL scenarios failing the timing check,
+  including the ~75 % without a pair; the audit file gives the pair-specific counts. The audit is
+  re-run on all 48 training shards once downloaded and its totals go into the report.

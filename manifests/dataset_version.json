@@ -1,0 +1,9 @@
+{
+ "dataset": "Waymo Open Motion Dataset",
+ "version": "1.3.0",
+ "raw_subdir": "womd_v1_3_0",
+ "format": "scenario tfrecord",
+ "bucket": "gs://waymo_open_dataset_motion_v_1_3_0",
+ "listed": "2026-11-03",
+ "listing_sha256": "d34a243222ae7bc2443da13cc8691847e2b34455f7dfb82a81798c091be3cfa1"
+}

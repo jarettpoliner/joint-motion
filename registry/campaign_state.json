@@ -2,22 +2,23 @@
  "stages": {
   "audit": {
    "status": "completed",
-   "t": "2026-11-02T22:58:56",
+   "t": "2026-11-03T07:19:39",
    "gpu_hours_used": 0.006271430850028991,
    "disk": {
-    "free_bytes": 1013430308864,
-    "free_after": 1013430308864,
+    "free_bytes": 1011425640448,
+    "free_after": 1011425640448,
     "project_bytes": 225472473,
     "min_free": 386547056640,
     "max_project": 107374182400
    },
-   "gcloud_auth": false,
-   "nvidia_smi": "0, NVIDIA RTX 4000 Ada Generation, 351 MiB, 20475 MiB, 4 %\n1, NVIDIA RTX 4000 Ada Generation, 5787 MiB, 20475 MiB, 8 %"
+   "gcloud_auth": true,
+   "nvidia_smi": "0, NVIDIA RTX 4000 Ada Generation, 351 MiB, 20475 MiB, 0 %\n1, NVIDIA RTX 4000 Ada Generation, 6023 MiB, 20475 MiB, 8 %"
   },
   "download": {
-   "status": "blocked",
-   "t": "2026-11-02T22:58:56",
-   "reason": "no gcloud credential; run: gcloud auth login (account that accepted the WOMD licence)"
+   "status": "completed",
+   "t": "2026-11-03T07:37:14",
+   "train_shards": 24,
+   "val_shards": 8
   }
  }
 }

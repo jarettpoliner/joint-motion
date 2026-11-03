@@ -15,7 +15,10 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
+from waymo_av.baselines import constant_velocity
 from waymo_av.dataset import WindowDataset, collate, load_window, read_manifest
+from waymo_av.geometry import from_ego, to_ego
+from waymo_av.metrics.displacement import displacement_metrics
 from waymo_av.metrics.physical import target_overlap, vehicle_offroad
 from waymo_av.paths import REPO_ROOT
 
@@ -26,6 +29,7 @@ def main(manifest: str = "manifests/dev.json", limit: int = 500):
     dl = DataLoader(ds, batch_size=32, shuffle=False, num_workers=4, collate_fn=collate)
     sat, rec, tok_counter, d0s = [], [], Counter(), []
     off_pos, off_neg, valid_hist, fut_valid, init_ov, types = [], [], [], [], [], Counter()
+    fut_ov, xform_err, cv_ade, cv_fde, d0_err, zero_err = [], [], [], [], [], []
     for b in dl:
         sat.append(b["saturated"].numpy()[b["token_valid"].numpy()])
         rec.append(b["recon_err"].numpy()[b["token_valid"].numpy()])
@@ -45,6 +49,22 @@ def main(manifest: str = "manifests/dev.json", limit: int = 500):
         off_neg.append(np.nanmean(fn) if not np.isnan(fn).all() else np.nan)
         ov = target_overlap(gt, cur, b["cur_heading"].numpy(), b["target_size"][..., :2].numpy())
         init_ov.append(ov["initial_overlap"].mean())
+        fut_ov.append(ov["overlap"].mean())
+        # coordinate transforms: scene -> ego -> scene round trip on real agent positions
+        for w in wins:
+            o, h = w.agent_xy[0, 10].astype(np.float64), float(w.agent_heading[0, 10])
+            pts = w.agent_xy[w.agent_valid].astype(np.float64)
+            xform_err.append(np.abs(from_ego(to_ego(pts, o, h), o, h) - pts).max())
+        # prediction initialisation: d0 (LS velocity over last 0.5 s) vs true displacement over the
+        # first 0.5 s of the future; and the clean CV baseline displacement error
+        gtv = b["gt_future_valid"].numpy()
+        true_d0 = gt[:, 0, :, 0] - cur  # scene frame
+        eh = b["ego_heading"].numpy()
+        d0_scene = np.stack([np.stack([from_ego(b["d0"].numpy()[k, i][None].astype(np.float64), np.zeros(2), float(eh[k, i]))[0] for i in range(2)]) for k in range(len(eh))])
+        d0_err.append(np.linalg.norm(d0_scene - true_d0, axis=-1)[gtv[:, :, 0]])
+        zero_err.append(np.linalg.norm(true_d0, axis=-1)[gtv[:, :, 0]])
+        cvm = displacement_metrics(constant_velocity(b), gt[:, 0], gtv)
+        cv_ade.append(cvm["joint_minADE_8s"]); cv_fde.append(cvm["joint_minFDE_8s"])
     sat = np.concatenate(sat)
     rec = np.concatenate(rec)
     d0 = np.concatenate(d0s)
@@ -58,6 +78,10 @@ def main(manifest: str = "manifests/dev.json", limit: int = 500):
         "history_valid_frac_targets": float(np.mean(valid_hist)),
         "future_valid_frac_targets": float(np.mean(fut_valid)),
         "initial_overlap_rate_gt": float(np.mean(init_ov)),
+        "future_overlap_rate_gt": float(np.mean(fut_ov)),
+        "transform_roundtrip_max_err_m": float(np.max(xform_err)),
+        "d0_init": {"mean_err_m_vs_true_first_half_second": float(np.concatenate(d0_err).mean()), "p99_err_m": float(np.percentile(np.concatenate(d0_err), 99)), "zero_velocity_err_m": float(np.concatenate(zero_err).mean())},
+        "cv_baseline_clean": {"joint_minADE_8s": float(np.nanmean(np.concatenate(cv_ade))), "joint_minFDE_8s": float(np.nanmean(np.concatenate(cv_fde)))},
         "target_types": dict(types),
         "offroad_oracle": {"sign_+1": op, "sign_-1": on, "chosen_sign": sign, "oracle_offroad_frac_with_chosen_sign": best, "metric_valid": bool(best < 0.02)},
     }
