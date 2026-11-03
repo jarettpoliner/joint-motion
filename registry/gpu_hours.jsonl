@@ -67,3 +67,5 @@
 {"t": "2026-11-03T09:13:55", "run": "m1_pilot_s1", "gpu_seconds": 71.80593132972717, "note": "step 9000"}
 {"t": "2026-11-03T09:15:20", "run": "m1_pilot_s1", "gpu_seconds": 84.73400259017944, "note": "step 10000"}
 {"t": "2026-11-03T09:16:47", "run": "m1_pilot_s1", "gpu_seconds": 86.73700857162476, "note": "step 11000"}
+{"t": "2026-11-03T09:18:29", "run": "m1_pilot_s1", "gpu_seconds": 102.15422224998474, "note": "step 12000"}
+{"t": "2026-11-03T09:19:57", "run": "mind_pilot_s1", "gpu_seconds": 80.65273475646973, "note": "step 1000"}

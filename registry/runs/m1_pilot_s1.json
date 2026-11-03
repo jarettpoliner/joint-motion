@@ -2,7 +2,7 @@
  "name": "m1_pilot_s1",
  "kind": "train",
  "created": "2026-11-03T09:03:14",
- "status": "running",
+ "status": "completed",
  "events": [
   {
    "t": "2026-11-03T09:03:14",
@@ -12,6 +12,11 @@
   {
    "t": "2026-11-03T09:03:14",
    "status": "running",
+   "pid": 2254219
+  },
+  {
+   "t": "2026-11-03T09:18:29",
+   "status": "completed",
    "pid": 2254219
   }
  ],
@@ -55,7 +60,7 @@
  "n_train": 9144,
  "n_dev": 500,
  "device": "cuda:0",
- "step": 11000,
+ "step": 12000,
  "best": {
   "score": 3.843537574755282,
   "step": 10000,
@@ -78,23 +83,25 @@
    "selection_score": 3.843537574755282
   }
  },
- "elapsed_s": 813.18350481987,
+ "elapsed_s": 915.3854029178619,
  "last_dev": {
-  "nll_clean": 2.1006600863501963,
-  "jminADE6_clean": 3.6416437566311743,
-  "nll_missing_0.1": 2.0915591378673093,
-  "jminADE6_missing_0.1": 3.518833369356109,
-  "nll_missing_0.3": 2.0884917752826633,
-  "jminADE6_missing_0.3": 3.43340606902593,
-  "nll_missing_0.5": 2.101772468717444,
-  "jminADE6_missing_0.5": 3.762356209431802,
-  "nll_noise_0.1": 2.2358059710710565,
-  "jminADE6_noise_0.1": 4.041497098894547,
-  "nll_noise_0.3": 2.302798649305981,
-  "jminADE6_noise_0.3": 4.930794784412104,
-  "nll_noise_0.5": 2.367535203647812,
-  "jminADE6_noise_0.5": 5.839780392701185,
-  "jminADE6_suite": 4.254444653970279,
-  "selection_score": 3.948044205300727
- }
+  "nll_clean": 2.104835432641485,
+  "jminADE6_clean": 3.5496481080047824,
+  "nll_missing_0.1": 2.0953263363310453,
+  "jminADE6_missing_0.1": 3.6381740063624983,
+  "nll_missing_0.3": 2.0921477504711055,
+  "jminADE6_missing_0.3": 3.57505431585804,
+  "nll_missing_0.5": 2.1048178080762043,
+  "jminADE6_missing_0.5": 3.832808126342697,
+  "nll_noise_0.1": 2.2381018325239,
+  "jminADE6_noise_0.1": 4.125193637980557,
+  "nll_noise_0.3": 2.3043816285122256,
+  "jminADE6_noise_0.3": 4.861564068851301,
+  "nll_noise_0.5": 2.367838681306686,
+  "jminADE6_noise_0.5": 5.940358191837484,
+  "jminADE6_suite": 4.328858724538763,
+  "selection_score": 3.9392534162717725
+ },
+ "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_best.pt",
+ "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_last.pt"
 }
