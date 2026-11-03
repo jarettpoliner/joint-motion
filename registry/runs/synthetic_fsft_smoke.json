@@ -1,0 +1,69 @@
+{
+ "name": "synthetic_fsft_smoke",
+ "kind": "filtered_sft",
+ "created": "2026-11-02T22:54:36",
+ "status": "completed",
+ "events": [
+  {
+   "t": "2026-11-02T22:54:36",
+   "status": "registered",
+   "pid": 1174308
+  },
+  {
+   "t": "2026-11-02T22:54:36",
+   "status": "running",
+   "pid": 1174308
+  },
+  {
+   "t": "2026-11-02T22:54:41",
+   "status": "completed",
+   "pid": 1174308
+  }
+ ],
+ "config": {
+  "run_name": "synthetic_fsft_smoke",
+  "mode": "filtered_sft",
+  "init_from": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_smoke/ckpt_last.pt",
+  "train_manifest": "manifests/synthetic_train.json",
+  "corruption": "mixture",
+  "seed": 0,
+  "k_samples": 8,
+  "batch_size": 4,
+  "bc_batch_size": 4,
+  "lr": 2e-05,
+  "warmup_steps": 20,
+  "total_steps": 12,
+  "schedule": "linear",
+  "weight_decay": 0.0,
+  "grad_clip": 1.0,
+  "beta_kl": 0.1,
+  "lambda_bc": 1.0,
+  "reward": {
+   "w_overlap": 1.0,
+   "w_offroad": 1.0,
+   "w_kin": 0.5
+  },
+  "log_every": 10,
+  "ckpt_every": 6,
+  "planned_gpu_hours": 1.5
+ },
+ "code_commit": "ea127b1",
+ "code_dirty": true,
+ "pid": 1174308,
+ "run_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_fsft_smoke",
+ "init_from": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_smoke/ckpt_last.pt",
+ "init_step": 90,
+ "step": 12,
+ "elapsed_s": 5.457495450973511,
+ "last": {
+  "step": 12,
+  "loss": 2.6068785190582275,
+  "bc_nll": 1.1946988105773926,
+  "grad_norm": 1.4728378057479858,
+  "reward_mean": -0.3650390625,
+  "reward_best": 0.0,
+  "overlap": 0.21875,
+  "elapsed_s": 5.307502269744873
+ },
+ "ckpt_final": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_fsft_smoke/ckpt_final.pt"
+}

@@ -103,7 +103,7 @@ def train(cfg: dict, resume: bool = False, run_name: str | None = None):
         opt.load_state_dict(ck["opt"])
         step, epoch = ck["step"], ck["epoch"]
         best = ck.get("best", best)
-        torch.set_rng_state(ck["rng"]["torch"])
+        torch.set_rng_state(ck["rng"]["torch"].cpu())
         np.random.set_state(ck["rng"]["np"])
         random.setstate(ck["rng"]["py"])
         print(f"resumed from step {step} epoch {epoch}")

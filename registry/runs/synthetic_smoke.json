@@ -1,0 +1,95 @@
+{
+ "name": "synthetic_smoke",
+ "kind": "train",
+ "created": "2026-11-02T22:49:57",
+ "status": "completed",
+ "events": [
+  {
+   "t": "2026-11-02T22:49:57",
+   "status": "registered",
+   "pid": 1168304
+  },
+  {
+   "t": "2026-11-02T22:49:57",
+   "status": "running",
+   "pid": 1168304
+  },
+  {
+   "t": "2026-11-02T22:50:05",
+   "status": "completed",
+   "pid": 1168304
+  },
+  {
+   "t": "2026-11-02T22:50:20",
+   "status": "completed",
+   "pid": 1169031
+  },
+  {
+   "t": "2026-11-02T22:50:20",
+   "status": "running",
+   "pid": 1169031
+  },
+  {
+   "t": "2026-11-02T22:50:24",
+   "status": "completed",
+   "pid": 1169031
+  }
+ ],
+ "config": {
+  "run_name": "m0_overfit",
+  "train_manifest": "manifests/synthetic_train.json",
+  "dev_manifest": "manifests/synthetic_dev.json",
+  "corruption": "clean",
+  "seed": 0,
+  "model": {
+   "d_model": 128,
+   "n_heads": 4,
+   "d_ff": 512,
+   "n_latents": 64,
+   "enc_layers": 2,
+   "dec_layers": 4,
+   "dropout": 0.0,
+   "max_agent_slots": 32
+  },
+  "batch_size": 16,
+  "lr": 0.0005,
+  "warmup_steps": 50,
+  "total_steps": 90,
+  "schedule": "cosine",
+  "weight_decay": 0.01,
+  "grad_clip": 1.0,
+  "log_every": 10,
+  "eval_every": 30,
+  "dev_eval_scenes": 16,
+  "eval_batch_size": 32,
+  "num_workers": 2,
+  "amp": true,
+  "planned_gpu_hours": 0.01
+ },
+ "code_commit": "ea127b1",
+ "code_dirty": true,
+ "pid": 1169031,
+ "run_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_smoke",
+ "n_params": 1787049,
+ "n_train": 32,
+ "n_dev": 16,
+ "device": "cuda:0",
+ "step": 90,
+ "best": {
+  "score": 3.2532212487479075,
+  "step": 90,
+  "dev": {
+   "nll_clean": 1.367983341217041,
+   "jminADE6_clean": 3.2532212487479075,
+   "selection_score": 3.2532212487479075
+  }
+ },
+ "elapsed_s": 3.98345685005188,
+ "last_dev": {
+  "nll_clean": 1.367983341217041,
+  "jminADE6_clean": 3.2532212487479075,
+  "selection_score": 3.2532212487479075
+ },
+ "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_smoke/ckpt_best.pt",
+ "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_smoke/ckpt_last.pt"
+}

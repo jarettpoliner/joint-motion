@@ -71,3 +71,23 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   run segment. Inference is therefore scenario-level paired bootstrap, declared as the weaker
   inference. Conservative duplicate check: scenario_id uniqueness plus map-feature-id-set overlap
   between dev/final scenarios (documented in manifests).
+- D-016 (2026-11-02) — Initial velocity/delta estimator (used by the tokenizer d0, the CV baseline
+  and the current-step velocity feature): least-squares slope over the valid observed frames in the
+  last 0.5 s (indices 6..10) including the current step; fallback to the difference against the most
+  recent earlier valid frame; zero when none. Rationale: the synthetic smoke test showed that a
+  single-frame (0.1 s) difference turns 0.3 m position noise into ±4 m/s velocity errors (CV
+  joint minADE 6.5 m → 18 m), which would make every method fail for a trivial reason. The
+  estimator still depends only on the corrupted observation (no clean-history bypass).
+- D-017 (2026-11-02) — Checkpoint selection: M0 (clean training) by dev clean joint minADE@6;
+  mixture-trained models by the mean of dev clean and dev core-suite-average joint minADE@6
+  (quick_dev_eval, 256 dev scenes, 6 samples, top-p 0.95). Fixed before any real-data run.
+- D-018 (2026-11-02) — Architecture from profiling (GPU 0, batch 64, bf16 autocast, synthetic
+  windows padded to the real layout: 32 agent slots × 11 steps, 1024 map points, 176 TL tokens):
+  d=128/1.79 M params: 0.037 s/step (≈98k steps/h, 0.63 GiB); d=192/3.96 M: 0.061 s/step;
+  d=256/7.77 M: 0.076 s/step (1.35 GiB). Sampling 6 rollouts ≈ 3–4 ms/scene. Pilot uses d=128
+  (1.8 M) because the pilot training set (~10k windows) is ~50× smaller than WOMD and MotionLM
+  reports overfitting already at 27 M on the full set; d=192 is the fallback if the learning curve
+  is capacity-limited. The dataloader delivers ≈800 windows/s with 8 workers on synthetic windows.
+- D-019 (2026-11-02) — Official metrics audit environment: separate Python 3.10 venv
+  `<data_root>/env/wod_metrics` with waymo-open-dataset-tf-2-12-0==1.6.7 (requirements/wod_metrics.lock),
+  used only to cross-check the custom joint minADE/minFDE on a real-data subset (stage 2 gate).

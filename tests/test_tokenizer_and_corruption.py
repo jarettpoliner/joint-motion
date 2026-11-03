@@ -52,10 +52,17 @@ def test_initial_delta_uses_last_valid_observation():
     xy[:, 0] = np.arange(11) * 1.0  # 10 m/s
     valid = np.ones(11, bool)
     assert np.allclose(initial_delta_from_observation(xy, valid), [5.0, 0.0])
-    valid[5:10] = False  # gap: last valid earlier frame is index 4, 0.6 s ago
+    valid[5:10] = False  # gap: last valid earlier frame is index 4, 0.6 s ago -> fallback difference
     assert np.allclose(initial_delta_from_observation(xy, valid), [5.0, 0.0])
     valid[:10] = False
     assert np.allclose(initial_delta_from_observation(xy, valid), [0.0, 0.0])
+    # least squares over the last 0.5 s suppresses single-frame noise (D-016)
+    rng = np.random.default_rng(0)
+    noisy = xy + rng.normal(0, 0.3, size=xy.shape)
+    full = np.ones(11, bool)
+    err_ls = np.abs(initial_delta_from_observation(noisy, full) - [5.0, 0.0]).max()
+    err_1 = np.abs((noisy[10] - noisy[9]) / 0.1 * 0.5 - [5.0, 0.0]).max()
+    assert err_ls < err_1
 
 
 def test_corruption_preserves_anchor_and_truth(synth_files):

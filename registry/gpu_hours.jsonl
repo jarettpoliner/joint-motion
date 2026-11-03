@@ -1,0 +1,7 @@
+{"t": "2026-11-02T22:50:02", "run": "synthetic_smoke", "gpu_seconds": 4.118978261947632, "note": "step 30"}
+{"t": "2026-11-02T22:50:05", "run": "synthetic_smoke", "gpu_seconds": 3.4902148246765137, "note": "step 60"}
+{"t": "2026-11-02T22:50:24", "run": "synthetic_smoke", "gpu_seconds": 3.936920404434204, "note": "step 90"}
+{"t": "2026-11-02T22:54:30", "run": "synthetic_rl_smoke", "gpu_seconds": 2.833420753479004, "note": "step 6"}
+{"t": "2026-11-02T22:54:33", "run": "synthetic_rl_smoke", "gpu_seconds": 2.835948944091797, "note": "step 12"}
+{"t": "2026-11-02T22:54:38", "run": "synthetic_fsft_smoke", "gpu_seconds": 2.807589054107666, "note": "step 6"}
+{"t": "2026-11-02T22:54:41", "run": "synthetic_fsft_smoke", "gpu_seconds": 2.5540788173675537, "note": "step 12"}

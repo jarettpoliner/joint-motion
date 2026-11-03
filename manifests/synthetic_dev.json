@@ -1,0 +1,26 @@
+{
+ "name": "synthetic_dev",
+ "processed_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed_synthetic",
+ "split_dir": "training",
+ "n": 16,
+ "scenario_ids": [
+  "synthetic_00032",
+  "synthetic_00033",
+  "synthetic_00034",
+  "synthetic_00035",
+  "synthetic_00036",
+  "synthetic_00037",
+  "synthetic_00038",
+  "synthetic_00039",
+  "synthetic_00040",
+  "synthetic_00041",
+  "synthetic_00042",
+  "synthetic_00043",
+  "synthetic_00044",
+  "synthetic_00045",
+  "synthetic_00046",
+  "synthetic_00047"
+ ],
+ "note": "SYNTHETIC FIXTURE",
+ "sha256_ids": "8d30992054deae844b2432eb5f1c2e4c228083c5f180ae4c4d41db51049f1a7c"
+}

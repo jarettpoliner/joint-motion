@@ -3,8 +3,8 @@
 # Writes under <data_root>/processed_synthetic and manifests/synthetic_*.json. Not a real-data result.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-PY=${PYTHON:-$(python3 -c "import yaml;print(yaml.safe_load(open('configs/paths.yaml'))['train_python'])")}
 DATA_ROOT=$(python3 -c "import yaml;print(yaml.safe_load(open('configs/paths.yaml'))['data_root'])")
+PY=${PYTHON:-$DATA_ROOT/env/train/bin/python}
 OUT=$DATA_ROOT/processed_synthetic
 $PY - <<EOF
 from pathlib import Path

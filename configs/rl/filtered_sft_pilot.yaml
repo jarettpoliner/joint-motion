@@ -1,0 +1,21 @@
+# Control: reward-filtered supervised fine-tuning (best-of-K by reward, teacher-forced NLL) + same replay.
+run_name: filtered_sft_pilot_s0
+mode: filtered_sft
+init_from: REPLACE_WITH_RUNS_DIR/m1_pilot_s0/ckpt_best.pt
+train_manifest: manifests/train.json
+corruption: mixture
+seed: 0
+k_samples: 8
+batch_size: 16
+bc_batch_size: 32
+lr: 0.00002
+warmup_steps: 20
+total_steps: 600
+schedule: linear
+weight_decay: 0.0
+grad_clip: 1.0
+lambda_bc: 1.0
+reward: {w_overlap: 1.0, w_offroad: 1.0, w_kin: 0.5}
+log_every: 10
+ckpt_every: 100
+planned_gpu_hours: 1.5

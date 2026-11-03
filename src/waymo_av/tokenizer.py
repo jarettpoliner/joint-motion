@@ -104,15 +104,25 @@ class VerletTokenizer:
         return p, d
 
 
-def initial_delta_from_observation(obs_xy_hist: np.ndarray, obs_valid_hist: np.ndarray, dt: float = 0.1) -> np.ndarray:
-    """Estimate the initial 2 Hz delta (metres per 0.5 s) from the *observed* history of one agent.
-    obs_xy_hist [11,2], obs_valid_hist [11]. Uses the current step (index 10) and the most recent
-    earlier valid step. Returns zeros when none exists. Never uses proto velocities (D-009)."""
-    cur = obs_xy_hist[-1]
+def initial_delta_from_observation(obs_xy_hist: np.ndarray, obs_valid_hist: np.ndarray, dt: float = 0.1, window: int = 5) -> np.ndarray:
+    """Estimate the initial 2 Hz delta (metres per 0.5 s) from the *observed* history of one agent
+    (D-016). obs_xy_hist [11,2], obs_valid_hist [11]. Least-squares velocity over the valid frames
+    within the last `window` frames (0.5 s) including the current step; if fewer than two valid
+    frames exist there, falls back to the difference to the most recent earlier valid frame (up to
+    1 s back); zero when no earlier valid frame exists. Never uses proto velocities (D-009)."""
+    n = len(obs_valid_hist)
+    if not obs_valid_hist[-1]:
+        return np.zeros(2, dtype=np.float64)
+    idx = np.flatnonzero(obs_valid_hist[n - 1 - window :]) + (n - 1 - window)
+    if len(idx) >= 2:
+        t = (idx - (n - 1)) * dt
+        tm = t.mean()
+        denom = ((t - tm) ** 2).sum()
+        v = ((t - tm)[:, None] * (obs_xy_hist[idx] - obs_xy_hist[idx].mean(0))).sum(0) / denom
+        return v * STEP_DT
     earlier = np.flatnonzero(obs_valid_hist[:-1])
-    if len(earlier) == 0 or not obs_valid_hist[-1]:
+    if len(earlier) == 0:
         return np.zeros(2, dtype=np.float64)
     j = int(earlier[-1])
-    gap = (len(obs_valid_hist) - 1 - j) * dt
-    v = (cur - obs_xy_hist[j]) / gap
+    v = (obs_xy_hist[-1] - obs_xy_hist[j]) / ((n - 1 - j) * dt)
     return v * STEP_DT
