@@ -66,7 +66,7 @@ def main(argv=None):
     for m in ("cp", "cv", "oracle_log"):
         if (m, "clean") in data:
             L.append(row(m, "det."))
-    for base in ("m0_pilot", "mind_pilot", "m1_pilot", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot"):
+    for base in ("m0_pilot", "mind_pilot", "m1_pilot", "select_m1", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot"):
         for s in seeds:
             m = f"{base}_s{s}"
             if (m, "clean") in data:
@@ -97,11 +97,15 @@ def main(argv=None):
                       [("core-suite jminADE Δ", CORE, "joint_minADE_8s", 3, 1), ("held-out jminADE Δ", HELD, "joint_minADE_8s", 3, 1), ("core-suite jminFDE Δ", CORE, "joint_minFDE_8s", 3, 1), ("core-suite overlap Δ (pp)", CORE, "overlap_rate", 2, 100)])
     q3 = paired_block("Q3 Clean accuracy and physical consistency (m1 − m0 on clean)", "m0_pilot", "m1_pilot",
                       [("clean jminADE Δ", ["clean"], "joint_minADE_8s", 3, 1), ("clean overlap Δ (pp)", ["clean"], "overlap_rate", 2, 100), ("clean offroad Δ (pp)", ["clean"], "offroad_frac", 2, 100), ("clean implausible Δ (pp)", ["clean"], "implausible_rate", 2, 100)])
+    # Q5 post-training vs its M1 initialisation and vs controls (clean + core suite; 32-sample audit for overlap)
+    if any(k[0].startswith("rl_pilot") for k in data):
+        for title, ref_base, m_base in (("Q5a Bounded RL vs its M1 initialisation (rl − m1)", "m1_pilot", "rl_pilot"), ("Q5b Extra-SFT control vs M1 (extra_sft − m1)", "m1_pilot", "extra_sft_pilot"), ("Q5c Reward-filtered-SFT control vs M1 (filtered_sft − m1)", "m1_pilot", "filtered_sft_pilot"), ("Q5d Reward-based candidate selection vs M1 (select − m1)", "m1_pilot", "select_m1"), ("Q5e RL vs extra-SFT control (rl − extra_sft)", "extra_sft_pilot", "rl_pilot"), ("Q5f RL vs reward-filtered-SFT control (rl − filtered_sft)", "filtered_sft_pilot", "rl_pilot")):
+            paired_block(title, ref_base, m_base, [("clean jminADE Δ", ["clean"], "joint_minADE_8s", 3, 1), ("core-suite jminADE Δ", CORE, "joint_minADE_8s", 3, 1), ("clean overlap32 Δ (pp)", ["clean"], "audit32_overlap_rate", 2, 100), ("clean overlap32 jointly-valid Δ (pp)", ["clean"], "audit32_overlap_rate_jointvalid", 2, 100), ("clean offroad Δ (pp)", ["clean"], "offroad_frac", 2, 100), ("clean diversity32 Δ (m)", ["clean"], "audit32_diversity_fde", 2, 1)])
     # per-condition robustness curve rows (m0 vs m1, mean over seeds)
-    L.extend(["", "## Per-condition joint minADE@6 (mean over seeds; per-seed values in summary.json)", "", "| condition | " + " | ".join(f"{b}" for b in ("cv", "m0_pilot", "mind_pilot", "m1_pilot") ) + " |", "|---|---|---|---|---|"])
+    L.extend(["", "## Per-condition joint minADE@6 (mean over seeds; per-seed values in summary.json)", "", "| condition | " + " | ".join(f"{b}" for b in ("cv", "m0_pilot", "mind_pilot", "m1_pilot", "select_m1", "rl_pilot") ) + " |", "|---|---|---|---|---|---|---|"])
     for c in ["clean"] + CORE + HELD:
         cells = []
-        for b in ("cv", "m0_pilot", "mind_pilot", "m1_pilot"):
+        for b in ("cv", "m0_pilot", "mind_pilot", "m1_pilot", "select_m1", "rl_pilot"):
             ms = [b] if b == "cv" else [f"{b}_s{s}" for s in seeds]
             vals = [np.nanmean(data[(m, c)]["joint_minADE_8s"]) for m in ms if (m, c) in data]
             cells.append(f"{np.mean(vals):.3f}" + (f" (±{np.std(vals):.3f}, n={len(vals)})" if len(vals) > 1 else "") if vals else "—")

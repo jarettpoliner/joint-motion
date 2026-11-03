@@ -230,3 +230,27 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   interpreted as an approximate geometric-consistency objective, not a verified safety
   measure, and RL/control effects are reported on both `overlap_rate` and
   `overlap_rate_jointvalid` with the 32-sample audit.
+- D-029 (2026-11-03) — Matched development comparison, 3 seeds (reports/tables/dev/comparison.md;
+  500 dev scenes, identical conditions and sampling; group-bootstrap 95 % CIs; selection rules:
+  M0/Mind by clean jminADE@6, M1 by mean of clean + core suite, each on the first 256 dev scenes —
+  selection scores are not comparable across models and are never quoted as results).
+  Q1 joint vs independent: clean jminADE Δ −0.10/−0.35/−0.03 m (CI excludes 0 only for seed 1);
+  clean overlap Δ −3.1/−3.2/−4.9 pp (all CIs exclude 0). The joint decoder's benefit is in
+  physical consistency, consistently across seeds; displacement gains are small.
+  Q2 corruption-trained vs clean-trained under degraded inputs: core-suite jminADE −44.6/−42.1/
+  −43.3 % and held-out suite −43.7/−44.1/−48.5 % (all CIs far from 0). The clean-trained models
+  collapse under position noise (σ = 0.3 m: 11.6 m, worse than constant velocity 11.6 m; σ = 0.5:
+  14.6 m) while M1 degrades gracefully (4.9 / 5.9 m).
+  Q3 clean accuracy and physical consistency: M1 − M0 clean jminADE −5.7/−5.1/−7.2 % (all CIs
+  exclude 0; mixture training acts as regularisation — D-027 confound); clean offroad lower in
+  every seed; overlap mixed (+1.3/−1.0/−0.6 pp, all CIs include 0).
+  Q4 seeds: conclusions Q1 (overlap), Q2 and Q3 (clean, offroad) have the same sign in all three
+  seeds. Preregistered verdict (PLAN.md): primary (≥ 5 % core-suite reduction) and clean guardrail
+  pass in all seeds; the overlap guardrail (≤ +0.5 pp core-suite overlap) passes at the point
+  estimate for seed 2 only (+0.63/+0.92/−0.81 pp; every CI includes 0) → verdict PASS 1/3, FAIL
+  2/3 by the strict rule. Reported as: robustness hypothesis supported; no evidence of an overlap
+  increase, but the guardrail is not demonstrably met.
+  Inference-time control (select_m1 = best 6 of 32 joint samples by the RL reward, same M1
+  checkpoint): clean overlap 1.1/0.6/1.8 % vs M1 15.8/14.2/14.7 % (6 samples), offroad 1.6 % vs
+  4.7–4.9 %, clean jminADE 3.33/3.27/3.33 vs 3.56/3.48/3.50 m. Any RL effect must be read against
+  this control as well as extra-SFT / filtered-SFT (frozen comparison rules in manifests/freeze.json).

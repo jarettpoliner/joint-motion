@@ -40,3 +40,5 @@
 {"t": "2026-11-03T09:58:26", "name": "mind_pilot_s2", "kind": "train", "status": "registered", "commit": "cbb2e69"}
 {"t": "2026-11-03T09:58:26", "name": "mind_pilot_s2", "status": "running", "step": 0}
 {"t": "2026-11-03T10:08:49", "name": "mind_pilot_s2", "status": "completed", "step": 12000, "elapsed_s": 623.3594205379486, "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s2/ckpt_best.pt", "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s2/ckpt_last.pt"}
+{"t": "2026-11-03T11:26:28", "name": "rl_pilot_s0", "kind": "rl", "status": "registered", "commit": "a4e7c0e"}
+{"t": "2026-11-03T11:26:28", "name": "rl_pilot_s0", "status": "running"}

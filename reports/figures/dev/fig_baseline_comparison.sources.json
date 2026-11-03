@@ -1,0 +1,41 @@
+{
+ "eval_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_dev",
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "n_scenes": 500,
+ "methods": [
+  "cp",
+  "cv",
+  "m0_pilot_s0",
+  "m0_pilot_s1",
+  "m0_pilot_s2",
+  "m1_pilot_s0",
+  "m1_pilot_s1",
+  "m1_pilot_s2",
+  "mind_pilot_s0",
+  "mind_pilot_s1",
+  "mind_pilot_s2",
+  "oracle_log",
+  "select_m1_s0",
+  "select_m1_s1",
+  "select_m1_s2"
+ ],
+ "conditions": [
+  "clean",
+  "compound_0",
+  "missing_0.1",
+  "missing_0.3",
+  "missing_0.5",
+  "missing_0.7",
+  "noise_0.1",
+  "noise_0.3",
+  "noise_0.5",
+  "noise_1"
+ ],
+ "label": "development set (checkpoint selection; not held-out)",
+ "bootstrap_unit": "group",
+ "regenerate": "python -m waymo_av.figures --eval-dir /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_dev --seeds 0,1,2 --out reports/figures/dev --label 'development set (checkpoint selection; not held-out)'"
+}

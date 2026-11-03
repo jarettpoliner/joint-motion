@@ -45,7 +45,7 @@ def summarize(eval_dir, seeds, which):
                          "overlap32_pct": ci_str(g(b, "clean", "audit32_overlap_rate" if b not in ("cp", "cv", "oracle_log") else "overlap_rate"), grp, 1, 100, " %"),
                          "overlap32_jv_pct": ci_str(g(b, "clean", "audit32_overlap_rate_jointvalid" if b not in ("cp", "cv", "oracle_log") else "overlap_rate_jointvalid"), grp, 1, 100, " %"),
                          "offroad_pct": ci_str(g(b, "clean", "offroad_frac"), grp, 2, 100, " %"), "diversity": ci_str(g(b, "clean", "audit32_diversity_fde" if b not in ("cp", "cv", "oracle_log") else "diversity_fde"), grp, 1)}
-                     for b in ("cp", "cv", "oracle_log", "mind_pilot", "m0_pilot", "m1_pilot", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot")},
+                     for b in ("cp", "cv", "oracle_log", "mind_pilot", "m0_pilot", "m1_pilot", "select_m1", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot")},
            "suite": {b: {"core_jminADE": ci_str(suite(data, b, CORE, "joint_minADE_8s", seeds), grp), "held_jminADE": ci_str(suite(data, b, HELD, "joint_minADE_8s", seeds), grp), "core_overlap_pct": ci_str(suite(data, b, CORE, "overlap_rate", seeds), grp, 1, 100, " %")}
                      for b in ("cv", "mind_pilot", "m0_pilot", "m1_pilot", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot")},
            "deltas": {"joint_vs_independent_clean": delta_str(g("mind_pilot", "clean", "joint_minADE_8s"), g("m0_pilot", "clean", "joint_minADE_8s"), grp),
@@ -58,7 +58,9 @@ def summarize(eval_dir, seeds, which):
                       "rl_vs_m1_offroad_pp": delta_str(g("m1_pilot", "clean", "offroad_frac"), g("rl_pilot", "clean", "offroad_frac"), grp, 2, 100, rel=False),
                       "rl_vs_m1_diversity": delta_str(g("m1_pilot", "clean", "audit32_diversity_fde"), g("rl_pilot", "clean", "audit32_diversity_fde"), grp, 2, 1, rel=False),
                       "fsft_vs_m1_overlap32_pp": delta_str(g("m1_pilot", "clean", "audit32_overlap_rate"), g("filtered_sft_pilot", "clean", "audit32_overlap_rate"), grp, 2, 100, rel=False),
-                      "esft_vs_m1_overlap32_pp": delta_str(g("m1_pilot", "clean", "audit32_overlap_rate"), g("extra_sft_pilot", "clean", "audit32_overlap_rate"), grp, 2, 100, rel=False)}}
+                      "esft_vs_m1_overlap32_pp": delta_str(g("m1_pilot", "clean", "audit32_overlap_rate"), g("extra_sft_pilot", "clean", "audit32_overlap_rate"), grp, 2, 100, rel=False),
+                      "select_vs_m1_overlap6_pp": delta_str(g("m1_pilot", "clean", "overlap_rate"), g("select_m1", "clean", "overlap_rate"), grp, 2, 100, rel=False),
+                      "select_vs_m1_clean": delta_str(g("m1_pilot", "clean", "joint_minADE_8s"), g("select_m1", "clean", "joint_minADE_8s"), grp)}}
     # per-seed threshold verdicts
     verdicts = []
     for s in seeds:

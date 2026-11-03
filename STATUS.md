@@ -1,6 +1,6 @@
 # STATUS.md
 
-Updated: 2026-11-03 10:12 (session 2). Last commit: see `git log -1`.
+Updated: 2026-11-03 11:20 (session 2). Last commit: see `git log -1`.
 
 ## Overall: REAL-DATA CAMPAIGN RUNNING — data, manifests, calibration and overfit gates passed; pilots training
 
@@ -19,8 +19,8 @@ Updated: 2026-11-03 10:12 (session 2). Last commit: see `git log -1`.
 | 4a Metric qualification before RL | done | D-028a (overlap audit v2, validity masks, denominators), D-028b (model-flag inspection); 35 tests pass |
 | 4a' Preliminary matched dev eval (seed 0; cp/cv/oracle/M0/M1/Mind, 500 scenes, 10 conditions) | done | <data_root>/runs/eval_dev_prelim; reports/tables/dev_prelim/{table.md,comparison.md} |
 | 6' Preliminary deliverables | done (PRELIMINARY) | reports/figures/{fig_architecture,fig_real_scenes}.{pdf,svg,png}; reports/figures/dev_prelim/*; reports/demos/prelim_*/*.{gif,mp4}; slides/waymo_av_results_prelim.{pptx,pdf} |
-| 4b Matched dev evaluation, 3 seeds (cp/cv/oracle_log, M0/M1/Mind × 3, select-control × 3; 10 conditions; 500 scenes) | RUNNING (chained; <data_root>/logs/chain_dev_eval.log) | <data_root>/runs/eval_dev → reports/tables/dev, reports/figures/dev |
-| 5 RL + controls | pending | — |
+| 4b Matched dev evaluation, 3 seeds (cp/cv/oracle_log, M0/M1/Mind × 3, select-control × 3; 10 conditions; 500 scenes) | done | <data_root>/runs/eval_dev; reports/tables/dev/{table,comparison}.md; reports/figures/dev/*; D-029 |
+| 5 RL + controls (rl, filtered_sft, extra_sft × 3 seeds) + their dev eval | RUNNING (<data_root>/logs/campaign_posttrain.log) | registry/runs/{rl,filtered_sft,extra_sft}_pilot_s*.json |
 | 6 Freeze, final evaluation, report, animations | pending | — |
 
 ## Resource use so far
@@ -31,16 +31,13 @@ Updated: 2026-11-03 10:12 (session 2). Last commit: see `git log -1`.
 | Storage under data root | raw 23 GB, processed 1.0 GB, env 5.5 GB, uv cache 0.8 GB, SDK 0.5 GB, runs < 1 GB |
 | Free on extradrive1 | ≈ 925 GiB (floor 360 GiB) |
 
-## Measured so far (development set; preliminary, seed 0 unless noted)
-- Overfit gate: NLL 0.0002, free-running jminADE@6 0.093 m on 32 real scenes.
-- Quick selection evals (256 dev scenes, each model's own rule — NOT a matched comparison): m0_s0 3.83 m (clean), m1_s0 3.99 (mean of clean+suite), mind_s0 3.84 (clean), m0_s1 3.74 (clean).
-- Matched 500-scene dev eval, seed 0 (identical scenes/conditions/sampling; group-bootstrap 95 % CI; reports/tables/dev_prelim/comparison.md):
-  clean joint minADE@6: CV 10.82 [10.22, 11.44], Mind 3.90 [3.63, 4.20], M0 3.87 [3.61, 4.17], M1 3.53 [3.28, 3.80].
-  Q1 joint − independent (clean): −0.03 m [−0.22, +0.17] (n.s.); overlap −3.4 pp [−5.5, −1.0] (joint fewer overlaps).
-  Q2 M1 − M0 core suite: −3.39 m [−3.60, −3.18] (−43.9 %); held-out suite −4.91 m (−43.6 %). M0 collapses under noise (σ=0.3: 12.2 m, worse than CV 11.6 m).
-  Q3 clean M1 − M0: −0.34 m (−8.7 %); core-suite overlap +0.58 pp [−0.73, +1.84] → preregistered overlap guardrail (≤ +0.5 pp) NOT met at the point estimate; verdict FAIL for seed 0 (primary and clean criteria pass).
-  Q4 seed consistency: pending seeds 1–2.
-- Overlap reference on jointly valid intervals: 1.0 % [0.2, 2.0] of logged dev futures (D-028a); m0_s0 overlap 14.9 % (6 samples, full horizon), 14.6 % on jointly valid intervals (32 samples); 72 % of flags confirmed geometric (D-028b).
+## Measured so far (development set; 3 seeds; matched; D-029)
+- Clean joint minADE@6 (mean over seeds): CV 10.82, Mind 3.90, M0 3.74, M1 3.51, M1+reward-selection control 3.31 m.
+- Q1 joint vs independent: overlap −3.1/−3.2/−4.9 pp (all significant); jminADE −0.10/−0.35/−0.03 m.
+- Q2 M1 vs M0 corrupted: core suite −44.6/−42.1/−43.3 %, held-out −43.7/−44.1/−48.5 % (all significant).
+- Q3 M1 vs M0 clean: jminADE −5.7/−5.1/−7.2 % (significant); offroad lower in all seeds; overlap mixed (CIs include 0).
+- Q4 seeds: same sign in all seeds for Q1-overlap, Q2, Q3-clean/offroad. Preregistered verdict: PASS 1/3 (overlap guardrail ≤ +0.5 pp met only for seed 2; no CI excludes 0).
+- Overlap reference (jointly valid intervals): 1.0 % of logged dev futures; model overlap ≈ 15 % (6 samples, full horizon); best-6-of-32 reward selection: 0.6–1.8 %.
 
 ## Known gaps
 - Official Waymo metrics package could not be installed (D-019a); custom metrics audited on analytic cases and oracles only.

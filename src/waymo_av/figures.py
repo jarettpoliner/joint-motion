@@ -25,9 +25,9 @@ from waymo_av.metrics.stats import mean_ci  # noqa: E402
 from waymo_av.paths import REPO_ROOT  # noqa: E402
 
 plt.rcParams.update({"font.size": 9, "axes.titlesize": 10, "axes.labelsize": 9, "legend.fontsize": 8, "figure.dpi": 100, "savefig.bbox": "tight", "pdf.fonttype": 42, "svg.fonttype": "none"})
-COL = {"cp": "#7f7f7f", "cv": "#2ca02c", "oracle_log": "#000000", "mind_pilot": "#9467bd", "m0_pilot": "#1f77b4", "m1_pilot": "#d62728", "extra_sft_pilot": "#8c564b", "filtered_sft_pilot": "#e377c2", "rl_pilot": "#ff7f0e"}
-SHORT = {"cp": "Const.\nposition", "cv": "Const.\nvelocity", "oracle_log": "Log\nplayback", "mind_pilot": "Independent\n(clean-tr.)", "m0_pilot": "Joint M0\n(clean-tr.)", "m1_pilot": "Joint M1\n(mixture-tr.)", "extra_sft_pilot": "M1 +\nextra SFT", "filtered_sft_pilot": "M1 +\nfiltered SFT", "rl_pilot": "M1 +\nbounded RL"}
-NAME = {"cp": "Constant position", "cv": "Constant velocity", "oracle_log": "Log playback (reference)", "mind_pilot": "Independent decoder (clean-trained)", "m0_pilot": "Joint M0 (clean-trained)", "m1_pilot": "Joint M1 (corruption-trained)", "extra_sft_pilot": "M1 + extra SFT (control)", "filtered_sft_pilot": "M1 + reward-filtered SFT (control)", "rl_pilot": "M1 + bounded RL"}
+COL = {"cp": "#7f7f7f", "cv": "#2ca02c", "oracle_log": "#000000", "mind_pilot": "#9467bd", "m0_pilot": "#1f77b4", "m1_pilot": "#d62728", "select_m1": "#17becf", "extra_sft_pilot": "#8c564b", "filtered_sft_pilot": "#e377c2", "rl_pilot": "#ff7f0e"}
+SHORT = {"cp": "Const.\nposition", "cv": "Const.\nvelocity", "oracle_log": "Log\nplayback", "mind_pilot": "Independent\n(clean-tr.)", "m0_pilot": "Joint M0\n(clean-tr.)", "m1_pilot": "Joint M1\n(mixture-tr.)", "select_m1": "M1 + reward\nselection", "extra_sft_pilot": "M1 +\nextra SFT", "filtered_sft_pilot": "M1 +\nfiltered SFT", "rl_pilot": "M1 +\nbounded RL"}
+NAME = {"cp": "Constant position", "cv": "Constant velocity", "oracle_log": "Log playback (reference)", "mind_pilot": "Independent decoder (clean-trained)", "m0_pilot": "Joint M0 (clean-trained)", "m1_pilot": "Joint M1 (corruption-trained)", "select_m1": "M1 + reward-based candidate selection (control)", "extra_sft_pilot": "M1 + extra SFT (control)", "filtered_sft_pilot": "M1 + reward-filtered SFT (control)", "rl_pilot": "M1 + bounded RL"}
 CORE = [s.name for s in CORE_SUITE]
 HELD = [s.name for s in HELDOUT_SUITE]
 
@@ -206,7 +206,7 @@ def fig_severity(data, grp, seeds, out, label, sources):
 
 
 def fig_tradeoff(data, grp, seeds, out, label, sources):
-    bases = [b for b in ("mind_pilot", "m0_pilot", "m1_pilot", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot") if any(k[0].startswith(b + "_s") for k in data)]
+    bases = [b for b in ("mind_pilot", "m0_pilot", "m1_pilot", "select_m1", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot") if any(k[0].startswith(b + "_s") for k in data)]
     fig, ax = plt.subplots(figsize=(5.2, 4.4))
     for b in bases:
         for s in seeds:
@@ -233,8 +233,8 @@ def fig_tradeoff(data, grp, seeds, out, label, sources):
 
 
 def fig_rl_controls(data, grp, seeds, out, label, sources):
-    bases = [b for b in ("m1_pilot", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot") if any(k[0].startswith(b + "_s") for k in data)]
-    if len(bases) < 2:
+    bases = [b for b in ("m1_pilot", "select_m1", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot") if any(k[0].startswith(b + "_s") for k in data)]
+    if not any(b.startswith("rl") for b in bases):
         print("fig_rl_controls: post-training results not available yet (pending)")
         return
     panels = [("joint_minADE_8s", "clean", "clean joint minADE@6 (m)", 1), ("joint_minADE_8s", "CORE", "core-suite joint minADE@6 (m)", 1), ("audit32_overlap_rate", "clean", "overlap rate, 32 samples (%)", 100), ("offroad_frac", "clean", "vehicle offroad fraction (%)", 100), ("implausible_rate", "clean", "kinematically implausible (%)", 100), ("audit32_diversity_fde", "clean", "diversity: mean pairwise FDE (m)", 1)]
@@ -254,7 +254,7 @@ def fig_rl_controls(data, grp, seeds, out, label, sources):
         if key.endswith("overlap_rate") and ("oracle_log", "clean") in data and "overlap_rate" in data[("oracle_log", "clean")]:
             ax.axhline(100 * np.nanmean(data[("oracle_log", "clean")]["overlap_rate"]), color="k", ls=":", lw=1)
         ax.set_xticks(range(len(bases)))
-        ax.set_xticklabels([NAME[b].replace("M1 + ", "").replace(" (control)", "\n(control)") for b in bases], fontsize=6.5, rotation=20, ha="right")
+        ax.set_xticklabels([SHORT[b] for b in bases], fontsize=6.5)
         ax.set_title(ttl, fontsize=8)
         ax.spines[["top", "right"]].set_visible(False)
     fig.suptitle(f"Bounded RL vs controls (all initialised from the dev-selected M1 checkpoint) — mean over seeds {seeds}, group-bootstrap 95 % CI; dotted = log-playback overlap reference — {label}", fontsize=8.5)
