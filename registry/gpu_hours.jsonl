@@ -37,3 +37,12 @@
 {"t": "2026-11-03T08:42:54", "run": "mind_pilot_s0", "gpu_seconds": 56.183879375457764, "note": "step 3000"}
 {"t": "2026-11-03T08:43:47", "run": "mind_pilot_s0", "gpu_seconds": 52.589547634124756, "note": "step 4000"}
 {"t": "2026-11-03T08:44:39", "run": "mind_pilot_s0", "gpu_seconds": 51.69025015830994, "note": "step 5000"}
+{"t": "2026-11-03T08:45:30", "run": "mind_pilot_s0", "gpu_seconds": 51.41022849082947, "note": "step 6000"}
+{"t": "2026-11-03T08:46:21", "run": "mind_pilot_s0", "gpu_seconds": 51.34390425682068, "note": "step 7000"}
+{"t": "2026-11-03T08:47:13", "run": "mind_pilot_s0", "gpu_seconds": 51.2033326625824, "note": "step 8000"}
+{"t": "2026-11-03T08:48:04", "run": "mind_pilot_s0", "gpu_seconds": 51.38507652282715, "note": "step 9000"}
+{"t": "2026-11-03T08:48:59", "run": "mind_pilot_s0", "gpu_seconds": 55.145875453948975, "note": "step 10000"}
+{"t": "2026-11-03T08:49:56", "run": "mind_pilot_s0", "gpu_seconds": 56.4281587600708, "note": "step 11000"}
+{"t": "2026-11-03T08:50:52", "run": "mind_pilot_s0", "gpu_seconds": 56.325573682785034, "note": "step 12000"}
+{"t": "2026-11-03T08:51:50", "run": "m0_pilot_s1", "gpu_seconds": 55.33558130264282, "note": "step 1000"}
+{"t": "2026-11-03T08:52:49", "run": "m0_pilot_s1", "gpu_seconds": 58.985291481018066, "note": "step 2000"}

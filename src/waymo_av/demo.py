@@ -1,9 +1,17 @@
 """Demonstration / walkthrough: load saved checkpoints, roll out a handful of scenes under a chosen
-observation condition, write side-by-side animations and a small metrics JSON. Uses the same
-inference path as evaluation (rollout.sample_rollouts).
+observation condition, write synchronized side-by-side animations (GIF + MP4 from the same frames)
+and a metrics/selection JSON. Uses the same inference path as evaluation (rollout.sample_rollouts).
+
+Selection rule (documented in demo_metrics.json): a fixed pool = the first --pool scenes of the
+manifest (manifest order is a seeded permutation, so this is a random subset); every method is run
+on the identical pool with the identical corruption realisation (dataset seed) and sampling
+settings; scenes are then chosen by the LAST listed checkpoint's joint minADE@6:
+  mixed   = the floor(n/2) best + ceil(n/2) worst scenes (successes AND failures by construction)
+  best / worst / first / overlap (highest sample-overlap rate of the last checkpoint)
+Nothing is cherry-picked by hand; each joint sample keeps its sample index across both agents.
 
 python -m waymo_av.demo --ckpts M0=<path> M1=<path> --manifest manifests/dev.json --condition missing_0.3 \
-       --scenes 6 --out reports/demos/dev_missing_0.3 [--select worst|best|first]
+       --scenes 6 --out reports/demos/dev_missing_0.3 [--select mixed|worst|best|first|overlap]
 """
 from __future__ import annotations
 
@@ -36,7 +44,7 @@ def main(argv=None):
     ap.add_argument("--top-p", type=float, default=0.95)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--fmt", default="gif", choices=["gif", "mp4"])
+    ap.add_argument("--fmt", default="gif,mp4", help="comma-separated: gif,mp4")
     a = ap.parse_args(argv)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(a.seed)
@@ -75,11 +83,11 @@ def main(argv=None):
     for i in idx:
         w = load_window(files[i])
         sid = batch["scenario_id"][i]
-        title = f"{sid}  condition={a.condition}  " + "  ".join(f"{n}: jminADE={scores[n][i]:.2f}m" for n in preds)
-        p = animate_scene(w, batch["obs_target_xy"][i].numpy(), batch["obs_target_valid"][i].numpy(), gt[i], v[i], {n: pr[i] for n, pr in preds.items()}, out / f"{sid}_{a.condition}.{a.fmt}", title=title)
-        records.append({"scenario_id": sid, "condition": a.condition, "animation": str(p), **{f"jminADE_8s_{n}": float(scores[n][i]) for n in preds}})
+        title = f"scenario {sid}   (rank {'best' if i in order[:a.scenes // 2].tolist() and a.select == 'mixed' else ('worst' if a.select == 'mixed' else a.select)} by {main_name})"
+        p = animate_scene(w, batch["obs_target_xy"][i].numpy(), batch["obs_target_valid"][i].numpy(), gt[i], v[i], {n: pr[i] for n, pr in preds.items()}, out / f"{sid}_{a.condition}", title=title, condition=a.condition, scores={n: float(scores[n][i]) for n in preds}, formats=tuple(a.fmt.split(",")))
+        records.append({"scenario_id": sid, "condition": a.condition, "animations": [str(x) for x in (p if isinstance(p, list) else [p])], "selected_as": ("best" if i in order[: a.scenes // 2].tolist() else "worst") if a.select == "mixed" else a.select, **{f"jminADE_8s_{n}": float(scores[n][i]) for n in preds}})
         print(p)
-    json.dump({"condition": a.condition, "n_samples": a.n_samples, "top_p": a.top_p, "selection": a.select, "scenes": records}, open(out / "demo_metrics.json", "w"), indent=1)
+    json.dump({"condition": a.condition, "n_samples": a.n_samples, "top_p": a.top_p, "temperature": 1.0, "seed": a.seed, "selection_rule": f"pool = first {a.pool} manifest scenes; select '{a.select}' by {main_name} joint minADE@6; identical scenes/corruption/sampling across methods", "checkpoints": dict(sp.split('=', 1) for sp in a.ckpts), "manifest": a.manifest, "scenes": records, "pool_scores": {n: [float(x) for x in scores[n]] for n in preds}}, open(out / "demo_metrics.json", "w"), indent=1)
 
 
 if __name__ == "__main__":

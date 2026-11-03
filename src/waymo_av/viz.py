@@ -36,10 +36,13 @@ def _box(ax, c, h, size, color, alpha=0.9, lw=1.0):
     ax.add_patch(Polygon(k, closed=True, facecolor=color, edgecolor="k", lw=lw, alpha=alpha, zorder=5))
 
 
-def animate_scene(win, obs_xy, obs_valid, gt_future, gt_valid, methods: dict, out_path: Path, title: str = "", fps: int = 10, radius: float = 60.0):
-    """methods: {name: pred [S,2,T,2] scene frame}. Draws one panel per method with all S samples
-    (faint) and the first sample as boxes, the logged future (dashed), observed history (dots), and
-    context agents' logged positions (grey boxes) over 8 s at 10 Hz."""
+def animate_scene(win, obs_xy, obs_valid, gt_future, gt_valid, methods: dict, out_path: Path, title: str = "", fps: int = 10, radius: float = 60.0, condition: str = "", scores: dict | None = None, formats=("gif", "mp4")):
+    """methods: {name: pred [S,2,T,2] scene frame}. One panel per method, identical camera bounds
+    (centred on the targets' current positions), identical scene, corruption realisation and
+    sampling settings. Draws all S joint samples (faint lines; sample index is shared across the two
+    agents — nothing is recombined), the first joint sample as moving boxes, the logged future
+    (black dashed), the observed (possibly corrupted) history (dots) and context agents (grey) at
+    their logged positions. Writes <out_path> with each requested extension from the same frames."""
     import imageio.v2 as imageio
 
     names = list(methods)
@@ -52,25 +55,23 @@ def animate_scene(win, obs_xy, obs_valid, gt_future, gt_valid, methods: dict, ou
     traj10 = {m: interpolate_10hz(np.broadcast_to(cur_xy, (p.shape[0], 2, 2)), p) for m, p in methods.items()}  # [S,2,80,2]
     head2 = {m: predicted_headings(np.broadcast_to(cur_xy, (p.shape[0], 2, 2)), np.broadcast_to(cur_h, (p.shape[0], 2)), p) for m, p in methods.items()}
     frames = []
-    fig, axes = plt.subplots(1, n, figsize=(5.2 * n, 5.2), squeeze=False)
+    fig, axes = plt.subplots(1, n, figsize=(5.0 * n, 5.6), squeeze=False)
     for f in range(0, T10, 2):
-        for ax, m in zip(axes[0], names):
+        for j, (ax, m) in enumerate(zip(axes[0], names)):
             ax.cla()
             draw_map(ax, win, radius=radius + 20, center=center)
-            # context agents at logged position (t index CUR + f + 1)
             t_idx = CUR + f + 1
             for a in range(2, len(win.agent_id)):
                 if win.agent_valid[a, t_idx]:
                     _box(ax, win.agent_xy[a, t_idx], win.agent_heading[a, t_idx], win.agent_size[a], "#999999", alpha=0.6, lw=0.5)
-            # observed history (corrupted view)
             for i, col in enumerate(["#1f77b4", "#ff7f0e"]):
                 v = obs_valid[i]
-                ax.plot(obs_xy[i][v, 0], obs_xy[i][v, 1], ".", color=col, ms=4, zorder=4)
+                ax.plot(obs_xy[i][v, 0], obs_xy[i][v, 1], ".", color=col, ms=5, zorder=4, label="observed history (as given to the model)" if i == 0 and j == 0 else None)
                 gv = gt_valid[i]
-                ax.plot(gt_future[i][gv, 0], gt_future[i][gv, 1], "--", color=col, lw=1.0, alpha=0.8, zorder=4)
+                ax.plot(gt_future[i][gv, 0], gt_future[i][gv, 1], "--", color="k", lw=1.1, alpha=0.9, zorder=4, label="recorded future (not an input)" if i == 0 and j == 0 else None)
                 p = traj10[m]
-                for s in range(p.shape[0]):
-                    ax.plot(p[s, i, : f + 1, 0], p[s, i, : f + 1, 1], "-", color=col, lw=0.8, alpha=0.35, zorder=4)
+                for s_ in range(p.shape[0]):
+                    ax.plot(p[s_, i, : f + 1, 0], p[s_, i, : f + 1, 1], "-", color=col, lw=0.9, alpha=0.4, zorder=4, label="generated trajectories (joint samples; index shared by both agents)" if i == 0 and j == 0 and s_ == 0 else None)
                 hh = head2[m][0, i, f // 5]
                 _box(ax, p[0, i, f], hh, size[i], col, alpha=0.85)
             ax.set_xlim(center[0] - radius, center[0] + radius)
@@ -78,19 +79,30 @@ def animate_scene(win, obs_xy, obs_valid, gt_future, gt_valid, methods: dict, ou
             ax.set_aspect("equal")
             ax.set_xticks([])
             ax.set_yticks([])
-            ax.set_title(f"{m}   t = {(f + 1) / 10:.1f} s", fontsize=10)
-        fig.suptitle(title, fontsize=10)
-        fig.tight_layout()
+            sc = f"   jminADE@6 = {scores[m]:.2f} m" if scores and m in scores and np.isfinite(scores[m]) else ""
+            ax.set_title(f"{m}  (S={traj10[m].shape[0]}){sc}", fontsize=10)
+            ax.text(0.02, 0.98, f"t = {(f + 1) / 10:.1f} s", transform=ax.transAxes, ha="left", va="top", fontsize=10, fontweight="bold", bbox=dict(boxstyle="round", fc="white", ec="none", alpha=0.8))
+            if j == 0:
+                ax.legend(loc="lower left", fontsize=7, framealpha=0.9)
+        fig.suptitle((title or f"scenario {win.scenario_id}") + (f"   |   condition: {condition}" if condition else ""), fontsize=10)
+        fig.tight_layout(rect=(0, 0, 1, 0.95))
         fig.canvas.draw()
         img = np.asarray(fig.canvas.buffer_rgba())[..., :3].copy()
         frames.append(img)
     plt.close(fig)
+    out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    if out_path.suffix == ".gif":
-        imageio.mimsave(out_path, frames, duration=1000 / fps, loop=0)
-    else:
-        imageio.mimsave(out_path, frames, fps=fps, macro_block_size=1)
-    return out_path
+    written = []
+    for ext in formats:
+        pth = out_path.parent / (out_path.name + "." + ext)  # condition names contain dots
+        if ext == "gif":
+            imageio.mimsave(pth, frames, duration=1000 / fps, loop=0)
+        else:
+            h, w = frames[0].shape[:2]
+            fr = [fm[: h - h % 2, : w - w % 2] for fm in frames]
+            imageio.mimsave(pth, fr, fps=fps, codec="libx264", quality=8, macro_block_size=1)
+        written.append(pth)
+    return written[0] if len(written) == 1 else written
 
 
 def robustness_curves(summary: dict, methods: list[str], conditions: list[str], metric: str, out: Path, ylabel: str, title: str):

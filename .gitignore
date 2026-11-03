@@ -16,3 +16,4 @@ tests/_fixtures/
 reports/figures/*.png
 !reports/figures/.keep
 reports/demos/SYNTHETIC*/
+slides/node_modules/

@@ -1,0 +1,10 @@
+{
+ "manifest": "manifests/dev.json",
+ "scenario_ids": [
+  "d17664afbd86360c",
+  "c842f41273f21ed0",
+  "3e91699801c577e2",
+  "1ace4894b4d0d6b5"
+ ],
+ "seed": 3
+}

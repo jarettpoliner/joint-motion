@@ -1,0 +1,19 @@
+{
+ "source": "src/waymo_av/model.py ModelConfig defaults",
+ "n_params": 1787049,
+ "config": {
+  "d_model": 128,
+  "n_heads": 4,
+  "d_ff": 512,
+  "n_latents": 64,
+  "enc_layers": 2,
+  "dec_layers": 4,
+  "vocab_size": 169,
+  "n_future": 16,
+  "n_agents": 2,
+  "n_hist": 11,
+  "max_agent_slots": 32,
+  "dropout": 0.1,
+  "independent": false
+ }
+}
