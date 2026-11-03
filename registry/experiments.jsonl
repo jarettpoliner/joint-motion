@@ -18,3 +18,6 @@
 {"t": "2026-11-03T08:26:44", "name": "m0_pilot_s0", "status": "completed", "step": 12000, "elapsed_s": 665.3199052810669, "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s0/ckpt_best.pt", "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s0/ckpt_last.pt"}
 {"t": "2026-11-03T08:26:51", "name": "m1_pilot_s0", "kind": "train", "status": "registered", "commit": "ad50aa0"}
 {"t": "2026-11-03T08:26:51", "name": "m1_pilot_s0", "status": "running", "step": 0}
+{"t": "2026-11-03T08:39:58", "name": "m1_pilot_s0", "status": "completed", "step": 12000, "elapsed_s": 786.4817583560944, "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_best.pt", "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_last.pt"}
+{"t": "2026-11-03T08:40:05", "name": "mind_pilot_s0", "kind": "train", "status": "registered", "commit": "3c3a6de"}
+{"t": "2026-11-03T08:40:05", "name": "mind_pilot_s0", "status": "running", "step": 0}

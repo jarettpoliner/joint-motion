@@ -170,3 +170,23 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   over-fitting). Caveat recorded for interpretation: mixture training (M1) also acts as data
   augmentation and may reduce over-fitting; the matched extra-SFT control and the clean-condition
   guardrail bound this confound but do not remove it.
+- D-025a (2026-11-03) — manifests/segment_overlap.json was regenerated after the 41 train removals
+  (train 9,144): it now carries a `groups` map (scenario → heuristic source-segment component id;
+  singletons map to themselves; 666 scenes sit in non-singleton components across train/dev/final).
+  aggregate.py resamples these groups as the bootstrap unit (cluster bootstrap) for every CI and
+  paired difference, and the tables state the unit. The grouping is heuristic (motion n-gram
+  matching) and does not establish complete independence between scenes.
+- D-028 (2026-11-03) — Overlap-metric reference rate audited, not treated as a lower bound
+  (scripts/overlap_floor_audit.py → manifests/overlap_floor_audit.json; figure
+  reports/figures/overlap_floor_cases.png). Of 500 dev logged futures, 15 (3.0 %) are flagged:
+  3 are annotation-level box contacts (pedestrian/cyclist boxes touching or inside a vehicle box in
+  the 10 Hz labels with logged headings), 6 arise from motion-inferred headings at 2 Hz, 2 from
+  linear 2 Hz→10 Hz position interpolation, 4 occur at 10 Hz steps where a target has no logged
+  position (unverifiable). Penetration depth does not separate these from model-sample overlaps
+  (scripts/overlap_depth_audit.py: GT-flag depths p50 0.75 m, model-flag depths p50 0.98 m), so
+  no depth margin is introduced. The M0 clean overlap rate on dev is ≈ 15 % of (scene, sample)
+  pairs vs the 3 % logged reference, i.e. the RL overlap reward is dominated by real geometric
+  effects; the reward definition (D-014) is kept, every overlap number is reported next to the
+  oracle_log rate for the same scenes, and RL success is judged on the model's excess over that
+  reference, not on reaching zero. Vehicle–pedestrian pairs are over-represented among reference
+  flags (4 of 15 vs 15 % of dev pairs) — noted in limitations.

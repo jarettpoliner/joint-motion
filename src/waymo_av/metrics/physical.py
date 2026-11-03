@@ -57,6 +57,20 @@ def obb_intersect(c1, h1, s1, c2, h2, s2) -> np.ndarray:
     return ~sep
 
 
+def obb_penetration(c1, h1, s1, c2, h2, s2) -> np.ndarray:
+    """Penetration depth (m) between oriented rectangles: the minimum projected overlap over the
+    four SAT axes (0 where separated). Broadcasts over leading dims."""
+    p1, p2 = obb_corners(c1, h1, s1), obb_corners(c2, h2, s2)
+    depth = None
+    for h in (h1, h2):
+        for ax in (np.stack([np.cos(h), np.sin(h)], -1), np.stack([-np.sin(h), np.cos(h)], -1)):
+            q1 = (p1 * ax[..., None, :]).sum(-1)
+            q2 = (p2 * ax[..., None, :]).sum(-1)
+            ov = np.minimum(q1.max(-1), q2.max(-1)) - np.maximum(q1.min(-1), q2.min(-1))
+            depth = ov if depth is None else np.minimum(depth, ov)
+    return np.maximum(depth, 0.0)
+
+
 def target_overlap(pred, cur_xy, cur_heading, size, buffer=0.0) -> dict:
     """pred [B,S,2,T,2]; cur_xy [B,2,2]; cur_heading [B,2]; size [B,2,2].
     Returns per-(scene,sample) overlap flag [B,S] (any 10 Hz step), the initial (t=0) GT overlap flag
@@ -72,7 +86,8 @@ def target_overlap(pred, cur_xy, cur_heading, size, buffer=0.0) -> dict:
     init = obb_intersect(cur_xy[:, 0], cur_heading[:, 0], size[:, 0], cur_xy[:, 1], cur_heading[:, 1], size[:, 1])  # [B]
     any_hit = hit.any(-1)
     first = np.where(any_hit, (hit.argmax(-1) + 1) * 0.1, np.nan)
-    return {"overlap": any_hit, "initial_overlap": init, "first_overlap_s": first}
+    depth = obb_penetration(xy10[:, :, 0], h10[:, :, 0], sz[:, :, 0], xy10[:, :, 1], h10[:, :, 1], sz[:, :, 1]).max(-1)  # [B,S] max penetration (m)
+    return {"overlap": any_hit, "initial_overlap": init, "first_overlap_s": first, "max_depth_m": depth}
 
 
 def offroad_fraction(points: np.ndarray, edge_xy: np.ndarray, edge_poly: np.ndarray, sign_convention: int = +1, max_dist: float = 50.0):

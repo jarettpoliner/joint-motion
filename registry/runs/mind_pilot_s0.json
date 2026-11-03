@@ -1,0 +1,74 @@
+{
+ "name": "mind_pilot_s0",
+ "kind": "train",
+ "created": "2026-11-03T08:40:05",
+ "status": "running",
+ "events": [
+  {
+   "t": "2026-11-03T08:40:05",
+   "status": "registered",
+   "pid": 3936179
+  },
+  {
+   "t": "2026-11-03T08:40:05",
+   "status": "running",
+   "pid": 3936179
+  }
+ ],
+ "config": {
+  "run_name": "mind_pilot_s0",
+  "train_manifest": "manifests/train.json",
+  "dev_manifest": "manifests/dev.json",
+  "corruption": "clean",
+  "seed": 0,
+  "model": {
+   "d_model": 128,
+   "n_heads": 4,
+   "d_ff": 512,
+   "n_latents": 64,
+   "enc_layers": 2,
+   "dec_layers": 4,
+   "dropout": 0.1,
+   "max_agent_slots": 32,
+   "independent": true
+  },
+  "batch_size": 64,
+  "lr": 0.0004,
+  "warmup_steps": 500,
+  "total_steps": 12000,
+  "schedule": "cosine",
+  "weight_decay": 0.1,
+  "grad_clip": 1.0,
+  "log_every": 50,
+  "eval_every": 1000,
+  "dev_eval_scenes": 256,
+  "eval_batch_size": 64,
+  "num_workers": 8,
+  "amp": true,
+  "planned_gpu_hours": 3.0
+ },
+ "code_commit": "3c3a6de",
+ "code_dirty": true,
+ "pid": 3936179,
+ "run_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s0",
+ "n_params": 1787049,
+ "n_train": 9144,
+ "n_dev": 500,
+ "device": "cuda:0",
+ "step": 4000,
+ "best": {
+  "score": 3.8683134569304936,
+  "step": 4000,
+  "dev": {
+   "nll_clean": 2.088600514960473,
+   "jminADE6_clean": 3.8683134569304936,
+   "selection_score": 3.8683134569304936
+  }
+ },
+ "elapsed_s": 221.59400606155396,
+ "last_dev": {
+  "nll_clean": 2.088600514960473,
+  "jminADE6_clean": 3.8683134569304936,
+  "selection_score": 3.8683134569304936
+ }
+}

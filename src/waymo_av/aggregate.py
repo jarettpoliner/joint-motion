@@ -12,6 +12,17 @@ from pathlib import Path
 import numpy as np
 
 from waymo_av.metrics.stats import mean_ci, paired_bootstrap
+from waymo_av.paths import REPO_ROOT
+
+
+def load_groups(scenario_ids) -> np.ndarray | None:
+    """Heuristic source-segment groups (scripts/segment_overlap.py, D-025); scenario id itself when
+    unknown. Returns None when the file is absent."""
+    f = REPO_ROOT / "manifests" / "segment_overlap.json"
+    if not f.exists():
+        return None
+    g = json.load(open(f)).get("groups", {})
+    return np.array([g.get(str(s), str(s)) for s in scenario_ids])
 
 KEY_METRICS = ["joint_minADE_8s", "joint_minFDE_8s", "joint_minADE_3s", "joint_minADE_5s", "marginal_minADE_8s", "joint_meanADE_8s", "overlap_rate", "audit32_overlap_rate", "offroad_frac", "audit32_offroad_frac", "implausible_rate", "audit32_implausible_rate", "diversity_fde", "audit32_diversity_fde", "speed_mean", "audit32_speed_mean", "final_disp_mean", "gt_speed_mean", "gt_final_disp"]
 
@@ -35,10 +46,11 @@ def aggregate(eval_dir: Path, reference: str | None, out_dir: Path, n_boot: int 
     summary = {}
     rows = []
     for (m, c), arrs in data.items():
-        s = {"method": m, "condition": c, "n": int(len(arrs["scenario_ids"]))}
+        grp = load_groups(arrs["scenario_ids"])
+        s = {"method": m, "condition": c, "n": int(len(arrs["scenario_ids"])), "n_groups": int(len(np.unique(grp))) if grp is not None else int(len(arrs["scenario_ids"])), "bootstrap_unit": "group" if grp is not None else "scenario"}
         for k in KEY_METRICS:
             if k in arrs:
-                ci = mean_ci(arrs[k], n_boot)
+                ci = mean_ci(arrs[k], n_boot, groups=grp)
                 s[k] = ci["mean"]
                 s[k + "_ci"] = (ci["ci_low"], ci["ci_high"])
                 s[k + "_n"] = ci["n"]
@@ -55,7 +67,8 @@ def aggregate(eval_dir: Path, reference: str | None, out_dir: Path, n_boot: int 
                 continue
             ref = data[(reference, c)]
             assert np.array_equal(ref["scenario_ids"], arrs["scenario_ids"]), "scenario sets differ"
-            paired[f"{m}|{c}"] = {k: paired_bootstrap(ref[k], arrs[k], n_boot) for k in ("joint_minADE_8s", "joint_minFDE_8s", "overlap_rate", "audit32_overlap_rate", "offroad_frac") if k in arrs and k in ref}
+            grp = load_groups(arrs["scenario_ids"])
+            paired[f"{m}|{c}"] = {k: paired_bootstrap(ref[k], arrs[k], n_boot, groups=grp) for k in ("joint_minADE_8s", "joint_minFDE_8s", "overlap_rate", "audit32_overlap_rate", "offroad_frac") if k in arrs and k in ref}
         # suite-level: mean over the core corruption conditions (per scene, then paired)
         core = [c for c in conds if c.startswith(("missing_", "noise_")) and c in ("missing_0.1", "missing_0.3", "missing_0.5", "noise_0.1", "noise_0.3", "noise_0.5")]
         for m in methods:
@@ -64,10 +77,11 @@ def aggregate(eval_dir: Path, reference: str | None, out_dir: Path, n_boot: int 
             if all((m, c) in data and (reference, c) in data for c in core) and core:
                 a = np.nanmean(np.stack([data[(reference, c)]["joint_minADE_8s"] for c in core]), 0)
                 b = np.nanmean(np.stack([data[(m, c)]["joint_minADE_8s"] for c in core]), 0)
-                paired[f"{m}|CORE_SUITE"] = {"joint_minADE_8s": paired_bootstrap(a, b, n_boot), "conditions": core}
+                grp = load_groups(data[(m, core[0])]["scenario_ids"])
+                paired[f"{m}|CORE_SUITE"] = {"joint_minADE_8s": paired_bootstrap(a, b, n_boot, groups=grp), "conditions": core}
                 ao = np.nanmean(np.stack([data[(reference, c)]["overlap_rate"] for c in core]), 0)
                 bo = np.nanmean(np.stack([data[(m, c)]["overlap_rate"] for c in core]), 0)
-                paired[f"{m}|CORE_SUITE"]["overlap_rate"] = paired_bootstrap(ao, bo, n_boot)
+                paired[f"{m}|CORE_SUITE"]["overlap_rate"] = paired_bootstrap(ao, bo, n_boot, groups=grp)
     json.dump(summary, open(out_dir / "summary.json", "w"), indent=1, default=float)
     json.dump(paired, open(out_dir / "paired_vs_reference.json", "w"), indent=1, default=float)
     # markdown table
@@ -86,7 +100,8 @@ def aggregate(eval_dir: Path, reference: str | None, out_dir: Path, n_boot: int 
 
             lines.append(f"| {m} | {c} | {s['n']} | {f('joint_minADE_8s')} | {f('joint_minFDE_8s')} | {f('marginal_minADE_8s')} | {f('overlap_rate',4)} | {f('audit32_overlap_rate',4)} | {f('offroad_frac',4)} | {f('implausible_rate',4)} | {f('diversity_fde',2)} |")
     if paired:
-        lines += ["", f"Paired differences vs `{reference}` (method − reference; scenario-level bootstrap 95% CI):", "", "| method | condition | Δ joint minADE@6 8s | rel. Δ | Δ overlap rate (pp) | n |", "|---|---|---|---|---|---|"]
+        unit = next(iter(paired.values()))["joint_minADE_8s"].get("unit", "scenario")
+        lines += ["", f"Paired differences vs `{reference}` (method − reference; {unit}-level bootstrap 95% CI; groups = heuristic source-segment components, D-025):", "", "| method | condition | Δ joint minADE@6 8s | rel. Δ | Δ overlap rate (pp) | n |", "|---|---|---|---|---|---|"]
         for k, v in paired.items():
             m, c = k.split("|")
             d = v["joint_minADE_8s"]

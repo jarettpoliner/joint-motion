@@ -2,7 +2,7 @@
  "name": "m1_pilot_s0",
  "kind": "train",
  "created": "2026-11-03T08:26:51",
- "status": "running",
+ "status": "completed",
  "events": [
   {
    "t": "2026-11-03T08:26:51",
@@ -12,6 +12,11 @@
   {
    "t": "2026-11-03T08:26:51",
    "status": "running",
+   "pid": 2563739
+  },
+  {
+   "t": "2026-11-03T08:39:58",
+   "status": "completed",
    "pid": 2563739
   }
  ],
@@ -55,46 +60,48 @@
  "n_train": 9144,
  "n_dev": 500,
  "device": "cuda:0",
- "step": 1000,
+ "step": 12000,
  "best": {
-  "score": 5.967404346025198,
-  "step": 1000,
+  "score": 3.9881160375091467,
+  "step": 9000,
   "dev": {
-   "nll_clean": 2.1978724606263023,
-   "jminADE6_clean": 5.486529501958575,
-   "nll_missing_0.1": 2.1932095213108225,
-   "jminADE6_missing_0.1": 5.536224476276147,
-   "nll_missing_0.3": 2.190812221358316,
-   "jminADE6_missing_0.3": 5.5284305748549665,
-   "nll_missing_0.5": 2.200120625038301,
-   "jminADE6_missing_0.5": 5.437168754063581,
-   "nll_noise_0.1": 2.3794043459484926,
-   "jminADE6_noise_0.1": 5.672191949416359,
-   "nll_noise_0.3": 2.4915370368419842,
-   "jminADE6_noise_0.3": 7.392222527329816,
-   "nll_noise_0.5": 2.5660837414013664,
-   "jminADE6_noise_0.5": 9.123436858610049,
-   "jminADE6_suite": 6.44827919009182,
-   "selection_score": 5.967404346025198
+   "nll_clean": 2.057015977371614,
+   "jminADE6_clean": 3.598595485251729,
+   "nll_missing_0.1": 2.052550469094711,
+   "jminADE6_missing_0.1": 3.6096385677056,
+   "nll_missing_0.3": 2.0535697015948644,
+   "jminADE6_missing_0.3": 3.7447505715770832,
+   "nll_missing_0.5": 2.061600129793403,
+   "jminADE6_missing_0.5": 3.7376174253844203,
+   "nll_noise_0.1": 2.2140221280755914,
+   "jminADE6_noise_0.1": 4.002018798817904,
+   "nll_noise_0.3": 2.305795124632308,
+   "jminADE6_noise_0.3": 4.940019631577858,
+   "nll_noise_0.5": 2.3763595751240962,
+   "jminADE6_noise_0.5": 6.231774543536526,
+   "jminADE6_suite": 4.377636589766564,
+   "selection_score": 3.9881160375091467
   }
  },
- "elapsed_s": 64.93679094314575,
+ "elapsed_s": 786.4817583560944,
  "last_dev": {
-  "nll_clean": 2.1978724606263023,
-  "jminADE6_clean": 5.486529501958575,
-  "nll_missing_0.1": 2.1932095213108225,
-  "jminADE6_missing_0.1": 5.536224476276147,
-  "nll_missing_0.3": 2.190812221358316,
-  "jminADE6_missing_0.3": 5.5284305748549665,
-  "nll_missing_0.5": 2.200120625038301,
-  "jminADE6_missing_0.5": 5.437168754063581,
-  "nll_noise_0.1": 2.3794043459484926,
-  "jminADE6_noise_0.1": 5.672191949416359,
-  "nll_noise_0.3": 2.4915370368419842,
-  "jminADE6_noise_0.3": 7.392222527329816,
-  "nll_noise_0.5": 2.5660837414013664,
-  "jminADE6_noise_0.5": 9.123436858610049,
-  "jminADE6_suite": 6.44827919009182,
-  "selection_score": 5.967404346025198
- }
+  "nll_clean": 2.0847405855497,
+  "jminADE6_clean": 3.728390799422293,
+  "nll_missing_0.1": 2.0788467094906697,
+  "jminADE6_missing_0.1": 3.655983009311461,
+  "nll_missing_0.3": 2.07981827487284,
+  "jminADE6_missing_0.3": 3.64772577885584,
+  "nll_missing_0.5": 2.085029281315112,
+  "jminADE6_missing_0.5": 3.939691886312969,
+  "nll_noise_0.1": 2.227716385375812,
+  "jminADE6_noise_0.1": 4.156969190605489,
+  "nll_noise_0.3": 2.314778266810424,
+  "jminADE6_noise_0.3": 5.033707335854798,
+  "nll_noise_0.5": 2.3842543031468315,
+  "jminADE6_noise_0.5": 6.049133865006756,
+  "jminADE6_suite": 4.413868510991219,
+  "selection_score": 4.0711296552067555
+ },
+ "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_best.pt",
+ "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_last.pt"
 }

@@ -29,3 +29,8 @@
   mixture training also augments the data, so part of any M1 gain may be regularisation rather
   than corruption awareness. The matched extra-SFT control and clean guardrail bound, but do not
   remove, this confound.
+- **Overlap reference rate (D-028).** The logged-future flag rate on dev (3.0 %) mixes annotation
+  contacts, heading inference and interpolation effects; it is a reference rate for the same test
+  applied to logs, not a lower bound. Vehicle–pedestrian pairs are over-represented among flags.
+- **Bootstrap unit.** CIs resample heuristic source-segment groups (D-025a); the grouping is
+  derived from SDC motion matching and cannot guarantee independence.

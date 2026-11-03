@@ -144,3 +144,21 @@ def test_reward_driven_parameter_update(synth_files, small_model, batch):
     opt2.step()
     lp1 = logp_of(model2).detach()
     assert ((lp1 - lp0)[adv > 0].mean() > 0) and ((lp1 - lp0)[adv < 0].mean() < 0)
+
+
+def test_group_bootstrap_widens_ci_for_duplicated_groups():
+    from waymo_av.metrics.stats import paired_bootstrap, mean_ci
+    rng = np.random.default_rng(0)
+    a = rng.normal(0, 1, 200)
+    b = a + rng.normal(0.1, 1, 200)
+    # 50 groups of 4 perfectly correlated scenes vs 200 independent scenes
+    groups = np.repeat(np.arange(50), 4)
+    a_dup = a[groups]
+    b_dup = b[groups]
+    r_scene = paired_bootstrap(a_dup, b_dup, n_boot=500)
+    r_group = paired_bootstrap(a_dup, b_dup, n_boot=500, groups=groups)
+    assert r_group["unit"] == "group" and r_group["n_groups"] == 50
+    assert abs(r_group["delta"] - r_scene["delta"]) < 1e-12
+    assert (r_group["ci_high"] - r_group["ci_low"]) > 1.5 * (r_scene["ci_high"] - r_scene["ci_low"])
+    m = mean_ci(a_dup, n_boot=500, groups=groups)
+    assert m["n"] == 200
