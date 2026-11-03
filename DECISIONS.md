@@ -254,3 +254,11 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   checkpoint): clean overlap 1.1/0.6/1.8 % vs M1 15.8/14.2/14.7 % (6 samples), offroad 1.6 % vs
   4.7–4.9 %, clean jminADE 3.33/3.27/3.33 vs 3.56/3.48/3.50 m. Any RL effect must be read against
   this control as well as extra-SFT / filtered-SFT (frozen comparison rules in manifests/freeze.json).
+- D-030 (2026-11-03 13:50) — Session recovery. Verified state: no waymo_av processes alive; stages
+  audit…dev_eval completed; rl_pilot_s0–2, filtered_sft_pilot_s0–2, extra_sft_pilot_s0–1 completed
+  with checkpoints; extra_sft_pilot_s2 reached step 600 but the process died before its final
+  dev eval/checkpoint save (registry "running", no .pt) → re-run from scratch via the campaign
+  (24 s of training). No post-training dev evaluation had started (eval_dev holds only the 15
+  pre-RL methods). GPUs 0 and 1 are each occupied by an unrelated user process (another project,
+  ≈ 3.6 GB, ≈ 95 % util, not terminated); evaluation shares GPU 0 (< 2 GB, inference only), which
+  slows both and is recorded as a timing caveat only. GPU-hours used before resumption: 2.26.

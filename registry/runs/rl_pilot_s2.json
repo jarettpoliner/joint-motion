@@ -1,0 +1,75 @@
+{
+ "name": "rl_pilot_s2",
+ "kind": "rl",
+ "created": "2026-11-03T11:41:44",
+ "status": "completed",
+ "events": [
+  {
+   "t": "2026-11-03T11:41:44",
+   "status": "registered",
+   "pid": 3323365
+  },
+  {
+   "t": "2026-11-03T11:41:44",
+   "status": "running",
+   "pid": 3323365
+  },
+  {
+   "t": "2026-11-03T11:46:15",
+   "status": "completed",
+   "pid": 3323365
+  }
+ ],
+ "config": {
+  "batch_size": 16,
+  "bc_batch_size": 32,
+  "beta_kl": 0.1,
+  "ckpt_every": 100,
+  "corruption": "mixture",
+  "grad_clip": 1.0,
+  "init_from": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s2/ckpt_best.pt",
+  "k_samples": 8,
+  "lambda_bc": 1.0,
+  "log_every": 10,
+  "lr": 2e-05,
+  "mode": "rl",
+  "planned_gpu_hours": 1.5,
+  "reward": {
+   "w_kin": 0.5,
+   "w_offroad": 1.0,
+   "w_overlap": 1.0
+  },
+  "run_name": "rl_pilot_s2",
+  "schedule": "linear",
+  "seed": 2,
+  "total_steps": 600,
+  "train_manifest": "manifests/train.json",
+  "warmup_steps": 20,
+  "weight_decay": 0.0
+ },
+ "code_commit": "14ed6ed",
+ "code_dirty": true,
+ "pid": 3323365,
+ "run_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s2",
+ "init_from": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s2/ckpt_best.pt",
+ "init_step": 9000,
+ "step": 600,
+ "elapsed_s": 271.00063610076904,
+ "last": {
+  "step": 600,
+  "loss": 1.1461697816848755,
+  "bc_nll": 1.8307603597640991,
+  "grad_norm": 26.4541015625,
+  "reward_mean": -0.05917968750000001,
+  "overlap": 0.03125,
+  "offroad": 0.0279296875,
+  "implausible": 0.0,
+  "kl": 0.16775842010974884,
+  "pg": -0.7013664245605469,
+  "adv_abs": 0.43613216280937195,
+  "sampled_logp_mean": -1.6468136310577393,
+  "onpolicy_match": true,
+  "elapsed_s": 270.83998465538025
+ },
+ "ckpt_final": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s2/ckpt_final.pt"
+}

@@ -2,7 +2,7 @@
  "name": "rl_pilot_s0",
  "kind": "rl",
  "created": "2026-11-03T11:26:28",
- "status": "running",
+ "status": "completed",
  "events": [
   {
    "t": "2026-11-03T11:26:28",
@@ -12,6 +12,11 @@
   {
    "t": "2026-11-03T11:26:28",
    "status": "running",
+   "pid": 3302014
+  },
+  {
+   "t": "2026-11-03T11:30:49",
+   "status": "completed",
    "pid": 3302014
   }
  ],
@@ -48,22 +53,23 @@
  "run_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s0",
  "init_from": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_best.pt",
  "init_step": 9000,
- "step": 200,
- "elapsed_s": 87.4730122089386,
+ "step": 600,
+ "elapsed_s": 260.74742579460144,
  "last": {
-  "step": 200,
-  "loss": 1.25975501537323,
-  "bc_nll": 1.7143723964691162,
-  "grad_norm": 43.79501724243164,
-  "reward_mean": -0.12612304687500003,
-  "overlap": 0.1171875,
-  "offroad": 0.008935546875,
+  "step": 600,
+  "loss": 2.0346362590789795,
+  "bc_nll": 1.70436692237854,
+  "grad_norm": 40.32732009887695,
+  "reward_mean": -0.180078125,
+  "overlap": 0.125,
+  "offroad": 0.055078125000000006,
   "implausible": 0.0,
-  "kl": 0.14034070074558258,
-  "pg": -0.4686514437198639,
-  "adv_abs": 0.4322938919067383,
-  "sampled_logp_mean": -1.5979419946670532,
+  "kl": 0.18664398789405823,
+  "pg": 0.3116050362586975,
+  "adv_abs": 0.5872632265090942,
+  "sampled_logp_mean": -1.6533468961715698,
   "onpolicy_match": true,
-  "elapsed_s": 87.4322497844696
- }
+  "elapsed_s": 260.62154603004456
+ },
+ "ckpt_final": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s0/ckpt_final.pt"
 }

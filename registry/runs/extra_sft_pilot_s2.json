@@ -1,0 +1,60 @@
+{
+ "name": "extra_sft_pilot_s2",
+ "kind": "train",
+ "created": "2026-11-03T11:49:21",
+ "status": "running",
+ "events": [
+  {
+   "t": "2026-11-03T11:49:21",
+   "status": "registered",
+   "pid": 3333102
+  },
+  {
+   "t": "2026-11-03T11:49:21",
+   "status": "running",
+   "pid": 3333102
+  }
+ ],
+ "config": {
+  "run_name": "extra_sft_pilot_s2",
+  "init_from": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s2/ckpt_best.pt",
+  "train_manifest": "manifests/train.json",
+  "dev_manifest": "manifests/dev.json",
+  "corruption": "mixture",
+  "seed": 2,
+  "model": {
+   "d_model": 128,
+   "n_heads": 4,
+   "d_ff": 512,
+   "n_latents": 64,
+   "enc_layers": 2,
+   "dec_layers": 4,
+   "dropout": 0.1,
+   "max_agent_slots": 32,
+   "independent": false
+  },
+  "batch_size": 32,
+  "lr": 2e-05,
+  "warmup_steps": 20,
+  "total_steps": 600,
+  "schedule": "linear",
+  "weight_decay": 0.1,
+  "grad_clip": 1.0,
+  "log_every": 50,
+  "eval_every": 600,
+  "dev_eval_scenes": 256,
+  "eval_batch_size": 64,
+  "num_workers": 8,
+  "amp": true,
+  "planned_gpu_hours": 0.5
+ },
+ "code_commit": "14ed6ed",
+ "code_dirty": true,
+ "pid": 3333102,
+ "run_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s2",
+ "n_params": 1787049,
+ "n_train": 9144,
+ "n_dev": 500,
+ "device": "cuda:0",
+ "step": 0
+}
