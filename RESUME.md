@@ -3,14 +3,20 @@
 Last updated: 2026-11-03 15:35 (session 3).
 
 ## Current stage
-Freeze done (manifests/freeze.json). Stage final_eval RUNNING: `campaign --stage final_eval`
-(pid in <data_root>/logs/campaign_final_eval.log; 24 methods × 10 conditions × 1,000 locked scenes;
-≈ 4–6 h on the shared GPU). It writes <data_root>/runs/eval_final/<method>/<condition>/per_scene.npz,
-then reports/tables/final/{table,comparison}.md and reports/figures/final/*. If interrupted: re-run the
-same command — completed (method, condition) outputs are NOT skipped by evaluate.py (it re-runs the
-whole stage), so check <eval_final>/summary_all.json first; the stage itself is skipped once it exists.
-NEXT: `campaign --stage report`; demos for final deliverables (M0 vs M1, Mind vs M0, M1 vs RL vs
-selection on dev scenes — the final set is for metrics only); slides with --final-eval; STATUS.
+Stage final_eval RUNNING with resume (D-032). Progress = conditions with per_scene.npz for all 24
+frozen methods under <data_root>/runs/eval_final/<method>/<condition>/. Observed rate ≈ 31 min per
+condition (GPU 0 shared with a higher-priority job at 96 % SM; our process is sampling-starved).
+Logs: <data_root>/logs/campaign_final_eval.log (first run: clean, missing_0.1) and
+campaign_final_eval_resume.log (resumed run with cached geometry + 4 metric workers).
+
+Exact resume command (safe at any time; completed conditions are skipped, partial ones redone):
+```
+cd /home/jarettpoliner/Desktop/Waymo_AV
+<data_root>/env/train/bin/python -m waymo_av.campaign --stage final_eval
+```
+To pause: kill the `waymo_av.campaign --stage final_eval` process and its `waymo_av.evaluate` child;
+nothing is lost except the condition in progress. NEXT after it finishes: `--stage report`, then
+slides (`scripts/build_slide_content.py --final-eval <data_root>/runs/eval_final ...`), STATUS.
 
 ## Metric qualification (done before RL)
 Overlap audit v2 and validity-masked metrics are in place (D-028a/b). The RL reward is an approximate
