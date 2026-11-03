@@ -17,7 +17,8 @@ Updated: 2026-11-03 09:40 (session 2). Last commit: see `git log -1`.
 | 3a Overfit gate (32 real scenes) | done | registry/runs/m0_overfit.json: NLL 0.0002, free-running jminADE@6 0.093 m (= tokenizer floor); reports/figures/inspect_overfit_rollouts.png |
 | 3b/4 Pilots M0 / M1 / Mind × seeds 0,1,2 | RUNNING: s0 all done, m0_s1 done, m1_s1 running (as of 09:40) | <data_root>/logs/campaign_pilot.log; registry/runs/*_pilot_s*.json |
 | 4a Metric qualification before RL | done | D-028a (overlap audit v2, validity masks, denominators), D-028b (model-flag inspection); 35 tests pass |
-| 4a' Preliminary matched dev eval (seed 0; cp/cv/oracle/M0/M1/Mind, 500 scenes, 10 conditions) | RUNNING | <data_root>/runs/eval_dev_prelim (label PRELIMINARY) |
+| 4a' Preliminary matched dev eval (seed 0; cp/cv/oracle/M0/M1/Mind, 500 scenes, 10 conditions) | done | <data_root>/runs/eval_dev_prelim; reports/tables/dev_prelim/{table.md,comparison.md} |
+| 6' Preliminary deliverables | done (PRELIMINARY) | reports/figures/{fig_architecture,fig_real_scenes}.{pdf,svg,png}; reports/figures/dev_prelim/*; reports/demos/prelim_*/*.{gif,mp4}; slides/waymo_av_results_prelim.{pptx,pdf} |
 | 4b Dev evaluation | pending | — |
 | 5 RL + controls | pending | — |
 | 6 Freeze, final evaluation, report, animations | pending | — |
@@ -33,8 +34,13 @@ Updated: 2026-11-03 09:40 (session 2). Last commit: see `git log -1`.
 ## Measured so far (development set; preliminary, seed 0 unless noted)
 - Overfit gate: NLL 0.0002, free-running jminADE@6 0.093 m on 32 real scenes.
 - Quick selection evals (256 dev scenes, each model's own rule — NOT a matched comparison): m0_s0 3.83 m (clean), m1_s0 3.99 (mean of clean+suite), mind_s0 3.84 (clean), m0_s1 3.74 (clean).
-- Matched 500-scene clean dev eval (same scenes/sampling; eval_dev_prelim, in progress): m0_s0 3.87 m, m1_s0 3.53 m, mind_s0 3.90 m joint minADE@6; CV 10.8 m. Full tables with group-bootstrap CIs follow when the run completes.
-- Overlap reference on jointly valid intervals: 1.0 % of logged dev futures (D-028a); m0_s0 full-horizon sample overlap 15.0 %, 72 % of flags confirmed geometric (D-028b).
+- Matched 500-scene dev eval, seed 0 (identical scenes/conditions/sampling; group-bootstrap 95 % CI; reports/tables/dev_prelim/comparison.md):
+  clean joint minADE@6: CV 10.82 [10.22, 11.44], Mind 3.90 [3.63, 4.20], M0 3.87 [3.61, 4.17], M1 3.53 [3.28, 3.80].
+  Q1 joint − independent (clean): −0.03 m [−0.22, +0.17] (n.s.); overlap −3.4 pp [−5.5, −1.0] (joint fewer overlaps).
+  Q2 M1 − M0 core suite: −3.39 m [−3.60, −3.18] (−43.9 %); held-out suite −4.91 m (−43.6 %). M0 collapses under noise (σ=0.3: 12.2 m, worse than CV 11.6 m).
+  Q3 clean M1 − M0: −0.34 m (−8.7 %); core-suite overlap +0.58 pp [−0.73, +1.84] → preregistered overlap guardrail (≤ +0.5 pp) NOT met at the point estimate; verdict FAIL for seed 0 (primary and clean criteria pass).
+  Q4 seed consistency: pending seeds 1–2.
+- Overlap reference on jointly valid intervals: 1.0 % [0.2, 2.0] of logged dev futures (D-028a); m0_s0 overlap 14.9 % (6 samples, full horizon), 14.6 % on jointly valid intervals (32 samples); 72 % of flags confirmed geometric (D-028b).
 
 ## Known gaps
 - Official Waymo metrics package could not be installed (D-019a); custom metrics audited on analytic cases and oracles only.

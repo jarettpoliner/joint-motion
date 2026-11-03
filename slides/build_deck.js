@@ -23,11 +23,15 @@ const THEME = { name: "WaymoAV", headFontFace: "Cambria", bodyFontFace: "Calibri
     objects: [{ placeholder: { options: { name: "title", type: "title", x: 0.7, y: 2.2, w: 11.9, h: 1.6, fontSize: 40, bold: true, color: C.background1, align: "left", margin: 0 } } },
               { placeholder: { options: { name: "body", type: "body", x: 0.7, y: 3.9, w: 11.9, h: 2.4, fontSize: 18, color: "CADCFC", align: "left", margin: 0 } } },
               { text: { text: footer, options: { x: 0.7, y: 6.9, w: 11.9, h: 0.35, fontSize: 10, color: "CADCFC", margin: 0 } } }] });
+  pres.defineSlideMaster({ title: "DARK_CONTENT", background: { color: THEME.colors.dk2 },
+    objects: [{ placeholder: { options: { name: "title", type: "title", x: 0.7, y: 0.35, w: 11.9, h: 0.9, fontSize: 30, bold: true, color: C.background1, align: "left", margin: 0 } } },
+              { text: { text: footer, options: { x: 0.7, y: 6.9, w: 11.9, h: 0.35, fontSize: 10, color: "CADCFC", margin: 0 } } }] });
   pres.defineSlideMaster({ title: "LIGHT", background: { color: THEME.colors.lt1 },
     objects: [{ placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.35, w: 12.1, h: 0.8, fontSize: 30, bold: true, color: C.text2, align: "left", margin: 0 } } },
-              { text: { text: footer, options: { x: 0.6, y: 7.0, w: 10.5, h: 0.3, fontSize: 9, color: "777777", margin: 0 } } },
-              { placeholder: { options: { name: "tag", type: "body", x: 10.3, y: 7.0, w: 2.4, h: 0.3, fontSize: 9, bold: true, color: C.accent2, align: "right", margin: 0 } } }] });
-  const addLight = (title, tag) => { const s = pres.addSlide({ masterName: "LIGHT" }); s.addText(title, { placeholder: "title" }); s.addText(tag || LABEL, { placeholder: "tag" }); return s; };
+              { text: { text: footer, options: { x: 0.6, y: 7.0, w: 8.6, h: 0.3, fontSize: 9, color: "777777", margin: 0 } } },
+              { placeholder: { options: { name: "tag", type: "body", x: 9.3, y: 7.0, w: 3.4, h: 0.3, fontSize: 9, bold: true, color: C.accent2, align: "right", margin: 0 } } }] });
+  const TAG = LABEL.split(" (")[0];  // short form for the corner tag; the footer carries the full label
+  const addLight = (title, tag) => { const s = pres.addSlide({ masterName: "LIGHT" }); s.addText(title, { placeholder: "title" }); s.addText(tag || TAG, { placeholder: "tag" }); return s; };
   const bullets = (s, items, o) => s.addText(items.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < items.length - 1, paraSpaceAfter: 6 } })), Object.assign({ isTextBox: true, fontSize: 14, color: C.text1, valign: "top", margin: 0 }, o));
   const card = (s, x, y, w, h, head, body, fill) => { s.addShape(pres.ShapeType.roundRect, { x, y, w, h, fill: { color: fill || THEME.colors.lt2 }, line: { color: THEME.colors.lt2 }, rectRadius: 0.08 }); s.addText(head, { x: x + 0.15, y: y + 0.1, w: w - 0.3, h: 0.4, fontSize: 15, bold: true, color: C.text2, isTextBox: true, margin: 0 }); s.addText(body, { x: x + 0.15, y: y + 0.55, w: w - 0.3, h: h - 0.65, fontSize: 12, color: C.text1, isTextBox: true, valign: "top", margin: 0 }); };
   const stat = (s, x, y, w, big, small) => { s.addText(big, { x, y, w, h: 0.75, fontSize: 32, bold: true, color: C.text2, isTextBox: true, align: "center", margin: 0 }); s.addText(small, { x, y: y + 0.75, w, h: 0.5, fontSize: 11, color: "555555", isTextBox: true, align: "center", margin: 0 }); };
@@ -56,8 +60,8 @@ const THEME = { name: "WaymoAV", headFontFace: "Cambria", bodyFontFace: "Calibri
   stat(s, 5.6, 1.3, 2.4, `${C0.dataset.final.toLocaleString()}`, `final held-out scenes, ${C0.dataset.final_locked ? "LOCKED" : "not locked"} (official validation shards)`);
   stat(s, 8.1, 1.3, 2.4, "1 s → 8 s", "history @ 10 Hz → 16 joint steps @ 2 Hz");
   stat(s, 10.6, 1.3, 2.2, "2", "interacting targets per scene (objects_of_interest)");
-  img(s, C0.figures.fig_real_scenes, { x: 0.6, y: 2.95, w: 12.1, h: 3.4 });
-  bullets(s, [`${C0.dataset.version}, ${C0.dataset.shards}; ${C0.dataset.excluded_timing_pct} % of pair scenarios excluded by the 10 Hz timing rule (dropped frames, not interpolated)`, `Calibration on dev: tokenizer saturation ${C0.calibration.tokenizer_saturation_pct} %, reconstruction ${C0.calibration.recon_err_m} m; offroad convention validated by log playback (${C0.calibration.oracle_offroad_pct} % offroad); logged-future overlap reference ${C0.calibration.gt_overlap_ref_pct} %`], { x: 0.6, y: 6.35, w: 12.1, h: 0.65, fontSize: 11 });
+  img(s, C0.figures.fig_real_scenes, { x: 0.6, y: 2.9, w: 12.1, h: 3.15 });
+  bullets(s, [`${C0.dataset.version}, ${C0.dataset.shards}; ${C0.dataset.excluded_timing_pct} % of pair scenarios excluded by the 10 Hz timing rule (dropped frames, not interpolated)`, `Calibration on dev: tokenizer saturation ${C0.calibration.tokenizer_saturation_pct} %, reconstruction ${C0.calibration.recon_err_m} m; offroad convention validated by log playback (${C0.calibration.oracle_offroad_pct} % offroad); logged-future overlap reference ${C0.calibration.gt_overlap_ref_pct ?? "pending"} % on jointly valid intervals (audit v2)`], { x: 0.6, y: 6.1, w: 12.1, h: 0.8, fontSize: 11 });
 
   // 4 architecture
   s = addLight("Implemented architecture");
@@ -80,14 +84,14 @@ const THEME = { name: "WaymoAV", headFontFace: "Cambria", bodyFontFace: "Calibri
   // 6 clean results
   const blk = (fin && fin.available) ? fin : dev;
   const blkName = (fin && fin.available) ? "FINAL held-out set (1,000 locked scenes)" : `development set (${dev && dev.available ? dev.n_scenes : "—"} scenes) — PRELIMINARY`;
-  s = addLight("Clean forecasting results", (fin && fin.available) ? "FINAL" : LABEL);
+  s = addLight("Clean forecasting results", (fin && fin.available) ? "FINAL" : TAG);
   img(s, C0.figures.fig_baseline_comparison, { x: 0.6, y: 1.25, w: 7.9, h: 2.9 });
   card(s, 8.7, 1.25, 4.0, 2.9, "Joint minADE@6 (m), clean, " + (blk && blk.available ? `seeds ${blk.seeds.join(",")}` : "pending"),
     `Constant velocity: ${val(blk, "clean.cv.jminADE")}\nIndependent: ${val(blk, "clean.mind_pilot.jminADE")}\nJoint M0: ${val(blk, "clean.m0_pilot.jminADE")}\nJoint M1: ${val(blk, "clean.m1_pilot.jminADE")}\nJoint − independent: ${val(blk, "deltas.joint_vs_independent_clean")}`);
-  bullets(s, [`Evaluated on the ${blkName}; identical scenes and sampling (6 joint samples, T = 1.0, top-p 0.95) for every learned model; cp/cv are deterministic`, `Overlap rate (32-sample audit), clean: M0 ${val(blk, "clean.m0_pilot.overlap32_pct")} vs log-playback reference ${val(blk, "clean.oracle_log.overlap32_pct")}`, `Checkpoints selected on dev by their own criterion (M0: clean jminADE; M1: mean of clean and suite); 12k steps, 1.79 M parameters, d = 128`], { x: 0.6, y: 4.4, w: 12.1, h: 2.4 });
+  bullets(s, [`Evaluated on the ${blkName}; identical scenes and sampling (6 joint samples, T = 1.0, top-p 0.95) for every learned model; cp/cv are deterministic`, `Overlap, clean, 32-sample audit: M0 ${val(blk, "clean.m0_pilot.overlap32_pct")} over the full generated horizon; on jointly valid intervals M0 ${val(blk, "clean.m0_pilot.overlap32_jv_pct")} vs logged reference ${val(blk, "clean.oracle_log.overlap32_jv_pct")} (same approximate test applied to logs; not a lower bound)`, `Checkpoints selected on dev by their own criterion (M0: clean jminADE; M1: mean of clean and suite); 12k steps, 1.79 M parameters, d = 128`], { x: 0.6, y: 4.4, w: 12.1, h: 2.4 });
 
   // 7 robustness
-  s = addLight("Robustness to missing and noisy observations", (fin && fin.available) ? "FINAL" : LABEL);
+  s = addLight("Robustness to missing and noisy observations", (fin && fin.available) ? "FINAL" : TAG);
   img(s, C0.figures.fig_error_vs_severity, { x: 0.6, y: 1.25, w: 7.6, h: 2.9 });
   img(s, C0.figures.fig_tradeoff, { x: 8.4, y: 1.25, w: 4.3, h: 2.9 });
   const vrows = [["seed", "core-suite rel. Δ (≤ −5 %)", "clean rel. Δ (≤ +3 %)", "core overlap Δ pp (≤ +0.5)", "verdict"].map(t => ({ text: t, options: { bold: true, fill: { color: THEME.colors.lt2 } } }))];
@@ -97,7 +101,7 @@ const THEME = { name: "WaymoAV", headFontFace: "Cambria", bodyFontFace: "Calibri
   card(s, 8.4, 4.35, 4.3, 2.4, "M1 vs M0 (paired, group bootstrap)", `Core suite jminADE: ${val(blk, "deltas.m1_vs_m0_core")}\nHeld-out suite: ${val(blk, "deltas.m1_vs_m0_held")}\nClean: ${val(blk, "deltas.m1_vs_m0_clean")}\nCore overlap: ${val(blk, "deltas.m1_vs_m0_core_overlap_pp")} pp`);
 
   // 8 RL / controls
-  s = addLight("Bounded RL post-training and controls", (fin && fin.available) ? "FINAL" : LABEL);
+  s = addLight("Bounded RL post-training and controls", (fin && fin.available) ? "FINAL" : TAG);
   img(s, C0.figures.fig_rl_controls, { x: 0.6, y: 1.25, w: 12.1, h: 3.0 });
   const rlAvail = blk && blk.available && blk.methods && blk.methods.some(m => m.startsWith("rl_pilot"));
   card(s, 0.6, 4.45, 6.0, 2.3, "RL vs its M1 initialisation (clean, paired)", rlAvail ? `jminADE@6: ${val(blk, "deltas.rl_vs_m1_clean")}\nOverlap (32 samples): ${val(blk, "deltas.rl_vs_m1_overlap32_pp")} pp\nOffroad: ${val(blk, "deltas.rl_vs_m1_offroad_pp")} pp\nDiversity (mean pairwise FDE): ${val(blk, "deltas.rl_vs_m1_diversity")} m` : "PENDING — post-training stage not yet run. Runs planned: rl_pilot, filtered_sft_pilot, extra_sft_pilot per seed, all initialised from the dev-selected M1 checkpoint.");
@@ -114,13 +118,13 @@ const THEME = { name: "WaymoAV", headFontFace: "Cambria", bodyFontFace: "Calibri
   }
 
   // 10 conclusions
-  s = pres.addSlide({ masterName: "DARK" });
-  s.addText("Conclusions, limitations, remaining work", { placeholder: "title", fontSize: 32 });
+  s = pres.addSlide({ masterName: "DARK_CONTENT" });
+  s.addText("Conclusions, limitations, remaining work", { placeholder: "title" });
   const concl = [];
   if (blk && blk.available) { concl.push(`Clean: joint M0 ${val(blk, "clean.m0_pilot.jminADE")} m vs CV ${val(blk, "clean.cv.jminADE")} m; joint − independent ${val(blk, "deltas.joint_vs_independent_clean")}`); concl.push(`Robustness: M1 − M0 on the core suite ${val(blk, "deltas.m1_vs_m0_core")}; clean ${val(blk, "deltas.m1_vs_m0_clean")}; verdicts: ${(blk.verdicts || []).map(v => "seed " + v.seed + " " + v.verdict).join(", ") || "pending"}`); }
   else concl.push("Results pending");
   concl.push(rlAvail ? `RL: clean jminADE ${val(blk, "deltas.rl_vs_m1_clean")}, overlap ${val(blk, "deltas.rl_vs_m1_overlap32_pp")} pp vs M1` : "RL and controls: pending");
-  concl.push("Limitations: compact model and ~9k training scenes (not a leaderboard reproduction); official metrics package unavailable (custom metrics audited on oracles); 2 Hz overlap test has a 3 % reference rate on logged futures; source-segment grouping is heuristic; synthetic corruptions are stress tests, not sensor models");
+  concl.push(`Limitations: compact model and ~9k training scenes (not a leaderboard reproduction); official metrics package unavailable (custom metrics audited on oracles); the 2 Hz box-overlap test is approximate (logged reference ${C0.calibration.gt_overlap_ref_pct ?? "—"} % on jointly valid intervals; RL reward = approximate geometric consistency, not verified safety); source-segment grouping is heuristic; synthetic corruptions are stress tests, not sensor models`);
   concl.push((fin && fin.available) ? "Final held-out evaluation done once per frozen method; see report for full tables" : "Remaining: finish seeds, dev evaluation, RL + controls, freeze, single locked final evaluation, report");
   s.addText(concl.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < concl.length - 1, paraSpaceAfter: 8 } })), { x: 0.7, y: 1.5, w: 11.9, h: 5.2, fontSize: 15, color: "FFFFFF", isTextBox: true, valign: "top", margin: 0 });
   s.addNotes("Regenerate: " + C0.regenerate + "\nGPU-hours used at build time: " + C0.gpu_hours);

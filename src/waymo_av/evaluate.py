@@ -15,7 +15,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from waymo_av.baselines import constant_position, constant_velocity, log_playback_oracle
-from waymo_av.corruption import CORE_SUITE
+from waymo_av.corruption import CORE_SUITE, spec_from_name
 from waymo_av.dataset import WindowDataset, collate, load_window, read_manifest
 from waymo_av.metrics.displacement import displacement_metrics, sample_diversity
 from waymo_av.metrics.physical import kinematics, target_overlap, vehicle_offroad
@@ -113,6 +113,7 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
     out_dir.mkdir(parents=True, exist_ok=True)
     summary = {}
     for cond in conditions:
+        cond = spec_from_name(cond).name if cond != "clean" else cond  # canonical name (e.g. noise_1.0 -> noise_1)
         ds = WindowDataset(files, corruption=cond, global_seed=seed, return_window=True)
         dl = DataLoader(ds, batch_size=batch_size, shuffle=False, num_workers=4, collate_fn=collate)
         per = {m: {} for m in methods}

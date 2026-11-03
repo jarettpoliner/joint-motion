@@ -1,0 +1,30 @@
+{
+ "eval_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_dev_prelim",
+ "seeds": [
+  0
+ ],
+ "n_scenes": 500,
+ "methods": [
+  "cp",
+  "cv",
+  "m0_pilot_s0",
+  "m1_pilot_s0",
+  "mind_pilot_s0",
+  "oracle_log"
+ ],
+ "conditions": [
+  "clean",
+  "compound_0",
+  "missing_0.1",
+  "missing_0.3",
+  "missing_0.5",
+  "missing_0.7",
+  "noise_0.1",
+  "noise_0.3",
+  "noise_0.5",
+  "noise_1"
+ ],
+ "label": "PRELIMINARY (development set, seed 0)",
+ "bootstrap_unit": "group",
+ "regenerate": "python -m waymo_av.figures --eval-dir /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_dev_prelim --seeds 0 --out reports/figures/dev_prelim --label 'PRELIMINARY (development set, seed 0)'"
+}

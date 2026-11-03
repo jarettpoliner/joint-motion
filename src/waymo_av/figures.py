@@ -26,6 +26,7 @@ from waymo_av.paths import REPO_ROOT  # noqa: E402
 
 plt.rcParams.update({"font.size": 9, "axes.titlesize": 10, "axes.labelsize": 9, "legend.fontsize": 8, "figure.dpi": 100, "savefig.bbox": "tight", "pdf.fonttype": 42, "svg.fonttype": "none"})
 COL = {"cp": "#7f7f7f", "cv": "#2ca02c", "oracle_log": "#000000", "mind_pilot": "#9467bd", "m0_pilot": "#1f77b4", "m1_pilot": "#d62728", "extra_sft_pilot": "#8c564b", "filtered_sft_pilot": "#e377c2", "rl_pilot": "#ff7f0e"}
+SHORT = {"cp": "Const.\nposition", "cv": "Const.\nvelocity", "oracle_log": "Log\nplayback", "mind_pilot": "Independent\n(clean-tr.)", "m0_pilot": "Joint M0\n(clean-tr.)", "m1_pilot": "Joint M1\n(mixture-tr.)", "extra_sft_pilot": "M1 +\nextra SFT", "filtered_sft_pilot": "M1 +\nfiltered SFT", "rl_pilot": "M1 +\nbounded RL"}
 NAME = {"cp": "Constant position", "cv": "Constant velocity", "oracle_log": "Log playback (reference)", "mind_pilot": "Independent decoder (clean-trained)", "m0_pilot": "Joint M0 (clean-trained)", "m1_pilot": "Joint M1 (corruption-trained)", "extra_sft_pilot": "M1 + extra SFT (control)", "filtered_sft_pilot": "M1 + reward-filtered SFT (control)", "rl_pilot": "M1 + bounded RL"}
 CORE = [s.name for s in CORE_SUITE]
 HELD = [s.name for s in HELDOUT_SUITE]
@@ -149,8 +150,8 @@ def _suite(data, m, conds, key, seeds):
 
 def fig_baselines(data, grp, seeds, out, label, sources):
     methods = [m for m in ("cp", "cv", "mind_pilot", "m0_pilot", "m1_pilot") if any(k[0] == m or k[0].startswith(m + "_s") for k in data)]
-    fig, axes = plt.subplots(1, 3, figsize=(11, 3.6))
-    for ax, key, ttl in zip(axes, ("joint_minADE_8s", "joint_minFDE_8s", "overlap_rate"), ("Joint minADE@6, 8 s (m)", "Joint minFDE@6, 8 s (m)", "Overlap rate (6 joint samples)")):
+    fig, axes = plt.subplots(1, 3, figsize=(12.5, 4.0))
+    for ax, key, ttl in zip(axes, ("joint_minADE_8s", "joint_minFDE_8s", "overlap_rate"), ("Joint minADE@6, 8 s (m)", "Joint minFDE@6, 8 s (m)", "Overlap rate, full horizon (6 joint samples)")):
         for i, m in enumerate(methods):
             a, n = _per_scene(data, m, "clean", key, seeds)
             if a is None:
@@ -162,13 +163,14 @@ def fig_baselines(data, grp, seeds, out, label, sources):
                 for s in seeds:
                     if (f"{m}_s{s}", "clean") in data:
                         ax.plot(i + 0.22, np.nanmean(data[(f"{m}_s{s}", "clean")][key]), "o", color="k", ms=2.5, alpha=0.7)
-            ax.text(i, ci["mean"], f"{ci['mean']:.2f}" if key != "overlap_rate" else f"{100*ci['mean']:.1f}%", ha="center", va="bottom", fontsize=7)
-        if key == "overlap_rate" and ("oracle_log", "clean") in data:
-            ref = mean_ci(data[("oracle_log", "clean")][key], 2000, groups=grp)
+            ax.text(i, ci["ci_high"], f"{ci['mean']:.2f}" if key != "overlap_rate" else f"{100*ci['mean']:.1f}%", ha="center", va="bottom", fontsize=7)
+        if key == "overlap_rate" and ("oracle_log", "clean") in data and "overlap_rate_jointvalid" in data[("oracle_log", "clean")]:
+            ref = mean_ci(data[("oracle_log", "clean")]["overlap_rate_jointvalid"], 2000, groups=grp)
             ax.axhline(ref["mean"], color="k", ls=":", lw=1)
-            ax.text(len(methods) - 0.5, ref["mean"], f" log playback {100*ref['mean']:.1f}%", fontsize=7, va="bottom", ha="right")
+            ax.text(len(methods) - 0.5, ref["mean"], f" logged reference (jointly valid) {100*ref['mean']:.1f}%", fontsize=7, va="bottom", ha="right")
         ax.set_xticks(range(len(methods)))
-        ax.set_xticklabels([NAME[m].replace(" (", "\n(") for m in methods], fontsize=7)
+        ax.set_xticklabels([SHORT[m] for m in methods], fontsize=7.5)
+        ax.margins(y=0.15)
         ax.set_title(ttl)
         ax.spines[["top", "right"]].set_visible(False)
     fig.suptitle(f"Clean observations, matched {len(next(iter(data.values()))['scenario_ids'])} dev scenes; bars = mean over seeds {seeds} with group-bootstrap 95 % CI, dots = single seeds; cp/cv deterministic — {label}", fontsize=8.5)
@@ -176,7 +178,7 @@ def fig_baselines(data, grp, seeds, out, label, sources):
 
 
 def fig_severity(data, grp, seeds, out, label, sources):
-    fams = {"missing": [("clean", 0.0), ("missing_0.1", 0.1), ("missing_0.3", 0.3), ("missing_0.5", 0.5), ("missing_0.7", 0.7)], "noise": [("clean", 0.0), ("noise_0.1", 0.1), ("noise_0.3", 0.3), ("noise_0.5", 0.5), ("noise_1.0", 1.0)]}
+    fams = {"missing": [("clean", 0.0), ("missing_0.1", 0.1), ("missing_0.3", 0.3), ("missing_0.5", 0.5), ("missing_0.7", 0.7)], "noise": [("clean", 0.0), ("noise_0.1", 0.1), ("noise_0.3", 0.3), ("noise_0.5", 0.5), ("noise_1", 1.0)]}
     methods = [m for m in ("cv", "mind_pilot", "m0_pilot", "m1_pilot") if any(k[0] == m or k[0].startswith(m + "_s") for k in data)]
     fig, axes = plt.subplots(1, 2, figsize=(10, 3.8), sharey=True)
     for ax, (fam, pts) in zip(axes, fams.items()):
@@ -218,9 +220,10 @@ def fig_tradeoff(data, grp, seeds, out, label, sources):
     if ("cv", "clean") in data:
         cx = np.nanmean(data[("cv", "clean")]["joint_minADE_8s"]); cy = np.nanmean(np.stack([data[("cv", c)]["joint_minADE_8s"] for c in CORE]))
         ax.plot(cx, cy, "s", color=COL["cv"], label=NAME["cv"])
-    lim = ax.get_xlim()
-    ax.plot([0, 50], [0, 50], ":", color="#999999", lw=0.8)
-    ax.set_xlim(lim)
+    xl, yl = ax.get_xlim(), ax.get_ylim()
+    ax.plot([0, 60], [0, 60], ":", color="#999999", lw=0.8, label="y = x")
+    ax.set_xlim(min(xl[0], 2.5), xl[1])
+    ax.set_ylim(min(yl[0], 2.5), yl[1])
     ax.set_xlabel("clean joint minADE@6 (m)")
     ax.set_ylabel("core-suite joint minADE@6 (m), mean of 6 corrupted conditions")
     ax.set_title(f"Clean accuracy vs robustness — {label}", fontsize=9)

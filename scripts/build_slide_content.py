@@ -43,6 +43,7 @@ def summarize(eval_dir, seeds, which):
     out = {"available": True, "eval_dir": str(eval_dir), "n_scenes": int(len(ids)), "seeds": seeds, "methods": present, "which": which,
            "clean": {b: {"jminADE": ci_str(g(b, "clean", "joint_minADE_8s"), grp), "jminFDE": ci_str(g(b, "clean", "joint_minFDE_8s"), grp),
                          "overlap32_pct": ci_str(g(b, "clean", "audit32_overlap_rate" if b not in ("cp", "cv", "oracle_log") else "overlap_rate"), grp, 1, 100, " %"),
+                         "overlap32_jv_pct": ci_str(g(b, "clean", "audit32_overlap_rate_jointvalid" if b not in ("cp", "cv", "oracle_log") else "overlap_rate_jointvalid"), grp, 1, 100, " %"),
                          "offroad_pct": ci_str(g(b, "clean", "offroad_frac"), grp, 2, 100, " %"), "diversity": ci_str(g(b, "clean", "audit32_diversity_fde" if b not in ("cp", "cv", "oracle_log") else "diversity_fde"), grp, 1)}
                      for b in ("cp", "cv", "oracle_log", "mind_pilot", "m0_pilot", "m1_pilot", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot")},
            "suite": {b: {"core_jminADE": ci_str(suite(data, b, CORE, "joint_minADE_8s", seeds), grp), "held_jminADE": ci_str(suite(data, b, HELD, "joint_minADE_8s", seeds), grp), "core_overlap_pct": ci_str(suite(data, b, CORE, "overlap_rate", seeds), grp, 1, 100, " %")}
@@ -91,6 +92,7 @@ if __name__ == "__main__":
     a = ap.parse_args(); seeds = [int(s) for s in a.seeds.split(",")]
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=REPO_ROOT).stdout.strip()
     man = {n: json.load(open(REPO_ROOT / "manifests" / f"{n}.json")) for n in ("train", "dev", "final")}
+    ofa = json.load(open(REPO_ROOT / "manifests/overlap_floor_audit.json"))["summary"] if (REPO_ROOT / "manifests/overlap_floor_audit.json").exists() else None
     cal = json.load(open(REPO_ROOT / "manifests/calibration.json")); ts = json.load(open(REPO_ROOT / "manifests/timestamp_audit.json"))["summary"]; so = json.load(open(REPO_ROOT / "manifests/segment_overlap.json"))
     runs = {}
     for p in sorted((REPO_ROOT / "registry/runs").glob("*.json")):
@@ -100,7 +102,7 @@ if __name__ == "__main__":
     figs = {k: (v if Path(v).exists() else None) for k, v in figs.items()}
     figs["fig_architecture"] = str(REPO_ROOT / "reports/figures/fig_architecture.png"); figs["fig_real_scenes"] = str(REPO_ROOT / "reports/figures/fig_real_scenes.png")
     content = {"label": a.label, "commit": commit, "date": __import__("time").strftime("%Y-%m-%d"), "dataset": {"version": "WOMD v1.3.0 scenario format", "shards": "48 training + 12 validation shards", "train": man["train"]["n"], "dev": man["dev"]["n"], "final": man["final"]["n"], "final_locked": man["final"]["locked"], "pairs_train": man["train"]["target_type_pairs"], "excluded_timing_pct": round(100 * ts["n_failing_with_pair"] / (ts["n_failing_with_pair"] + 10826), 1), "segment_groups_nonsingleton": sum(1 for v in so["groups"].values() if v.startswith("g_"))},
-               "calibration": {"tokenizer_saturation_pct": round(100 * cal["tokenizer"]["saturation_rate"], 2), "recon_err_m": round(cal["tokenizer"]["recon_err_mean_m"], 3), "offroad_sign": cal["offroad_oracle"]["chosen_sign"], "oracle_offroad_pct": round(100 * cal["offroad_oracle"]["oracle_offroad_frac_with_chosen_sign"], 2), "gt_overlap_ref_pct": round(100 * cal["future_overlap_rate_gt"], 1), "d0_err_m": round(cal["d0_init"]["mean_err_m_vs_true_first_half_second"], 2)},
+               "calibration": {"tokenizer_saturation_pct": round(100 * cal["tokenizer"]["saturation_rate"], 2), "recon_err_m": round(cal["tokenizer"]["recon_err_mean_m"], 3), "offroad_sign": cal["offroad_oracle"]["chosen_sign"], "oracle_offroad_pct": round(100 * cal["offroad_oracle"]["oracle_offroad_frac_with_chosen_sign"], 2), "gt_overlap_ref_pct": round(100 * ofa["rate_jointly_valid"], 1) if ofa else None, "gt_overlap_ref_note": "jointly valid intervals, audit v2 (D-028a)", "d0_err_m": round(cal["d0_init"]["mean_err_m_vs_true_first_half_second"], 2)},
                "runs": runs, "gpu_hours": round(gpu_hours_used(), 2), "dev": summarize(a.dev_eval, seeds, "development (dev.json, 500 scenes)"), "final": summarize(a.final_eval, seeds, "FINAL held-out (final.json, 1000 scenes, locked)"), "figures": figs,
                "demos": stills(a.demos, REPO_ROOT / "reports/demos/stills"), "regenerate": "python scripts/build_slide_content.py " + " ".join(__import__("sys").argv[1:]) + " && node slides/build_deck.js"}
     Path(a.out).parent.mkdir(exist_ok=True); json.dump(content, open(a.out, "w"), indent=1, default=str); print(a.out)

@@ -30,3 +30,9 @@
 {"t": "2026-11-03T09:18:29", "name": "m1_pilot_s1", "status": "completed", "step": 12000, "elapsed_s": 915.3854029178619, "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_best.pt", "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_last.pt"}
 {"t": "2026-11-03T09:18:36", "name": "mind_pilot_s1", "kind": "train", "status": "registered", "commit": "d7d499c"}
 {"t": "2026-11-03T09:18:36", "name": "mind_pilot_s1", "status": "running", "step": 0}
+{"t": "2026-11-03T09:32:43", "name": "mind_pilot_s1", "status": "completed", "step": 12000, "elapsed_s": 846.440502166748, "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s1/ckpt_best.pt", "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s1/ckpt_last.pt"}
+{"t": "2026-11-03T09:32:50", "name": "m0_pilot_s2", "kind": "train", "status": "registered", "commit": "44d291c"}
+{"t": "2026-11-03T09:32:50", "name": "m0_pilot_s2", "status": "running", "step": 0}
+{"t": "2026-11-03T09:44:47", "name": "m0_pilot_s2", "status": "completed", "step": 12000, "elapsed_s": 716.7887465953827, "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s2/ckpt_best.pt", "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s2/ckpt_last.pt"}
+{"t": "2026-11-03T09:44:55", "name": "m1_pilot_s2", "kind": "train", "status": "registered", "commit": "44d291c"}
+{"t": "2026-11-03T09:44:55", "name": "m1_pilot_s2", "status": "running", "step": 0}
