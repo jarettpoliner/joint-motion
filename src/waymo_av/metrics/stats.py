@@ -6,6 +6,23 @@ from __future__ import annotations
 import numpy as np
 
 
+def _group_weights(groups: np.ndarray, n_boot: int, rng):
+    """Cluster bootstrap for MEAN statistics, vectorised: resampling G groups with replacement is
+    equivalent to multinomial counts W [n_boot, G] over groups; the resampled mean of x is
+    (W @ S) / (W @ n) with per-group sums S and sizes n. Returns (W, inv) with inv = group index per scene."""
+    uniq, inv = np.unique(groups, return_inverse=True)
+    G = len(uniq)
+    W = rng.multinomial(G, np.full(G, 1.0 / G), size=n_boot).astype(np.float64)
+    return W, inv
+
+
+def _group_mean_boot(x: np.ndarray, W: np.ndarray, inv: np.ndarray) -> np.ndarray:
+    G = W.shape[1]
+    S = np.bincount(inv, weights=x, minlength=G)
+    n = np.bincount(inv, minlength=G).astype(np.float64)
+    return (W @ S) / (W @ n)
+
+
 def _group_resample_idx(groups: np.ndarray, n_boot: int, rng) -> np.ndarray:
     """Cluster bootstrap: resample groups with replacement, concatenate their member indices.
     Returns an object array of index arrays (ragged)."""
@@ -32,6 +49,9 @@ def paired_bootstrap(a: np.ndarray, b: np.ndarray, n_boot: int = 2000, seed: int
     if groups is None:
         idx = rng.integers(0, n, size=(n_boot, n))
         d = stat(b[idx], axis=1) - stat(a[idx], axis=1)
+    elif stat is np.nanmean or stat is np.mean:
+        W, inv = _group_weights(groups, n_boot, rng)
+        d = _group_mean_boot(b, W, inv) - _group_mean_boot(a, W, inv)
     else:
         d = np.array([stat(b[i]) - stat(a[i]) for i in _group_resample_idx(groups, n_boot, rng)])
     delta = float(stat(b) - stat(a))
@@ -63,5 +83,6 @@ def mean_ci(x: np.ndarray, n_boot: int = 2000, seed: int = 0, groups: np.ndarray
         idx = rng.integers(0, len(x), size=(n_boot, len(x)))
         m = x[idx].mean(1)
     else:
-        m = np.array([x[i].mean() for i in _group_resample_idx(groups, n_boot, rng)])
+        W, inv = _group_weights(groups, n_boot, rng)
+        m = _group_mean_boot(x, W, inv)
     return {"mean": float(x.mean()), "ci_low": float(np.percentile(m, 2.5)), "ci_high": float(np.percentile(m, 97.5)), "n": int(len(x))}

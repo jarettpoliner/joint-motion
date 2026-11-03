@@ -56,6 +56,11 @@
     1,
     2
    ]
+  },
+  "dev_eval": {
+   "status": "failed",
+   "t": "2026-11-03T11:22:02",
+   "error": "RuntimeError(\"command failed (-15): ['/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/env/train/bin/python', '-m', 'waymo_av.aggregate', '--eval-dir', '/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_dev', '--reference', 'm0_pilot_s0', '--out',"
   }
  }
 }
