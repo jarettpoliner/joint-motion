@@ -1,34 +1,34 @@
 # RESUME.md — how to continue this campaign
 
-Last updated: 2026-11-02 (session 1).
+Last updated: 2026-11-03 08:16 (session 2).
 
 ## Current stage
-Implementation complete and verified on synthetic fixtures. Real-data campaign NOT started:
-blocked at dataset download (no authenticated Google account for the WOMD buckets).
+Pilot training (stage pilot) running on GPU 0 via
+`python -m waymo_av.campaign --stage pilot --seeds 0,1,2` (log: <data_root>/logs/campaign_pilot.log).
+Order: m0_pilot_s0, m1_pilot_s0, mind_pilot_s0, then seeds 1 and 2. Each run ≈ 20 min (12k steps,
+0.085 s/step, data-loading bound on the shared CPU). Completed runs have
+registry/runs/<name>.json status "completed"; the runner skips those on restart.
 
 ## Evidence paths
 - Code: /home/jarettpoliner/Desktop/Waymo_AV (git, branch master)
 - Data root: /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data
-- Env: <data_root>/env/train ; lock: requirements/train.lock
-- Synthetic smoke run (not a result): <data_root>/runs/synthetic_smoke ; registry/runs/synthetic_smoke.json
-- Tests: `CUDA_VISIBLE_DEVICES= <data_root>/env/train/bin/python -m pytest tests`
+  raw/womd_v1_3_0/scenario/{training,validation}, processed/{training,validation}, runs/, logs/
+- Manifests (immutable; final locked): manifests/{train,dev,final,overfit,debug}.json,
+  calibration.json, metric_config.json, timestamp_audit.json, segment_overlap.json
+- Registry: registry/experiments.jsonl, registry/runs/*.json, registry/gpu_hours.jsonl, registry/campaign_state.json
 
-## Process state
-No training or download jobs are running. GPU-hours used: ~0 (registry/gpu_hours.jsonl).
-
-## Blocker and the single user action
+## Next commands (in order; each is resumable/skips completed work)
 ```
-! /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/tools/google-cloud-sdk/bin/gcloud auth login --no-browser
+cd /home/jarettpoliner/Desktop/Waymo_AV
+PY=/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/env/train/bin/python
+$PY -m waymo_av.campaign --stage pilot --seeds 0,1,2        # if interrupted
+$PY -m waymo_av.campaign --stage dev_eval --seeds 0,1,2     # cp/cv/M0/M1/Mind on dev, core+held-out suites
+$PY -m waymo_av.campaign --stage posttrain --seeds 0,1,2    # RL, filtered-SFT, extra-SFT from M1 best
+$PY -m waymo_av.campaign --stage freeze --seeds 0,1,2       # writes manifests/freeze.json
+$PY -m waymo_av.campaign --stage final_eval                 # once per frozen method on manifests/final.json
+$PY -m waymo_av.campaign --stage report
 ```
-(use the Google account registered at https://waymo.com/open; the licence must already be accepted).
-
-## Next command once unblocked
-```
-cd /home/jarettpoliner/Desktop/Waymo_AV && <data_root>/env/train/bin/python -m waymo_av.campaign --stage all
-```
-Then: dev evaluation (evaluate.py over M0/M1/Mind/cp/cv on dev with the core suite), freeze
-sampling settings and thresholds, RL stage (configs/rl/*.yaml), final evaluation on
-manifests/final.json once per frozen method, report generation.
+Then demos/animations: `python -m waymo_av.demo --ckpts M0=... M1=... --manifest manifests/dev.json --condition missing_0.3 --scenes 6 --out reports/demos/...`.
 
 ## Remaining budget
-48 GPU-hours and 100 GiB storage, all unused.
+48 GPU-hours ceiling (used: registry/gpu_hours.jsonl); 100 GiB storage ceiling (used ≈ 31 GB incl. env).

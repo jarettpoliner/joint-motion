@@ -13,3 +13,5 @@
 {"t": "2026-11-03T08:13:30", "name": "m0_overfit", "kind": "train", "status": "registered", "commit": "d4d65b8"}
 {"t": "2026-11-03T08:13:30", "name": "m0_overfit", "status": "running", "step": 0}
 {"t": "2026-11-03T08:14:55", "name": "m0_overfit", "status": "completed", "step": 600, "elapsed_s": 84.89717411994934, "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_overfit/ckpt_best.pt", "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_overfit/ckpt_last.pt"}
+{"t": "2026-11-03T08:15:39", "name": "m0_pilot_s0", "kind": "train", "status": "registered", "commit": "7dee9c8"}
+{"t": "2026-11-03T08:15:39", "name": "m0_pilot_s0", "status": "running", "step": 0}

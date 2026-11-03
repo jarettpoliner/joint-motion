@@ -1,47 +1,33 @@
 # STATUS.md
 
-Updated: 2026-11-02 23:05 (session 1). Commits: ea127b1, 2c62c65 (+ this update).
+Updated: 2026-11-03 08:16 (session 2). Last commit: see `git log -1`.
 
-## Overall: IMPLEMENTATION COMPLETE AND VERIFIED ON SYNTHETIC FIXTURES; REAL-DATA CAMPAIGN BLOCKED ON DATASET ACCESS
+## Overall: REAL-DATA CAMPAIGN RUNNING — data, manifests, calibration and overfit gates passed; pilots training
 
 | Stage | State | Evidence |
 |---|---|---|
-| 0 Workspace/hardware/env | done | DECISIONS.md D-001..D-006, D-018, D-020 (fresh-env verification passed); requirements/train.lock |
-| 1 Source research | done | docs/source_matrix.md (MotionLM, Waymo RL paper, scenario/map protos, terms, Waymax config read) |
-| 2 Data pipeline + evaluator | implemented; verified on SYNTHETIC only | 28 tests pass (CPU); scripts/smoke_synthetic.sh passes (train → resume → eval → tables) |
-| 3 MotionLM-style model | implemented; tiny-batch overfit passes; leakage tests pass; throughput profiled | tests/test_model_and_leakage.py; D-018 |
-| 4 Robustness extension (M0/M1/Mind) | implemented, configs ready; NOT RUN on real data | corruption.py, configs/train/*.yaml |
-| 5 RL + controls | implemented (REINFORCE+LOO+KL+replay; filtered-SFT; extra-SFT; selection); reward-update test passes; synthetic smoke passes; NOT RUN on real data | rl.py, configs/rl/*.yaml |
-| 6 Final evaluation / report / animations | generators implemented and smoke-tested; no real results | viz.py, aggregate.py, report.py |
-
-## Blocker (one user action)
-
-WOMD buckets return HTTP 401 anonymously; `gcloud auth list` shows no credentialed accounts.
-Run in this Claude Code session (the account must have accepted the licence at https://waymo.com/open):
-
-```
-! /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/tools/google-cloud-sdk/bin/gcloud auth login --no-browser
-```
-
-Then: `<data_root>/env/train/bin/python -m waymo_av.campaign --stage all` (RESUME.md).
-
-## Secondary (optional) user action
-Relocate the data root to a top-level directory on extradrive1 (needs sudo once); see
-`<data_root>/README_WAYMO_AV_DATA.txt`. Not required to proceed.
+| 0 Workspace/hardware/env | done | DECISIONS D-001..D-006, D-018, D-020; requirements/train.lock |
+| 1 Source research | done | docs/source_matrix.md |
+| 2a WOMD access + download | done | D-021; 48 training + 12 validation shards (23 GB raw); manifests/raw_shards.json, dataset_version.json |
+| 2b Preprocessing | done | 10,826 pair windows (9,685 train-split, 1,141 val-split); scripts/check_processed.py: 0 corrupt, 0 orphans |
+| 2c Timestamp contract audit | done | D-024/D-024a; manifests/timestamp_audit.json (190 pair scenarios excluded = 1.7 %) |
+| 2d Manifests | done, final LOCKED | train 9,144 / dev 500 / final 1,000 / overfit 32 / debug 1,000; manifests/*.json; D-025 segment-overlap removal |
+| 2e Real-scene inspection | done | reports/figures/inspect_training_shard0.png; D-023 |
+| 2f Calibration on dev | done | manifests/calibration.json, metric_config.json; D-026 |
+| 3a Overfit gate (32 real scenes) | done | registry/runs/m0_overfit.json: NLL 0.0002, free-running jminADE@6 0.093 m (= tokenizer floor); reports/figures/inspect_overfit_rollouts.png |
+| 3b/4 Pilots M0 / M1 / Mind × seeds 0,1,2 | RUNNING (campaign pid in RESUME.md) | <data_root>/logs/campaign_pilot.log; registry/runs/*_pilot_s*.json |
+| 4b Dev evaluation | pending | — |
+| 5 RL + controls | pending | — |
+| 6 Freeze, final evaluation, report, animations | pending | — |
 
 ## Resource use so far
 
 | Item | Value |
 |---|---|
-| GPU-hours (registry/gpu_hours.jsonl) | < 0.01 (smoke tests only) |
-| Storage under data root | env 5.5 GiB, uv cache 0.8 GiB, gcloud SDK 0.5 GiB, synthetic runs 0.12 GiB; raw/processed real data: 0 |
-| Free on extradrive1 | 946 GiB (floor 360 GiB) |
-| Root volume | repo only (< 10 MiB); 8.2 GiB free (pre-existing condition, not consumed) |
+| GPU-hours (registry/gpu_hours.jsonl) | see `python -c "from waymo_av.budget import gpu_hours_used;print(gpu_hours_used())"` (≈ 0.03 before pilots) |
+| Storage under data root | raw 23 GB, processed 1.0 GB, env 5.5 GB, uv cache 0.8 GB, SDK 0.5 GB, runs < 1 GB |
+| Free on extradrive1 | ≈ 925 GiB (floor 360 GiB) |
 
 ## Known gaps
-- Official Waymo metrics package could not be installed (D-019a); custom metrics are audited on analytic cases and oracles only.
-
-## Not done (real-data dependent)
-Download, preprocessing, manifests, calibration (tokenizer saturation + offroad sign), overfit
-gate, M0/M1/Mind pilots (3 seeds planned), dev evaluation + sampling freeze, RL stage with four
-controls, locked final evaluation, report/figures/animations with real numbers.
+- Official Waymo metrics package could not be installed (D-019a); custom metrics audited on analytic cases and oracles only.
+- Overlap metric floor on logged futures 3.2 % (D-026); offroad metric centre-point test.
