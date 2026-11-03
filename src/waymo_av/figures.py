@@ -237,7 +237,7 @@ def fig_rl_controls(data, grp, seeds, out, label, sources):
     if not any(b.startswith("rl") for b in bases):
         print("fig_rl_controls: post-training results not available yet (pending)")
         return
-    panels = [("joint_minADE_8s", "clean", "clean joint minADE@6 (m)", 1), ("joint_minADE_8s", "CORE", "core-suite joint minADE@6 (m)", 1), ("audit32_overlap_rate", "clean", "overlap rate, 32 samples (%)", 100), ("offroad_frac", "clean", "vehicle offroad fraction (%)", 100), ("implausible_rate", "clean", "kinematically implausible (%)", 100), ("audit32_diversity_fde", "clean", "diversity: mean pairwise FDE (m)", 1)]
+    panels = [("joint_minADE_8s", "clean", "clean joint minADE@6 (m)", 1), ("joint_minADE_8s", "CORE", "core-suite joint minADE@6 (m)", 1), ("overlap_rate", "clean", "overlap, own 6 outputs (%)", 100), ("audit32_overlap_rate", "clean", "overlap, 32-sample pool (%)\n(sel: unselected pool)", 100), ("offroad_frac", "clean", "vehicle offroad fraction (%)", 100), ("implausible_rate", "clean", "kinematically implausible (%)", 100), ("audit32_diversity_fde", "clean", "diversity: mean pairwise FDE (m)", 1)]
     fig, axes = plt.subplots(1, len(panels), figsize=(2.6 * len(panels), 3.4))
     for ax, (key, cond, ttl, sc) in zip(axes, panels):
         for i, b in enumerate(bases):
@@ -254,7 +254,7 @@ def fig_rl_controls(data, grp, seeds, out, label, sources):
         if key.endswith("overlap_rate") and ("oracle_log", "clean") in data and "overlap_rate" in data[("oracle_log", "clean")]:
             ax.axhline(100 * np.nanmean(data[("oracle_log", "clean")]["overlap_rate"]), color="k", ls=":", lw=1)
         ax.set_xticks(range(len(bases)))
-        ax.set_xticklabels([{"m1_pilot": "M1", "select_m1": "M1+sel", "extra_sft_pilot": "M1+xSFT", "filtered_sft_pilot": "M1+fSFT", "rl_pilot": "M1+RL"}.get(b, b) for b in bases], fontsize=7)
+        ax.set_xticklabels([{"m1_pilot": "M1", "select_m1": "M1+sel", "extra_sft_pilot": "M1+xSFT", "filtered_sft_pilot": "M1+fSFT", "rl_pilot": "M1+RL"}.get(b, b) for b in bases], fontsize=7, rotation=30, ha="right")
         ax.set_title(ttl, fontsize=8)
         ax.spines[["top", "right"]].set_visible(False)
     fig.suptitle(f"Bounded RL vs controls (all from the dev-selected M1 checkpoint; sel = best 6 of 32 by reward, xSFT = extra SFT, fSFT = reward-filtered SFT) — mean over seeds {seeds}, group-bootstrap 95 % CI — {label}", fontsize=8.5)

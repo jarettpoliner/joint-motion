@@ -121,6 +121,17 @@ Sampling: learned models 6 samples (joint metrics) + 32-sample audit; cp/cv dete
 | 2 | +0.806 [+0.627, +0.995] (+24.2%) | +1.187 [+1.047, +1.332] (+29.1%) | +4.41 [+3.21, +5.81] | -8.41 [-9.75, -7.08] | -8.38 [-9.72, -7.07] | +1.88 [+1.43, +2.34] | -1.14 [-1.38, -0.90] |
 | sign agreement | consistent | consistent | consistent | consistent | consistent | consistent | consistent |
 
+## Q6a Excessive-stopping diagnostic (descriptive; clean dev; 500 scenes; identical scenes/sampling; eligible = agent with valid logged final step and logged final displacement > 5 m; stopped = predicted final displacement < 1 m; counted per (agent, joint sample); 6 samples/scene (select_m1: best 6 of 32 by reward); torch seed 0; descriptive only, no threshold)
+
+| method | eligible (agent, sample) pairs | stopped-while-logged-moved | frequency | seeds |
+|---|---|---|---|---|
+| m1_pilot | 17082 | 73 | 0.43 % | 0,1,2 |
+| select_m1 | 17082 | 75 | 0.44 % | 0,1,2 |
+| extra_sft_pilot | 17082 | 74 | 0.43 % | 0,1,2 |
+| filtered_sft_pilot | 17082 | 99 | 0.58 % | 0,1,2 |
+| rl_pilot | 17082 | 596 | 3.49 % | 0,1,2 |
+| m0_pilot | 17082 | 89 | 0.52 % | 0,1,2 |
+
 ## Q6b Post-training behaviour summary (clean dev; scene-level means over seeds; 6-sample metrics unless 32 noted)
 
 | method | speed_mean (m/s) | GT speed_mean | final_disp_mean (m) | GT final_disp | final_disp / GT | implausible rate | diversity FDE (6) | diversity FDE (32) | marginal minADE | joint meanADE (6) |

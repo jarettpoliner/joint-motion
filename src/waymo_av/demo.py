@@ -48,10 +48,11 @@ def main(argv=None):
     a = ap.parse_args(argv)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(a.seed)
-    models = {}
+    models, is_select = {}, {}
     for spec in a.ckpts:
         name, path = spec.split("=", 1)
-        models[name], _ = load_model_from_ckpt(path, dev)
+        is_select[name] = path.startswith("select:")  # NAME=select:<ckpt> -> best n_samples of 32 by the RL reward (frozen control)
+        models[name], _ = load_model_from_ckpt(path.split(":", 1)[1] if is_select[name] else path, dev)
     files = read_manifest(REPO_ROOT / a.manifest)[: a.pool]
     ds = WindowDataset(files, corruption=a.condition, global_seed=a.seed, return_window=True)
     items = [ds[i] for i in range(len(ds))]
@@ -59,7 +60,13 @@ def main(argv=None):
     b = {k: (v.to(dev) if torch.is_tensor(v) else v) for k, v in batch.items()}
     preds = {"CV": constant_velocity(b)}
     for name, m in models.items():
-        preds[name] = sample_rollouts(m, b, a.n_samples, temperature=1.0, top_p=a.top_p)["xy_scene"].cpu().numpy()
+        if is_select[name]:
+            from waymo_av.evaluate import _reward_weights, select_by_reward
+            sign = json.load(open(REPO_ROOT / "manifests/metric_config.json"))["offroad_sign"]
+            pool = sample_rollouts(m, b, 32, temperature=1.0, top_p=a.top_p)["xy_scene"].cpu().numpy()
+            preds[name] = select_by_reward(pool, batch, [load_window(p) for p in batch["window_path"]], a.n_samples, sign, _reward_weights())
+        else:
+            preds[name] = sample_rollouts(m, b, a.n_samples, temperature=1.0, top_p=a.top_p)["xy_scene"].cpu().numpy()
     gt, v = batch["gt_future_xy"].numpy(), batch["gt_future_valid"].numpy()
     scores = {n: displacement_metrics(p, gt, v)["joint_minADE_8s"] for n, p in preds.items()}
     main_name = list(models)[-1]
