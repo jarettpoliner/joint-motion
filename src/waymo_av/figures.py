@@ -257,7 +257,7 @@ def fig_rl_controls(data, grp, seeds, out, label, sources):
         ax.set_xticklabels([{"m1_pilot": "M1", "select_m1": "M1+sel", "extra_sft_pilot": "M1+xSFT", "filtered_sft_pilot": "M1+fSFT", "rl_pilot": "M1+RL"}.get(b, b) for b in bases], fontsize=7, rotation=30, ha="right")
         ax.set_title(ttl, fontsize=8)
         ax.spines[["top", "right"]].set_visible(False)
-    fig.suptitle(f"Bounded RL vs controls (all from the dev-selected M1 checkpoint; sel = best 6 of 32 by reward, xSFT = extra SFT, fSFT = reward-filtered SFT) — mean over seeds {seeds}, group-bootstrap 95 % CI — {label}", fontsize=8.5)
+    fig.suptitle(f"Bounded RL vs controls (all from the dev-selected M1 checkpoint; sel = best 6 of 32 by reward, xSFT = extra SFT, fSFT = reward-filtered SFT) — mean over seeds {seeds}, group-bootstrap 95 % CI — {label}", fontsize=8.5, y=1.04)
     save(fig, out, "fig_rl_controls", sources)
 
 

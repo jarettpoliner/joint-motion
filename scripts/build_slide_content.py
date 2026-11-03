@@ -71,6 +71,19 @@ def summarize(eval_dir, seeds, which):
         do = paired_bootstrap(np.nanmean(np.stack([data[(r, c)]["overlap_rate"] for c in CORE]), 0), np.nanmean(np.stack([data[(m, c)]["overlap_rate"] for c in CORE]), 0), 2000, groups=grp)
         verdicts.append({"seed": s, "core_rel": f"{100*dc['rel_delta']:+.1f} % [{100*dc['rel_ci_low']:+.1f}, {100*dc['rel_ci_high']:+.1f}]", "clean_rel": f"{100*dl['rel_delta']:+.1f} % [{100*dl['rel_ci_low']:+.1f}, {100*dl['rel_ci_high']:+.1f}]", "overlap_pp": f"{100*do['delta']:+.2f} [{100*do['ci_low']:+.2f}, {100*do['ci_high']:+.2f}]", "verdict": "PASS" if (dc["rel_delta"] <= -0.05 and dl["rel_delta"] <= 0.03 and do["delta"] * 100 <= 0.5) else "FAIL"})
     out["verdicts"] = verdicts
+    # RL frozen-rule verdict per seed (beats both SFT controls on overlap32 AND no clean worsening > 3 %)
+    rlv = []
+    for s in seeds:
+        m1, rl, es, fs = (f"{b}_s{s}" for b in ("m1_pilot", "rl_pilot", "extra_sft_pilot", "filtered_sft_pilot"))
+        if not all((x, "clean") in data for x in (m1, rl, es, fs)): continue
+        dc = paired_bootstrap(data[(m1, "clean")]["joint_minADE_8s"], data[(rl, "clean")]["joint_minADE_8s"], 2000, groups=grp)
+        oe = paired_bootstrap(data[(es, "clean")]["audit32_overlap_rate"], data[(rl, "clean")]["audit32_overlap_rate"], 2000, groups=grp)
+        of = paired_bootstrap(data[(fs, "clean")]["audit32_overlap_rate"], data[(rl, "clean")]["audit32_overlap_rate"], 2000, groups=grp)
+        ok = dc["rel_delta"] <= 0.03 and oe["ci_high"] < 0 and of["ci_high"] < 0
+        rlv.append({"seed": s, "clean_rel": f"{100*dc['rel_delta']:+.1f} %", "overlap_vs_extra_pp": f"{100*oe['delta']:+.1f}", "overlap_vs_filtered_pp": f"{100*of['delta']:+.1f}", "verdict": "COUNTS" if ok else "DOES NOT COUNT"})
+    out["rl_verdicts"] = rlv
+    sd = REPO_ROOT / "manifests/stopping_diagnostic.json"
+    out["stopping"] = {k: f"{100*v['frequency']:.2f} %" for k, v in json.load(open(sd))["methods"].items()} if sd.exists() else None
     return out
 
 def stills(demo_dirs, out_dir, frame=24):
