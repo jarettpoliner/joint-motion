@@ -1,27 +1,35 @@
 """Resumable campaign runner. Stages are skipped when their completion artifact exists and is
 valid; failures stop the campaign visibly. State is written to registry/campaign_state.json.
 
-python -m waymo_av.campaign --stage all|audit|download|preprocess|manifests|calibrate|overfit|pilot|robust|rl|final|report
+python -m waymo_av.campaign --stage all|audit|download|preprocess|manifests|calibrate|overfit|pilot|dev_eval|freeze|posttrain|final_eval|report
+
+Stage dependencies: download -> preprocess -> manifests -> calibrate -> overfit -> pilot -> dev_eval
+-> freeze -> posttrain -> final_eval -> report. `final_eval` refuses to run unless `freeze` wrote
+manifests/freeze.json (frozen checkpoints, sampling settings, thresholds).
 """
 from __future__ import annotations
 
 import argparse
 import json
-import os
-import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
 
+import yaml
+
 from waymo_av.budget import check_disk, gpu_hours_used
+from waymo_av.corruption import CORE_SUITE, HELDOUT_SUITE
 from waymo_av.paths import REPO_ROOT, load_paths
 
 STATE = REPO_ROOT / "registry" / "campaign_state.json"
 P = load_paths()
 DATA = Path(P["data_root"])
+RUNS = Path(P["runs_dir"])
 PY = P["train_python"]
 GCLOUD = Path(P["gcloud_bin"])
+CORE = ["clean"] + [s.name for s in CORE_SUITE]
+HELDOUT = [s.name for s in HELDOUT_SUITE]
 
 
 def _state():
@@ -32,7 +40,7 @@ def _set(stage, status, **info):
     s = _state()
     s["stages"][stage] = {"status": status, "t": time.strftime("%Y-%m-%dT%H:%M:%S"), **info}
     STATE.parent.mkdir(exist_ok=True)
-    json.dump(s, open(STATE, "w"), indent=1)
+    json.dump(s, open(STATE, "w"), indent=1, default=str)
     print(f"[campaign] {stage}: {status} {info if info else ''}", flush=True)
 
 
@@ -49,6 +57,20 @@ def gcloud_authenticated() -> bool:
         return bool(out.strip())
     except Exception:
         return False
+
+
+def _completed(run_name):
+    p = REPO_ROOT / "registry" / "runs" / f"{run_name}.json"
+    return p.exists() and json.load(open(p)).get("status") == "completed"
+
+
+def _train(cfg, run_name=None, overrides=()):
+    cmd = [PY, "-m", "waymo_av.train", "--config", cfg, "--resume"]
+    if run_name:
+        cmd += ["--run-name", run_name]
+    if overrides:
+        cmd += ["--override", *overrides]
+    run(cmd)
 
 
 # ---------------- stages ----------------
@@ -82,7 +104,8 @@ def stage_preprocess(n_train=24, n_val=8):
 
 
 def stage_manifests():
-    if (REPO_ROOT / "manifests" / "final.json").exists() and json.load(open(REPO_ROOT / "manifests" / "final.json")).get("locked"):
+    f = REPO_ROOT / "manifests" / "final.json"
+    if f.exists() and json.load(open(f)).get("locked"):
         _set("manifests", "completed", skipped=True)
         return
     run([PY, "-m", "waymo_av.data.manifests", "--lock-final"])
@@ -90,29 +113,18 @@ def stage_manifests():
 
 
 def stage_calibrate():
-    """Tokenizer coverage + offroad sign calibration with the log-playback oracle on dev."""
+    if (REPO_ROOT / "manifests" / "calibration.json").exists():
+        _set("calibrate", "completed", skipped=True)
+        return
     run([PY, "-m", "waymo_av.calibrate"])
     _set("calibrate", "completed")
-
-
-def _train(cfg, run_name=None, overrides=()):
-    cmd = [PY, "-m", "waymo_av.train", "--config", cfg, "--resume"]
-    if run_name:
-        cmd += ["--run-name", run_name]
-    if overrides:
-        cmd += ["--override", *overrides]
-    run(cmd)
-
-
-def _completed(run_name):
-    p = REPO_ROOT / "registry" / "runs" / f"{run_name}.json"
-    return p.exists() and json.load(open(p)).get("status") == "completed"
 
 
 def stage_overfit():
     if not _completed("m0_overfit"):
         _train("configs/train/m0_overfit.yaml")
-    _set("overfit", "completed")
+    rec = json.load(open(REPO_ROOT / "registry" / "runs" / "m0_overfit.json"))
+    _set("overfit", "completed", best=rec.get("best"))
 
 
 def stage_pilot(seeds=(0,)):
@@ -124,15 +136,120 @@ def stage_pilot(seeds=(0,)):
     _set("pilot", "completed", seeds=list(seeds))
 
 
+def _methods(seeds, which=("m0_pilot", "m1_pilot", "mind_pilot")):
+    ms = ["cp", "cv"]
+    for s in seeds:
+        for base in which:
+            ck = RUNS / f"{base}_s{s}" / "ckpt_best.pt"
+            if ck.exists():
+                ms.append(f"ckpt:{ck}@{base}_s{s}")
+    return ms
+
+
+def stage_dev_eval(seeds=(0,)):
+    out = RUNS / "eval_dev"
+    if (out / "summary_all.json").exists():
+        _set("dev_eval", "completed", skipped=True)
+    else:
+        run([PY, "-m", "waymo_av.evaluate", "--methods", *_methods(seeds), "--conditions", *CORE, *HELDOUT, "--manifest", "manifests/dev.json", "--out", str(out), "--tag", "dev"])
+        _set("dev_eval", "completed", out=str(out))
+    run([PY, "-m", "waymo_av.aggregate", "--eval-dir", str(out), "--reference", f"m0_pilot_s{seeds[0]}", "--out", "reports/tables/dev"])
+
+
+def stage_freeze(seeds=(0,)):
+    """Freeze checkpoints, sampling settings and thresholds BEFORE any final-set evaluation."""
+    fz = REPO_ROOT / "manifests" / "freeze.json"
+    if fz.exists():
+        _set("freeze", "completed", skipped=True)
+        return
+    methods = {}
+    for s in seeds:
+        for base in ("m0_pilot", "m1_pilot", "mind_pilot"):
+            ck = RUNS / f"{base}_s{s}" / "ckpt_best.pt"
+            if ck.exists():
+                methods[f"{base}_s{s}"] = str(ck)
+    for base in ("rl_pilot", "filtered_sft_pilot", "extra_sft_pilot"):
+        for s in seeds:
+            for fn in ("ckpt_final.pt", "ckpt_best.pt"):
+                ck = RUNS / f"{base}_s{s}" / fn
+                if ck.exists():
+                    methods[f"{base}_s{s}"] = str(ck)
+                    break
+    freeze = {
+        "t": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "methods": methods,
+        "sampling": {"n_samples": 6, "audit_samples": 32, "temperature": 1.0, "top_p": 0.95},
+        "conditions": CORE + HELDOUT,
+        "thresholds": {"primary_rel_reduction_core_suite": 0.05, "clean_guardrail_rel_worsening": 0.03, "overlap_guardrail_pp": 0.5},
+        "final_manifest_sha256": json.load(open(REPO_ROOT / "manifests" / "final.json"))["sha256_ids"],
+        "note": "frozen before any evaluation on manifests/final.json",
+    }
+    json.dump(freeze, open(fz, "w"), indent=1)
+    _set("freeze", "completed", methods=list(methods))
+
+
+def stage_posttrain(seeds=(0,)):
+    """RL and its controls from the dev-selected M1 checkpoint (D-014)."""
+    for s in seeds:
+        init = RUNS / f"m1_pilot_s{s}" / "ckpt_best.pt"
+        if not init.exists():
+            raise RuntimeError(f"missing {init}")
+        for cfg_path, base in (("configs/rl/rl_pilot.yaml", "rl_pilot"), ("configs/rl/filtered_sft_pilot.yaml", "filtered_sft_pilot")):
+            name = f"{base}_s{s}"
+            if _completed(name):
+                continue
+            cfg = yaml.safe_load(open(REPO_ROOT / cfg_path))
+            cfg["init_from"] = str(init)
+            cfg["run_name"] = name
+            cfg["seed"] = s
+            tmp = RUNS / f"{name}.yaml"
+            tmp.parent.mkdir(parents=True, exist_ok=True)
+            yaml.safe_dump(cfg, open(tmp, "w"))
+            run([PY, "-m", "waymo_av.rl", "--config", str(tmp), "--resume"])
+        name = f"extra_sft_pilot_s{s}"
+        if not _completed(name):
+            _train("configs/train/extra_sft_pilot.yaml", run_name=name, overrides=[f"init_from={init}", f"seed={s}", f"run_name={name}"])
+    _set("posttrain", "completed", seeds=list(seeds))
+
+
+def stage_final_eval():
+    fz = REPO_ROOT / "manifests" / "freeze.json"
+    if not fz.exists():
+        raise RuntimeError("final_eval requires manifests/freeze.json (run the freeze stage first)")
+    f = json.load(open(fz))
+    assert json.load(open(REPO_ROOT / "manifests" / "final.json"))["sha256_ids"] == f["final_manifest_sha256"], "final manifest changed after freeze"
+    out = RUNS / "eval_final"
+    if (out / "summary_all.json").exists():
+        _set("final_eval", "completed", skipped=True)
+    else:
+        methods = ["cp", "cv"] + [f"ckpt:{p}@{n}" for n, p in f["methods"].items()]
+        sm = f["sampling"]
+        run([PY, "-m", "waymo_av.evaluate", "--methods", *methods, "--conditions", *f["conditions"], "--manifest", "manifests/final.json", "--out", str(out), "--n-samples", str(sm["n_samples"]), "--audit-samples", str(sm["audit_samples"]), "--temperature", str(sm["temperature"]), "--top-p", str(sm["top_p"]), "--tag", "final"])
+        _set("final_eval", "completed", out=str(out))
+    ref = next((n for n in f["methods"] if n.startswith("m0_pilot")), None)
+    run([PY, "-m", "waymo_av.aggregate", "--eval-dir", str(out), "--reference", ref, "--out", "reports/tables/final"])
+
+
+def stage_report():
+    run([PY, "-m", "waymo_av.report", "--dev-tables", "reports/tables/dev", "--final-tables", "reports/tables/final", "--figures", *[str(p) for p in sorted((REPO_ROOT / "reports" / "figures").glob("*.png"))], "--anims", *[str(p) for p in sorted((REPO_ROOT / "reports" / "demos").rglob("*.gif"))]])
+    _set("report", "completed")
+
+
+ORDER = ["audit", "download", "preprocess", "manifests", "calibrate", "overfit", "pilot", "dev_eval", "posttrain", "freeze", "final_eval", "report"]
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="all")
     ap.add_argument("--n-train-shards", type=int, default=24)
     ap.add_argument("--n-val-shards", type=int, default=8)
     ap.add_argument("--seeds", default="0")
+    ap.add_argument("--until", default=None, help="with --stage all: stop after this stage")
     a = ap.parse_args(argv)
     seeds = tuple(int(s) for s in a.seeds.split(","))
-    stages = ["audit", "download", "preprocess", "manifests", "calibrate", "overfit", "pilot"] if a.stage == "all" else [a.stage]
+    stages = ORDER if a.stage == "all" else [a.stage]
+    if a.until and a.stage == "all":
+        stages = ORDER[: ORDER.index(a.until) + 1]
     for st in stages:
         try:
             if st == "audit":
@@ -151,8 +268,20 @@ def main(argv=None):
                 stage_overfit()
             elif st == "pilot":
                 stage_pilot(seeds)
+            elif st == "dev_eval":
+                stage_dev_eval(seeds)
+            elif st == "posttrain":
+                stage_posttrain(seeds)
+            elif st == "freeze":
+                stage_freeze(seeds)
+            elif st == "final_eval":
+                stage_final_eval()
+            elif st == "report":
+                stage_report()
             else:
                 raise ValueError(st)
+        except SystemExit:
+            raise
         except Exception as e:  # noqa
             _set(st, "failed", error=repr(e)[:300])
             raise

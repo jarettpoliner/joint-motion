@@ -15,3 +15,4 @@ build/
 tests/_fixtures/
 reports/figures/*.png
 !reports/figures/.keep
+reports/demos/SYNTHETIC*/
