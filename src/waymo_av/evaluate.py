@@ -40,12 +40,12 @@ def _reward_weights():
     return yaml.safe_load(open(REPO_ROOT / "configs" / "rl" / "rl_pilot.yaml"))["reward"]
 
 
-def select_by_reward(pred_pool: np.ndarray, batch, windows, n_keep: int, offroad_sign: int, w: dict) -> np.ndarray:
+def select_by_reward(pred_pool: np.ndarray, batch, windows, n_keep: int, offroad_sign: int, w: dict, trees=None) -> np.ndarray:
     """pred_pool [B,N,A,T,2] -> [B,n_keep,A,T,2]: the n_keep joint samples with the highest reward
     (stable order: ties keep the lower sample index)."""
     from waymo_av.rl import reward_from_terms, reward_terms
 
-    r = reward_from_terms(reward_terms(pred_pool, batch, windows, offroad_sign), w)  # [B,N]
+    r = reward_from_terms(reward_terms(pred_pool, batch, windows, offroad_sign, trees=trees), w)  # [B,N]
     order = np.argsort(-r, axis=1, kind="stable")[:, :n_keep]
     return np.take_along_axis(pred_pool, order[:, :, None, None, None], axis=1)
 
@@ -64,7 +64,24 @@ def predict(method: str, model, batch, n_samples, temperature, top_p, tokenizer=
     return r["xy_scene"].cpu().numpy(), {"tokens": r["tokens"].cpu().numpy(), "logp_policy": r["logp_policy"].cpu().numpy()}
 
 
-def scene_metrics(pred, batch, windows, offroad_sign=+1, logged: bool = False):
+def _geom(batch, windows):
+    """Picklable, method-invariant per-batch inputs for scene_metrics (no torch tensors, no windows)."""
+    from waymo_av.metrics.physical import EdgeTree
+
+    return {"gt": batch["gt_future_xy"].cpu().numpy(), "v": batch["gt_future_valid"].cpu().numpy(), "cur_xy": batch["cur_xy"].cpu().numpy(), "cur_h": batch["cur_heading"].cpu().numpy(), "size": batch["target_size"][..., :2].cpu().numpy(), "types": batch["target_type"].cpu().numpy(), "trees": [EdgeTree(w.edge_xy, w.edge_poly) for w in windows]}
+
+
+def scene_metrics_g(pred, g: dict, offroad_sign=+1, logged: bool = False):
+    """scene_metrics on the picklable geometry dict (identical results; used by worker processes)."""
+    class _B(dict):
+        pass
+
+    b = {k: torch.as_tensor(v) for k, v in g.items() if k in ("gt", "v", "cur_xy", "cur_h", "size", "types")}
+    batch = {"gt_future_xy": b["gt"], "gt_future_valid": b["v"], "cur_xy": b["cur_xy"], "cur_heading": b["cur_h"], "target_size": torch.cat([b["size"], torch.zeros_like(b["size"][..., :1])], -1), "target_type": b["types"]}
+    return scene_metrics(pred, batch, None, offroad_sign, logged, trees=g["trees"])
+
+
+def scene_metrics(pred, batch, windows, offroad_sign=+1, logged: bool = False, trees=None):
     """Per-scene metrics for pred [B,S,A,T,2] (scene frame).
     Denominators (explicit):
       overlap_rate            full generated horizon (80 interpolated steps), all (scene,sample)
@@ -96,7 +113,11 @@ def scene_metrics(pred, batch, windows, offroad_sign=+1, logged: bool = False):
     out["initial_overlap"] = init.astype(float)
     out["first_overlap_s"] = np.nanmean(np.where(ov["overlap"], ov["first_overlap_s"], np.nan), axis=1) if (ov["overlap"].any() and not logged) else np.full(len(pred), np.nan)
     out["max_depth_m"] = np.full(len(pred), np.nan) if logged else ov["max_depth_m"].max(1)
-    fr, valid_map = vehicle_offroad(pred, cur_xy, types, [w.edge_xy for w in windows], [w.edge_poly for w in windows], offroad_sign, valid=v if logged else None)
+    if trees is None:
+        from waymo_av.metrics.physical import EdgeTree
+
+        trees = [EdgeTree(w.edge_xy, w.edge_poly) for w in windows]
+    fr, valid_map = vehicle_offroad(pred, cur_xy, types, [None] * len(trees), [None] * len(trees), offroad_sign, valid=v if logged else None, trees=trees)
     out["offroad_frac"] = np.nanmean(fr.reshape(len(pred), -1), axis=1) if fr.size else np.full(len(pred), np.nan)
     out["offroad_any"] = np.where(np.isnan(fr).all((1, 2)), np.nan, (np.nan_to_num(fr) > 0).any((1, 2)).astype(float))
     out["offroad_map_valid"] = valid_map.astype(float)
@@ -118,7 +139,17 @@ def scene_metrics(pred, batch, windows, offroad_sign=+1, logged: bool = False):
     return out
 
 
-def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir: Path, sampling: dict, seed: int = 0, batch_size: int = 32, device="cuda", limit: int | None = None, offroad_sign=+1, tag: str = ""):
+def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir: Path, sampling: dict, seed: int = 0, batch_size: int = 32, device="cuda", limit: int | None = None, offroad_sign=+1, tag: str = "", workers: int = 4, resume: bool = True):
+    """Resumable: a condition whose per_scene.npz exists for EVERY requested method is skipped
+    (outputs are only written once a condition is complete for all methods, so a partial condition
+    is never reused). Sampling RNG: torch is seeded per condition with seed + crc32(condition) so a
+    resumed condition draws exactly what an uninterrupted run would draw under this version;
+    corruption realisations are deterministic per (scenario, condition, seed) regardless of order.
+    `workers` > 0 computes the CPU metrics of each method in a process pool while the next method
+    samples on the GPU — results are identical to the serial path (tests)."""
+    import zlib
+    from concurrent.futures import ProcessPoolExecutor
+
     from waymo_av.train import load_model_from_ckpt
 
     dev = torch.device(device if torch.cuda.is_available() else "cpu")
@@ -134,17 +165,34 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
     rw = _reward_weights() if any(m.startswith("select:") for m in methods) else None
     out_dir.mkdir(parents=True, exist_ok=True)
     summary = {}
+    AUDIT_KEYS = ("overlap_rate", "overlap_rate_jointvalid", "overlap_any", "offroad_frac", "offroad_any", "speed_mean", "implausible_rate", "diversity_fde", "final_disp_mean", "joint_minADE_8s", "max_depth_m")
+    pool_exec = ProcessPoolExecutor(max_workers=workers) if workers > 0 else None
     for cond in conditions:
         cond = spec_from_name(cond).name if cond != "clean" else cond  # canonical name (e.g. noise_1.0 -> noise_1)
+        if resume and all((out_dir / _safe(m) / cond / "per_scene.npz").exists() for m in methods):
+            print(f"[{cond}] complete for all {len(methods)} methods — skipped (resume)", flush=True)
+            continue
+        torch.manual_seed(seed + zlib.crc32(cond.encode()))
         ds = WindowDataset(files, corruption=cond, global_seed=seed, return_window=True)
         dl = DataLoader(ds, batch_size=batch_size, shuffle=False, num_workers=4, collate_fn=collate)
         per = {m: {} for m in methods}
         ids = []
         t0 = time.time()
         timing = {m: 0.0 for m in methods}
+        futures = []  # (method, prefix, future) in submission order — results are appended in order
+
+        def _collect():
+            for m, prefix, fut in futures:
+                mets = fut.result()
+                keys = AUDIT_KEYS if prefix else mets.keys()
+                for k in keys:
+                    per[m].setdefault(prefix + k, []).append(np.asarray(mets[k], dtype=np.float64))
+            futures.clear()
+
         for batch in dl:
             b = _to_dev(batch, dev)
             windows = [load_window(p) for p in batch["window_path"]]
+            g = _geom(batch, windows)
             ids.extend(batch["scenario_id"])
             for m in methods:
                 ns = sampling["n_samples"] if m.startswith(("ckpt:", "select:")) else 1
@@ -152,18 +200,24 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
                 pool = None
                 if m.startswith("select:"):
                     pool, _ = predict(m, models[m], b, sampling["audit_samples"], sampling["temperature"], sampling["top_p"])
-                    pred = select_by_reward(pool, b, windows, ns, offroad_sign, rw)
+                    pred = select_by_reward(pool, b, windows, ns, offroad_sign, rw, trees=g["trees"])
                 else:
                     pred, _ = predict(m, models.get(m), b, ns, sampling["temperature"], sampling["top_p"])
                 timing[m] += time.time() - t1
-                mets = scene_metrics(pred, b, windows, offroad_sign, logged=(m == "oracle_log"))
-                for k, v in mets.items():
-                    per[m].setdefault(k, []).append(np.asarray(v, dtype=np.float64))
+                logged = m == "oracle_log"
+                jobs = [(m, "", pred, logged)]
                 if m.startswith(("ckpt:", "select:")) and sampling.get("audit_samples", 0) > ns:
                     pred32 = pool if pool is not None else predict(m, models[m], b, sampling["audit_samples"], sampling["temperature"], sampling["top_p"])[0]
-                    am = scene_metrics(pred32, b, windows, offroad_sign)
-                    for k in ("overlap_rate", "overlap_rate_jointvalid", "overlap_any", "offroad_frac", "offroad_any", "speed_mean", "implausible_rate", "diversity_fde", "final_disp_mean", "joint_minADE_8s", "max_depth_m"):
-                        per[m].setdefault("audit32_" + k, []).append(np.asarray(am[k], dtype=np.float64))
+                    jobs.append((m, "audit32_", pred32, False))
+                for mm, prefix, pr, lg in jobs:
+                    if pool_exec is not None:
+                        futures.append((mm, prefix, pool_exec.submit(scene_metrics_g, pr, g, offroad_sign, lg)))
+                    else:
+                        mets = scene_metrics_g(pr, g, offroad_sign, lg)
+                        keys = AUDIT_KEYS if prefix else mets.keys()
+                        for k in keys:
+                            per[mm].setdefault(prefix + k, []).append(np.asarray(mets[k], dtype=np.float64))
+            _collect()  # keep order deterministic and bound memory: one batch in flight
         for m in methods:
             arrs = {k: np.concatenate(v) for k, v in per[m].items()}
             mdir = out_dir / _safe(m) / cond
@@ -181,6 +235,8 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
             json.dump(s, open(mdir / "summary.json", "w"), indent=1)
             summary[f"{m}|{cond}"] = s
             print(f"[{cond}] {m}: jminADE8={s.get('joint_minADE_8s', float('nan')):.3f} jminFDE8={s.get('joint_minFDE_8s', float('nan')):.3f} overlap={s['overlap_rate']:.4f} overlap_jv={s['overlap_rate_jointvalid']:.4f} offroad={s['offroad_frac']:.4f} n={len(ids)} ({time.time()-t0:.0f}s)", flush=True)
+    if pool_exec is not None:
+        pool_exec.shutdown()
     sa = out_dir / "summary_all.json"
     merged = json.load(open(sa)) if sa.exists() else {}
     merged.update(summary)
@@ -243,13 +299,15 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--offroad-sign", type=int, default=None)
     ap.add_argument("--tag", default="")
+    ap.add_argument("--workers", type=int, default=4, help="metric worker processes (0 = serial; identical results)")
+    ap.add_argument("--no-resume", action="store_true")
     args = ap.parse_args(argv)
     sign = args.offroad_sign
     if sign is None:
         mp = REPO_ROOT / "manifests" / "metric_config.json"
         sign = json.load(open(mp))["offroad_sign"] if mp.exists() else +1
     sampling = {"n_samples": args.n_samples, "audit_samples": args.audit_samples, "temperature": args.temperature, "top_p": args.top_p}
-    run_eval(args.methods, args.conditions, Path(args.manifest), Path(args.out), sampling, args.seed, args.batch_size, limit=args.limit, offroad_sign=sign, tag=args.tag)
+    run_eval(args.methods, args.conditions, Path(args.manifest), Path(args.out), sampling, args.seed, args.batch_size, limit=args.limit, offroad_sign=sign, tag=args.tag, workers=args.workers, resume=not args.no_resume)
 
 
 if __name__ == "__main__":

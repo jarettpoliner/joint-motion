@@ -288,3 +288,23 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   (the experiment is not extended; D-028a/b caveat: the overlap reward is an approximate
   geometric-consistency objective, not a verified safety measure). Wall-clock timings in the
   tables are descriptive (shared GPU) and establish no speed ranking.
+- D-032 (2026-11-03 16:00) — Resource-efficient completion of the frozen final evaluation.
+  Measured bottleneck (dev profiling, batch of 32 scenes, one learned method): GPU sampling 6 + 32
+  rollouts 2.7 s on GPU 0, which an unrelated higher-priority job keeps at 96 % SM (our process
+  shows no measurable SM share — we are starved, not starving it); CPU metrics 1.4 s (overlap
+  0.42 s, offroad 0.69 s) executed serially in a single main-process thread; dataloader workers
+  idle; aggregation not involved. Changes (evaluate.py / physical.py, verified on dev): (1)
+  per-scene road-edge KD-trees built once per batch and shared across methods and sample sets
+  (identical outputs to the inline build); (2) CPU metrics of each method computed in a 4-process
+  pool while the next method samples on the GPU (one batch in flight; results appended in
+  submission order; 340 per-scene arrays bitwise identical to the serial path); (3) condition-level
+  resume: a condition is skipped only when per_scene.npz exists for every frozen method (outputs
+  are written only after a condition completes for all methods, so partial conditions are never
+  reused); (4) torch sampling RNG seeded per condition (seed + crc32(condition)) so resumed
+  conditions draw exactly what an uninterrupted run under this version draws — previously the
+  sampling RNG was unseeded (statistically equivalent draws; corruption realisations were and are
+  deterministic per scenario/condition/seed). Final conditions completed before the switch
+  (clean, missing_0.1) keep their unseeded draws; this is a reproducibility note, not a change in
+  sample counts, temperature, top-p, methods, conditions, scene set or thresholds. No extra GPU
+  workers were added (GPU 0 saturated by the other project; GPU 1 likewise busy). Measured gain on
+  dev ≈ 17 % wall-clock (sampling-bound); the switch is made at a completed condition boundary.

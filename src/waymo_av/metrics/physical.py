@@ -121,7 +121,20 @@ def _segments(edge_xy, edge_poly):
     return a, b
 
 
-def offroad_fraction(points: np.ndarray, edge_xy: np.ndarray, edge_poly: np.ndarray, sign_convention: int = +1, max_dist: float = 50.0, k_candidates: int = 24):
+class EdgeTree:
+    """Invariant per-scene road-edge geometry (segments + KD-tree over midpoints), built once and
+    reused across methods/samples; results are identical to building it on the fly."""
+
+    def __init__(self, edge_xy, edge_poly):
+        from scipy.spatial import cKDTree
+
+        self.a, self.b = _segments(edge_xy, edge_poly) if len(edge_xy) >= 2 else (np.zeros((0, 2)), np.zeros((0, 2)))
+        self.ab = self.b - self.a
+        self.ab2 = np.maximum((self.ab * self.ab).sum(1), 1e-9) if len(self.a) else np.zeros(0)
+        self.tree = cKDTree((self.a + self.b) / 2) if len(self.a) else None
+
+
+def offroad_fraction(points: np.ndarray, edge_xy: np.ndarray, edge_poly: np.ndarray, sign_convention: int = +1, max_dist: float = 50.0, k_candidates: int = 24, tree: "EdgeTree | None" = None):
     """points [N,2]; road-edge polyline points edge_xy [E,2] with polyline ids edge_poly [E].
     A point is offroad when it lies on the `sign_convention` side of its nearest edge segment:
     cross(seg_dir, p - seg_start) * sign_convention < 0 -> offroad (so with +1, points left of the
@@ -129,18 +142,13 @@ def offroad_fraction(points: np.ndarray, edge_xy: np.ndarray, edge_poly: np.ndar
     segment lies within `max_dist`. Nearest segment = exact point-segment distance among the
     k_candidates segments whose midpoints are nearest (KD-tree); edge polylines are sampled at
     ≤ ~1 m so this equals the brute-force nearest segment (tests/test_metrics_and_rl.py)."""
-    from scipy.spatial import cKDTree
-
-    if len(edge_xy) < 2:
-        return np.zeros(len(points), bool), np.zeros(len(points), bool)
-    a, b = _segments(edge_xy, edge_poly)
+    et = tree if tree is not None else EdgeTree(edge_xy, edge_poly)
+    a, b, ab, ab2 = et.a, et.b, et.ab, et.ab2
     if len(a) == 0:
         return np.zeros(len(points), bool), np.zeros(len(points), bool)
-    ab = b - a
-    ab2 = np.maximum((ab * ab).sum(1), 1e-9)
     P = points.astype(np.float64)
     k = min(k_candidates, len(a))
-    _, cand = cKDTree((a + b) / 2).query(P, k=k)  # [N,k]
+    _, cand = et.tree.query(P, k=k)  # [N,k]
     cand = np.sort(cand.reshape(len(P), k), axis=1)  # ascending index: exact ties resolve like brute force
     ac, abc, ab2c = a[cand], ab[cand], ab2[cand]  # [N,k,2]
     ap = P[:, None, :] - ac
@@ -178,7 +186,7 @@ def offroad_fraction_bruteforce(points, edge_xy, edge_poly, sign_convention=+1, 
     return off, val
 
 
-def vehicle_offroad(pred, cur_xy, types, edge_xy_list, edge_poly_list, sign_convention=+1, valid=None):
+def vehicle_offroad(pred, cur_xy, types, edge_xy_list, edge_poly_list, sign_convention=+1, valid=None, trees=None):
     """pred [B,S,A,T,2]; types [B,A]; per-scene edge arrays; valid optional [B,A,T] 2 Hz logged
     validity. Returns per-(scene,sample,agent) offroad fraction over the 10 Hz steps [B,S,A]
     (NaN when not a vehicle, map metric invalid, or — with `valid` — no valid step) and the
@@ -191,7 +199,7 @@ def vehicle_offroad(pred, cur_xy, types, edge_xy_list, edge_poly_list, sign_conv
     v10 = expand_valid_10hz(valid) if valid is not None else None  # [B,A,T*5]
     for b in range(B):
         pts = xy10[b].reshape(-1, 2)
-        off, val = offroad_fraction(pts, edge_xy_list[b], edge_poly_list[b], sign_convention)
+        off, val = offroad_fraction(pts, edge_xy_list[b], edge_poly_list[b], sign_convention, tree=(trees[b] if trees is not None else None))
         off = off.reshape(S, A, -1)
         val = val.reshape(S, A, -1)
         if v10 is not None:

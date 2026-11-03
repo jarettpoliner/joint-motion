@@ -45,14 +45,14 @@ from waymo_av.train import load_model_from_ckpt, lr_at, save_ckpt, set_seed
 DEFAULT_REWARD = {"w_overlap": 1.0, "w_offroad": 1.0, "w_kin": 0.5}
 
 
-def reward_terms(pred_scene: np.ndarray, batch, windows, offroad_sign: int):
+def reward_terms(pred_scene: np.ndarray, batch, windows, offroad_sign: int, trees=None):
     """pred_scene [B,K,A,T,2] -> dict of per-(scene,sample) terms in [0,1]."""
     cur_xy = batch["cur_xy"].cpu().numpy()
     cur_h = batch["cur_heading"].cpu().numpy()
     size = batch["target_size"][..., :2].cpu().numpy()
     types = batch["target_type"].cpu().numpy()
     ov = target_overlap(pred_scene, cur_xy, cur_h, size)["overlap"].astype(np.float64)  # [B,K]
-    fr, valid_map = vehicle_offroad(pred_scene, cur_xy, types, [w.edge_xy for w in windows], [w.edge_poly for w in windows], offroad_sign)
+    fr, valid_map = vehicle_offroad(pred_scene, cur_xy, types, [w.edge_xy for w in windows], [w.edge_poly for w in windows], offroad_sign, trees=trees)
     off = np.nan_to_num(np.nanmean(fr, axis=2), nan=0.0)  # [B,K] (0 where not applicable)
     kin = kinematics(pred_scene, cur_xy, cur_h)
     imp = kin["implausible"].any(-1).astype(np.float64)  # [B,K]
