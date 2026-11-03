@@ -154,3 +154,4 @@
 {"t": "2026-11-03T11:48:21", "run": "filtered_sft_pilot_s2", "gpu_seconds": 25.991708278656006, "note": "step 400"}
 {"t": "2026-11-03T11:48:48", "run": "filtered_sft_pilot_s2", "gpu_seconds": 26.680261611938477, "note": "step 500"}
 {"t": "2026-11-03T11:49:15", "run": "filtered_sft_pilot_s2", "gpu_seconds": 27.056318044662476, "note": "step 600"}
+{"t": "2026-11-03T13:50:54", "run": "extra_sft_pilot_s2", "gpu_seconds": 50.87730288505554, "note": "step 600"}
