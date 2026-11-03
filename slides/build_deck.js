@@ -125,7 +125,7 @@ const THEME = { name: "WaymoAV", headFontFace: "Cambria", bodyFontFace: "Calibri
   else concl.push("Results pending");
   concl.push(rlAvail ? `RL: clean jminADE ${val(blk, "deltas.rl_vs_m1_clean")}, overlap ${val(blk, "deltas.rl_vs_m1_overlap32_pp")} pp vs M1` : "RL and controls: pending");
   concl.push(`Limitations: compact model and ~9k training scenes (not a leaderboard reproduction); official metrics package unavailable (custom metrics audited on oracles); the 2 Hz box-overlap test is approximate (logged reference ${C0.calibration.gt_overlap_ref_pct ?? "—"} % on jointly valid intervals; RL reward = approximate geometric consistency, not verified safety); source-segment grouping is heuristic; synthetic corruptions are stress tests, not sensor models`);
-  concl.push((fin && fin.available) ? "Final held-out evaluation done once per frozen method; see report for full tables" : "Remaining: finish seeds, dev evaluation, RL + controls, freeze, single locked final evaluation, report");
+  concl.push((fin && fin.available) ? "Final held-out evaluation done once per frozen method; see report for full tables" : (rlAvail ? "Remaining: freeze method choices, single locked final evaluation, final report and deck" : "Remaining: RL + controls (running), freeze method choices, single locked final evaluation, final report and deck"));
   s.addText(concl.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < concl.length - 1, paraSpaceAfter: 8 } })), { x: 0.7, y: 1.5, w: 11.9, h: 5.2, fontSize: 15, color: "FFFFFF", isTextBox: true, valign: "top", margin: 0 });
   s.addNotes("Regenerate: " + C0.regenerate + "\nGPU-hours used at build time: " + C0.gpu_hours);
 

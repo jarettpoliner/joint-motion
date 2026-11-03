@@ -117,3 +117,4 @@
 {"t": "2026-11-03T10:07:59", "run": "mind_pilot_s2", "gpu_seconds": 50.56705951690674, "note": "step 11000"}
 {"t": "2026-11-03T10:08:49", "run": "mind_pilot_s2", "gpu_seconds": 50.20695424079895, "note": "step 12000"}
 {"t": "2026-11-03T11:27:13", "run": "rl_pilot_s0", "gpu_seconds": 44.4219446182251, "note": "step 100"}
+{"t": "2026-11-03T11:27:56", "run": "rl_pilot_s0", "gpu_seconds": 43.0510675907135, "note": "step 200"}
