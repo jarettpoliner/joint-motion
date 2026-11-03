@@ -20,3 +20,8 @@
 - **RL scope.** REINFORCE with LOO baseline/KL/replay over two agents and a 16-step episode; rewards
   are deterministic generated-trajectory diagnostics. Differs from the all-agent closed-loop setting
   of the Waymo RL paper.
+- **Source-segment overlap.** Identified only through SDC motion n-gram matching (D-025); train
+  scenes sharing a segment with dev were removed, final shares none, but same-segment windows
+  remain inside each split, so the scenario-level bootstrap slightly overstates independence.
+- **Overlap-metric floor.** The 2 Hz-waypoint OBB overlap test flags 3.2 % of logged (ground-truth)
+  joint futures on dev; model overlap rates must be read against the oracle_log rate.

@@ -1,0 +1,85 @@
+{
+ "n_scenes": 500,
+ "tokenizer": {
+  "saturation_rate": 0.0008159166509759618,
+  "recon_err_mean_m": 0.09240365773439407,
+  "recon_err_p99_m": 0.16335155069828033,
+  "recon_err_max_m": 3.338541030883789,
+  "vocab_used": 95,
+  "top10_tokens": [
+   [
+    84,
+    3102
+   ],
+   [
+    71,
+    1884
+   ],
+   [
+    97,
+    1823
+   ],
+   [
+    85,
+    928
+   ],
+   [
+    83,
+    854
+   ],
+   [
+    58,
+    799
+   ],
+   [
+    110,
+    636
+   ],
+   [
+    70,
+    628
+   ],
+   [
+    96,
+    592
+   ],
+   [
+    72,
+    589
+   ]
+  ],
+  "zero_token_frac": 0.19469026548672566
+ },
+ "d0_speed_mps": {
+  "mean": 6.568544387817383,
+  "p50": 5.209609031677246,
+  "p99": 22.173171997070312,
+  "max": 32.964210510253906
+ },
+ "history_valid_frac_targets": 0.9890802556818181,
+ "future_valid_frac_targets": 0.9957275390625,
+ "initial_overlap_rate_gt": 0.001953125,
+ "future_overlap_rate_gt": 0.032421875,
+ "transform_roundtrip_max_err_m": 5.684341886080802e-14,
+ "d0_init": {
+  "mean_err_m_vs_true_first_half_second": 0.24413703676310622,
+  "p99_err_m": 0.84452919952413,
+  "zero_velocity_err_m": 3.2363052368164062
+ },
+ "cv_baseline_clean": {
+  "joint_minADE_8s": 10.822137399683946,
+  "joint_minFDE_8s": 27.731932333955744
+ },
+ "target_types": {
+  "1": 895,
+  "2": 73,
+  "3": 32
+ },
+ "offroad_oracle": {
+  "sign_+1": 0.009799354392039928,
+  "sign_-1": 0.99020064560796,
+  "chosen_sign": 1,
+  "oracle_offroad_frac_with_chosen_sign": 0.009799354392039928,
+  "metric_valid": true
+ }
+}

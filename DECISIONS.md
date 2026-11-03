@@ -135,3 +135,28 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   `n_contract_errors` in processed manifests counts ALL scenarios failing the timing check,
   including the ~75 % without a pair; the audit file gives the pair-specific counts. The audit is
   re-run on all 48 training shards once downloaded and its totals go into the report.
+- D-024a (2026-11-03) — Timestamp audit totals on the full download (48 training + 12 validation
+  shards, 26,898 scenarios): 729 (2.7 %) fail the timing rule; 190 of the 10,826 + 190 = 11,016
+  pair scenarios (1.7 %) are excluded (dropped-frame gaps in all but one; one 2.5 ms jitter).
+- D-025 (2026-11-03) — Source-segment overlap. WOMD scenarios are re-centred per scenario (SDC
+  current position spans only ±50 m over scenes), so absolute positions cannot identify a shared
+  run segment. scripts/segment_overlap.py instead matches frame-invariant SDC motion n-grams
+  (20 steps × (speed to 1 mm, yaw change to 1e-4 rad), stationary n-grams ignored). Result
+  (manifests/segment_overlap.json): 385 linked pairs / 369 components among 10,685 scenes; 43 dev
+  scenes share a segment with 41 train scenes; final shares a segment with NO train or dev scene
+  (consistent with Waymo's segment-disjoint official splits, which also bounds the method's
+  false-positive rate). The 41 train scenes were REMOVED from train.json before any training
+  (train: 9,185 → 9,144); dev.json and the locked final.json are byte-identical to the first build
+  (asserted by the rebuild). Within-split components remain (same-segment windows inside train or
+  inside final): the scenario-level bootstrap therefore slightly overstates independence for
+  final (recorded limitation; the component count is in the file).
+- D-026 (2026-11-03) — Real-data calibration on dev (manifests/calibration.json, 500 scenes):
+  tokenizer saturation 0.08 % (< 1 % gate), reconstruction error mean 0.092 m / p99 0.16 m / max
+  3.3 m (single outlier step), 95 of 169 tokens used, zero-token share 19 %; scene↔ego transform
+  round trip 6e-14 m; d0 initialiser (LS over last 0.5 s) 0.24 m mean error against the true first
+  0.5 s displacement (zero-velocity init: 3.2 m); offroad sign convention +1 (log-playback oracle
+  offroad 0.98 % vs 99 % under −1; metric valid, gate < 2 %); GT initial box overlap 0.2 % (those
+  scenes are excluded from overlap denominators); GT-future overlap under the 2 Hz-interpolated OBB
+  test 3.2 % — this is the metric's floor for logged trajectories and is reported alongside every
+  model overlap rate (oracle_log method); clean constant-velocity baseline on dev: joint minADE@6
+  10.8 m, minFDE 27.7 m. Gates for the overfit stage are met.

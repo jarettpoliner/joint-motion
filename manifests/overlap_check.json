@@ -1,0 +1,5 @@
+{
+ "dev_final_id_overlap": 0,
+ "seed": 0,
+ "note": "WOMD does not expose the source run segment; scenario-level independence is assumed, not verified (D-015)"
+}

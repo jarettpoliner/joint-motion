@@ -95,6 +95,102 @@
   "bytes": 441029514,
   "sha256_first_mib": "8d5ab0d5135ad88b85d2516c2a562bbc6e57e4c4f39596a1c53842505f458a5c"
  },
+ "training/training.tfrecord-00024-of-01000": {
+  "bytes": 415426486,
+  "sha256_first_mib": "d1b606083fd9d4370198218445f5c0a4594e63c9a433d1bc6142321c2108197e"
+ },
+ "training/training.tfrecord-00025-of-01000": {
+  "bytes": 472343343,
+  "sha256_first_mib": "0c1868e1c241552e8bb97b2cd8af5317b6e7d1fd44511e215b8162dbee65b075"
+ },
+ "training/training.tfrecord-00026-of-01000": {
+  "bytes": 439896189,
+  "sha256_first_mib": "f34bcea2200a2f560492d71f80479f3c8e7cb88ecea3277ac59f96a8c5c58dd0"
+ },
+ "training/training.tfrecord-00027-of-01000": {
+  "bytes": 470223240,
+  "sha256_first_mib": "9a66bf2ef0580ed3ae84cc495eb853fb129d2dac06c14ff2d50abf56acb2cbb2"
+ },
+ "training/training.tfrecord-00028-of-01000": {
+  "bytes": 421852956,
+  "sha256_first_mib": "34f3e5ec0286789d966a8ddf0203af4f672966cdf03b7c3c9e5340ceef63feb6"
+ },
+ "training/training.tfrecord-00029-of-01000": {
+  "bytes": 465934029,
+  "sha256_first_mib": "06793a77155df1265cef14994e3412d6bbe4de21361bbf8f60b67083bce37c94"
+ },
+ "training/training.tfrecord-00030-of-01000": {
+  "bytes": 437195622,
+  "sha256_first_mib": "23b871f023b03c74d2306f15f247b56885da69a55ae0e2a775b476515077cbe5"
+ },
+ "training/training.tfrecord-00031-of-01000": {
+  "bytes": 450171215,
+  "sha256_first_mib": "15867fc6f7ba693e1c3d85107e8ae73627e42b348b17585ae557cd0a32771d52"
+ },
+ "training/training.tfrecord-00032-of-01000": {
+  "bytes": 446429830,
+  "sha256_first_mib": "7878cfd62bcb6c154c3f0ab96e22a1bc17edd2c10b2b10a045599b5534cacecd"
+ },
+ "training/training.tfrecord-00033-of-01000": {
+  "bytes": 432297473,
+  "sha256_first_mib": "1ed37af45ad7dc20e46ef829d58176a5feba19d522fc4bb8ac03e57de61fe552"
+ },
+ "training/training.tfrecord-00034-of-01000": {
+  "bytes": 440642783,
+  "sha256_first_mib": "d2ccad3a5de31be8ccdd3628b7d87dc847ced106a8500a5c7afc080431e230cf"
+ },
+ "training/training.tfrecord-00035-of-01000": {
+  "bytes": 469093907,
+  "sha256_first_mib": "687264d3dd93e9bee9263ed84b698c777da13c4fe72846f21c51ab09ded127d2"
+ },
+ "training/training.tfrecord-00036-of-01000": {
+  "bytes": 439384509,
+  "sha256_first_mib": "11af9527dcea870ee07df29a19f3ddb0500cd476b14498e38791db7ca2eb1302"
+ },
+ "training/training.tfrecord-00037-of-01000": {
+  "bytes": 496356612,
+  "sha256_first_mib": "5ea570aa0de2cb48db9d3a3f462bbe0c0546734f41cced22b298991665db7fde"
+ },
+ "training/training.tfrecord-00038-of-01000": {
+  "bytes": 467695749,
+  "sha256_first_mib": "935570ece23716c65576f6363d0d970e08ee7469d6f789c213cab9264638087b"
+ },
+ "training/training.tfrecord-00039-of-01000": {
+  "bytes": 441007690,
+  "sha256_first_mib": "8c5eac73f2c13d664a286d68a7005e73532c934b08cbfaebf1d3290f55b2e458"
+ },
+ "training/training.tfrecord-00040-of-01000": {
+  "bytes": 462137285,
+  "sha256_first_mib": "d2c7a1ade37112dc43e996c6abc86a9a80e1cdfdf9fc8e1a6dce3d7e8c09bd81"
+ },
+ "training/training.tfrecord-00041-of-01000": {
+  "bytes": 424646629,
+  "sha256_first_mib": "6e3c94f56dd20997802b7ddc04ddc7615b5bd515e1dc43dfab3b54a2f2961ea1"
+ },
+ "training/training.tfrecord-00042-of-01000": {
+  "bytes": 455462924,
+  "sha256_first_mib": "b7ed0eb241ee9bc5faa2da7f47235c6f3bb174ecfc736abcc207a5b214d04a1d"
+ },
+ "training/training.tfrecord-00043-of-01000": {
+  "bytes": 457904753,
+  "sha256_first_mib": "d299a0e563a1582bcb885c02e1385b2abf304474933b31a6dcc85c17d685eae5"
+ },
+ "training/training.tfrecord-00044-of-01000": {
+  "bytes": 436325258,
+  "sha256_first_mib": "d379e31d813ad86821de3ae64c9af2ed83de18bd850ef38c7eb4946464c9e08e"
+ },
+ "training/training.tfrecord-00045-of-01000": {
+  "bytes": 450689330,
+  "sha256_first_mib": "fec4d6bd5808424ce5275d762c912404ae70eabfa619877b6deac0cf32a8a03d"
+ },
+ "training/training.tfrecord-00046-of-01000": {
+  "bytes": 451633491,
+  "sha256_first_mib": "5db9b40717d8d8f34380fafa611688d2c597fc22b236d384b1311122575e68c1"
+ },
+ "training/training.tfrecord-00047-of-01000": {
+  "bytes": 477628934,
+  "sha256_first_mib": "75dcefdfb568abb386a182177d396a334491393f3f74c00a73128b1200b88e74"
+ },
  "validation/validation.tfrecord-00000-of-00150": {
   "bytes": 262636608,
   "sha256_first_mib": "0b4c9ba6d3e5c9e6f5bdaf2bd0d2a16510160355ac55d5193f104880b1d63337"
@@ -126,5 +222,21 @@
  "validation/validation.tfrecord-00007-of-00150": {
   "bytes": 246887249,
   "sha256_first_mib": "941c46e642aeedc3588aec7d9277762307fc93d9d36724190010464ae7d5466c"
+ },
+ "validation/validation.tfrecord-00008-of-00150": {
+  "bytes": 291303216,
+  "sha256_first_mib": "348b024426e1a90fa41d1c8db711a530ecf439ffdf97bfb17d96f69d0db4142b"
+ },
+ "validation/validation.tfrecord-00009-of-00150": {
+  "bytes": 291553780,
+  "sha256_first_mib": "6af92fd7e6675d09cdcba1095d173f45561a56304c79d3a66ad15f0ba2a642e0"
+ },
+ "validation/validation.tfrecord-00010-of-00150": {
+  "bytes": 288993386,
+  "sha256_first_mib": "2596470bf93dfb45b37f4be6b7bf23428b1833d1eac50237a339a3c945d30b14"
+ },
+ "validation/validation.tfrecord-00011-of-00150": {
+  "bytes": 261520161,
+  "sha256_first_mib": "0e03301945344239451ca90aa6f76b5c68342d6b97702f8f49a76816eda05b00"
  }
 }

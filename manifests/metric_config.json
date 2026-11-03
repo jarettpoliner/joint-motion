@@ -1,0 +1,6 @@
+{
+ "offroad_sign": 1,
+ "oracle_offroad_frac": 0.009799354392039928,
+ "metric_valid": true,
+ "source": "manifests/dev.json"
+}
