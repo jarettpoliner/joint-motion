@@ -160,3 +160,13 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   test 3.2 % — this is the metric's floor for logged trajectories and is reported alongside every
   model overlap rate (oracle_log method); clean constant-velocity baseline on dev: joint minADE@6
   10.8 m, minFDE 27.7 m. Gates for the overfit stage are met.
+- D-027 (2026-11-03) — Baseline learning assessment (m0_pilot_s0, registry/runs/m0_pilot_s0.json):
+  dev teacher-forced NLL falls 2.18 → 2.07 (step 3000) then rises to 2.47 at 12k while train
+  loss keeps falling to 1.46 (≈ 84 epochs over 9,144 scenes): the pilot over-fits after ≈ 25–35
+  epochs. Dev joint minADE@6 (6 raw samples) bottoms at 3.83 m (step 5000) vs 10.8 m for constant
+  velocity; free-running dev rollouts (reports/figures/inspect_m0_s0_dev_clean.png) follow lanes,
+  branch at intersections and stop at queues. Verdict: learning and rollout behaviour are sound;
+  configs left unchanged for a matched comparison (dev checkpoint selection handles the late
+  over-fitting). Caveat recorded for interpretation: mixture training (M1) also acts as data
+  augmentation and may reduce over-fitting; the matched extra-SFT control and the clean-condition
+  guardrail bound this confound but do not remove it.

@@ -2,7 +2,7 @@
  "name": "m0_pilot_s0",
  "kind": "train",
  "created": "2026-11-03T08:15:39",
- "status": "running",
+ "status": "completed",
  "events": [
   {
    "t": "2026-11-03T08:15:39",
@@ -12,6 +12,11 @@
   {
    "t": "2026-11-03T08:15:39",
    "status": "running",
+   "pid": 1146997
+  },
+  {
+   "t": "2026-11-03T08:26:44",
+   "status": "completed",
    "pid": 1146997
   }
  ],
@@ -55,5 +60,22 @@
  "n_train": 9144,
  "n_dev": 500,
  "device": "cuda:0",
- "step": 0
+ "step": 12000,
+ "best": {
+  "score": 3.826065483889155,
+  "step": 5000,
+  "dev": {
+   "nll_clean": 2.122973623835642,
+   "jminADE6_clean": 3.826065483889155,
+   "selection_score": 3.826065483889155
+  }
+ },
+ "elapsed_s": 665.3199052810669,
+ "last_dev": {
+  "nll_clean": 2.466669882376823,
+  "jminADE6_clean": 4.08869409523062,
+  "selection_score": 4.08869409523062
+ },
+ "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s0/ckpt_best.pt",
+ "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s0/ckpt_last.pt"
 }
