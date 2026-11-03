@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 
 from waymo_av.aggregate import load_eval_dir, load_groups
+from waymo_av.paths import REPO_ROOT
 from waymo_av.corruption import CORE_SUITE, HELDOUT_SUITE
 from waymo_av.metrics.stats import mean_ci, paired_bootstrap
 
@@ -99,14 +100,20 @@ def main(argv=None):
                       [("clean jminADE Δ", ["clean"], "joint_minADE_8s", 3, 1), ("clean overlap Δ (pp)", ["clean"], "overlap_rate", 2, 100), ("clean offroad Δ (pp)", ["clean"], "offroad_frac", 2, 100), ("clean implausible Δ (pp)", ["clean"], "implausible_rate", 2, 100)])
     # Q5 post-training vs its M1 initialisation and vs controls (clean + core suite; 32-sample audit for overlap)
     if any(k[0].startswith("rl_pilot") for k in data):
-        for title, ref_base, m_base in (("Q5a Bounded RL vs its M1 initialisation (rl − m1)", "m1_pilot", "rl_pilot"), ("Q5b Extra-SFT control vs M1 (extra_sft − m1)", "m1_pilot", "extra_sft_pilot"), ("Q5c Reward-filtered-SFT control vs M1 (filtered_sft − m1)", "m1_pilot", "filtered_sft_pilot"), ("Q5d Reward-based candidate selection vs M1 (select − m1)", "m1_pilot", "select_m1"), ("Q5e RL vs extra-SFT control (rl − extra_sft)", "extra_sft_pilot", "rl_pilot"), ("Q5f RL vs reward-filtered-SFT control (rl − filtered_sft)", "filtered_sft_pilot", "rl_pilot")):
-            paired_block(title, ref_base, m_base, [("clean jminADE Δ", ["clean"], "joint_minADE_8s", 3, 1), ("core-suite jminADE Δ", CORE, "joint_minADE_8s", 3, 1), ("clean overlap32 Δ (pp)", ["clean"], "audit32_overlap_rate", 2, 100), ("clean overlap32 jointly-valid Δ (pp)", ["clean"], "audit32_overlap_rate_jointvalid", 2, 100), ("clean offroad Δ (pp)", ["clean"], "offroad_frac", 2, 100), ("clean diversity32 Δ (m)", ["clean"], "audit32_diversity_fde", 2, 1)])
-    # Q6 reward-exploitation diagnostics on clean dev (post-trained vs M1): stopping, speed, motion
-    # realism and diversity. "excess stopping" = share of (scene, sample, agent) with final displacement
-    # < 1 m while the logged agent moved > 5 m (from per-scene means this is approximated by the
-    # scene-level final displacement ratio); all values from saved per-scene arrays.
+        for title, ref_base, m_base in (("Q5a Bounded RL vs its M1 initialisation (rl − m1)", "m1_pilot", "rl_pilot"), ("Q5b Extra-SFT control vs M1 (extra_sft − m1)", "m1_pilot", "extra_sft_pilot"), ("Q5c Reward-filtered-SFT control vs M1 (filtered_sft − m1)", "m1_pilot", "filtered_sft_pilot"), ("Q5d Reward-based candidate selection vs M1 (select − m1)", "m1_pilot", "select_m1"), ("Q5e RL vs extra-SFT control (rl − extra_sft)", "extra_sft_pilot", "rl_pilot"), ("Q5f RL vs reward-filtered-SFT control (rl − filtered_sft)", "filtered_sft_pilot", "rl_pilot"), ("Q5g RL vs reward-based candidate selection (rl − select_m1; select draws 32 candidates per scene)", "select_m1", "rl_pilot")):
+            paired_block(title, ref_base, m_base, [("clean jminADE Δ", ["clean"], "joint_minADE_8s", 3, 1), ("core-suite jminADE Δ", CORE, "joint_minADE_8s", 3, 1), ("clean overlap6 Δ (pp; the method's own 6 outputs)", ["clean"], "overlap_rate", 2, 100), ("clean overlap32 Δ (pp; 32-sample pool — for select_m1 this is the UNSELECTED pool)", ["clean"], "audit32_overlap_rate", 2, 100), ("clean overlap32 jointly-valid Δ (pp)", ["clean"], "audit32_overlap_rate_jointvalid", 2, 100), ("clean offroad Δ (pp)", ["clean"], "offroad_frac", 2, 100), ("clean diversity32 Δ (m)", ["clean"], "audit32_diversity_fde", 2, 1)])
+    # Q6 post-training behaviour summary on clean dev (scene-level means; NOT a stopping diagnostic —
+    # see manifests/stopping_diagnostic.json / scripts/stopping_diagnostic.py for the per-agent,
+    # per-sample excessive-stopping frequency with its eligible denominator).
     if any(k[0].startswith("rl_pilot") for k in data):
-        L.extend(["", "## Q6 Post-training behaviour diagnostics (clean dev; mean over seeds; 6-sample metrics unless 32 noted)", "",
+        stop = REPO_ROOT / "manifests" / "stopping_diagnostic.json"
+        if stop.exists():
+            sd = json.load(open(stop))
+            L.extend(["", f"## Q6a Excessive-stopping diagnostic (descriptive; {sd['condition']} dev; {sd['n_scenes']} scenes; identical scenes/sampling; {sd['rule']})", "",
+                      "| method | eligible (agent, sample) pairs | stopped-while-logged-moved | frequency | seeds |", "|---|---|---|---|---|"])
+            for m, v in sd["methods"].items():
+                L.append(f"| {m} | {v['n_eligible']} | {v['n_stopped']} | {100*v['frequency']:.2f} % | {v.get('seeds','')} |")
+        L.extend(["", "## Q6b Post-training behaviour summary (clean dev; scene-level means over seeds; 6-sample metrics unless 32 noted)", "",
                   "| method | speed_mean (m/s) | GT speed_mean | final_disp_mean (m) | GT final_disp | final_disp / GT | implausible rate | diversity FDE (6) | diversity FDE (32) | marginal minADE | joint meanADE (6) |", "|---|---|---|---|---|---|---|---|---|---|---|"])
         for b in ("m1_pilot", "select_m1", "extra_sft_pilot", "filtered_sft_pilot", "rl_pilot"):
             ms = [f"{b}_s{s}" for s in seeds if (f"{b}_s{s}", "clean") in data]
@@ -116,13 +123,13 @@ def main(argv=None):
             L.append(f"| {b} | {g('speed_mean'):.2f} | {g('gt_speed_mean'):.2f} | {g('final_disp_mean'):.2f} | {g('gt_final_disp'):.2f} | {g('final_disp_mean')/g('gt_final_disp'):.3f} | {100*g('implausible_rate'):.2f} % | {g('diversity_fde'):.2f} | {g('audit32_diversity_fde'):.2f} | {g('marginal_minADE_8s'):.3f} | {g('joint_meanADE_8s'):.3f} |")
     # inference cost (seconds per scene, clean condition, as logged by evaluate.py; includes the
     # 32-sample candidate pool + reward scoring for select_m1; audit sampling excluded for ckpt methods)
-    L.extend(["", "## Inference cost (clean condition; s per scene as logged by evaluate.py; hardware shared with other jobs — relative values only)", "", "| method | s / scene | samples drawn per scene |", "|---|---|---|"])
+    L.extend(["", "## Sampling cost and wall-clock (clean condition)", "", "Wall-clock seconds per scene are DESCRIPTIVE measurements logged by evaluate.py on a GPU shared with unrelated jobs; they do not establish a reliable relative speed ranking. The deterministic cost driver is the number of joint samples drawn per scene (and, for select_m1, the reward scoring of all 32 candidates).", "", "| method | samples drawn per scene | s / scene (descriptive) |", "|---|---|---|"])
     for m in methods:
         sj = Path(a.eval_dir) / m / "clean" / "summary.json"
         if sj.exists():
             sm = json.load(open(sj))
             ns = 1 if m in ("cp", "cv", "oracle_log") else (sm["sampling"]["audit_samples"] if m.startswith("select") else sm["sampling"]["n_samples"])
-            L.append(f"| {m} | {sm.get('inference_s_per_scene', float('nan')):.4f} | {ns}{' + reward scoring' if m.startswith('select') else ''} |")
+            L.append(f"| {m} | {ns}{' + reward scoring of 32' if m.startswith('select') else ''} | {sm.get('inference_s_per_scene', float('nan')):.4f} |")
     # per-condition robustness curve rows (m0 vs m1, mean over seeds)
     L.extend(["", "## Per-condition joint minADE@6 (mean over seeds; per-seed values in summary.json)", "", "| condition | " + " | ".join(f"{b}" for b in ("cv", "m0_pilot", "mind_pilot", "m1_pilot", "select_m1", "rl_pilot") ) + " |", "|---|---|---|---|---|---|---|"])
     for c in ["clean"] + CORE + HELD:

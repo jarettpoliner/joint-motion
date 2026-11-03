@@ -61,6 +61,15 @@
    "status": "completed",
    "t": "2026-11-03T11:22:27",
    "skipped": true
+  },
+  "posttrain": {
+   "status": "completed",
+   "t": "2026-11-03T15:14:32",
+   "seeds": [
+    0,
+    1,
+    2
+   ]
   }
  }
 }

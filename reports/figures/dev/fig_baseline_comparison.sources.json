@@ -9,6 +9,12 @@
  "methods": [
   "cp",
   "cv",
+  "extra_sft_pilot_s0",
+  "extra_sft_pilot_s1",
+  "extra_sft_pilot_s2",
+  "filtered_sft_pilot_s0",
+  "filtered_sft_pilot_s1",
+  "filtered_sft_pilot_s2",
   "m0_pilot_s0",
   "m0_pilot_s1",
   "m0_pilot_s2",
@@ -19,6 +25,9 @@
   "mind_pilot_s1",
   "mind_pilot_s2",
   "oracle_log",
+  "rl_pilot_s0",
+  "rl_pilot_s1",
+  "rl_pilot_s2",
   "select_m1_s0",
   "select_m1_s1",
   "select_m1_s2"
