@@ -1,6 +1,6 @@
 # RESUME.md — how to continue this campaign
 
-Last updated: 2026-11-03 08:16 (session 2).
+Last updated: 2026-11-03 09:40 (session 2).
 
 ## Current stage
 Pilot training (stage pilot) running on GPU 0 via
@@ -8,6 +8,15 @@ Pilot training (stage pilot) running on GPU 0 via
 Order: m0_pilot_s0, m1_pilot_s0, mind_pilot_s0, then seeds 1 and 2. Each run ≈ 20 min (12k steps,
 0.085 s/step, data-loading bound on the shared CPU). Completed runs have
 registry/runs/<name>.json status "completed"; the runner skips those on restart.
+
+## Metric qualification (done before RL)
+Overlap audit v2 and validity-masked metrics are in place (D-028a/b). The RL reward is an approximate
+geometric-consistency objective; report RL/control effects on overlap_rate AND overlap_rate_jointvalid.
+
+## Visualization pipeline
+figures: `python -m waymo_av.figures --eval-dir <eval> --seeds 0,1,2 --out reports/figures/<dev|final> --label "<label>"`
+demos:   `python -m waymo_av.demo --ckpts A=<ckpt> B=<ckpt> --manifest manifests/dev.json --condition <cond> --scenes 6 --out reports/demos/<name>`
+slides:  `PYTHONPATH=src python scripts/build_slide_content.py --dev-eval <eval> --seeds 0,1,2 --label "<label>" --figures reports/figures/<dev|final> --demos reports/demos/* && PPTX_SKILL_DIR=<skill dir> node slides/build_deck.js`
 
 ## Evidence paths
 - Code: /home/jarettpoliner/Desktop/Waymo_AV (git, branch master)
