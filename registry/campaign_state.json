@@ -100,7 +100,12 @@
   },
   "report": {
    "status": "completed",
-   "t": "2026-11-03T15:26:52"
+   "t": "2026-11-03T18:41:48"
+  },
+  "final_eval": {
+   "status": "completed",
+   "t": "2026-11-03T18:25:47",
+   "out": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_final"
   }
  }
 }

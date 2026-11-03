@@ -308,3 +308,27 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   sample counts, temperature, top-p, methods, conditions, scene set or thresholds. No extra GPU
   workers were added (GPU 0 saturated by the other project; GPU 1 likewise busy). Measured gain on
   dev ≈ 17 % wall-clock (sampling-bound); the switch is made at a completed condition boundary.
+- D-033 (2026-11-03 18:45) — FINAL locked evaluation (manifests/final.json, 1,000 scenes from
+  official validation shards, sha 6ea346e8f9c2; 24 frozen methods × 10 conditions; one pass per
+  method under manifests/freeze.json; reports/tables/final/{table,comparison}.md; figures
+  reports/figures/final/*). Nothing was tuned on these results.
+  Q1 joint vs independent (clean): jminADE −4.7/−4.2/−4.0 % and overlap −3.6/−1.9/−3.9 pp, all
+  CIs exclude 0, all seeds.
+  Q2 corruption-trained vs clean-trained: core-suite jminADE −47.7/−45.8/−45.5 %, held-out
+  severities −47.4/−46.9/−49.4 % (all CIs exclude 0); core-suite overlap −0.26 [−1.16, +0.62] /
+  +1.72 [+0.77, +2.67] / +0.06 [−0.91, +1.08] pp.
+  Q3 clean: M1 − M0 jminADE −9.0/−8.2/−8.2 % (CIs exclude 0); offroad −0.6/−1.3/−1.2 pp; overlap
+  mixed (CIs include 0).
+  Preregistered verdict (unchanged thresholds): seed 0 PASS, seed 1 FAIL (overlap guardrail: +1.72
+  pp, CI excludes 0 — a genuine overlap increase under corruption for that seed), seed 2 PASS.
+  Reported as 2/3 PASS; the robustness hypothesis is supported on accuracy, the overlap
+  non-inferiority guardrail is not met for seed 1 and only weakly supported for seeds 0 and 2.
+  RL (frozen rule): overlap −10.9/−12.3/−9.8 pp (32 samples) and offroad −1.3 to −1.5 pp vs M1,
+  but clean jminADE +26.3/+29.1/+16.8 %, core suite +38/+40/+26 %, diversity −1.0 to −1.4 m →
+  does NOT count (clean worsening ≫ 3 %); MIXED/NEGATIVE, consistent with dev (D-031).
+  Reward-based candidate selection (best 6 of 32) vs M1: clean jminADE −5.0/−4.7/−6.3 %, own-output
+  overlap −14.2/−15.2/−14.4 pp, offroad −3.1 to −3.2 pp, diversity unchanged, 32 rollouts +
+  reward scoring per scene (≈ 5× sampling); it dominates RL on every reported axis.
+  Clean joint minADE@6 (mean over seeds): CV 11.11, independent 3.65, M0 3.49, M1 3.20, M1+selection
+  3.03, M1+extra-SFT 3.12, M1+filtered-SFT 3.19, M1+RL 3.97 m. Logged-future overlap reference on
+  jointly valid intervals is reported in the tables (oracle_log row). GPU-hours used: 2.27.

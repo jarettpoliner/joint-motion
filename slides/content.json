@@ -1,6 +1,6 @@
 {
- "label": "PRELIMINARY (development set, 3 seeds; RL pending)",
- "commit": "4880e16",
+ "label": "FINAL (locked held-out set, 3 seeds)",
+ "commit": "d3076b4",
  "date": "2026-11-03",
  "dataset": {
   "version": "WOMD v1.3.0 scenario format",
@@ -29,6 +29,42 @@
   "d0_err_m": 0.24
  },
  "runs": {
+  "extra_sft_pilot_s0": {
+   "status": "completed",
+   "best_step": 600,
+   "best_score": 3.949089663269664,
+   "ckpt": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s0/ckpt_best.pt"
+  },
+  "extra_sft_pilot_s1": {
+   "status": "completed",
+   "best_step": 600,
+   "best_score": 3.935310431027987,
+   "ckpt": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s1/ckpt_best.pt"
+  },
+  "extra_sft_pilot_s2": {
+   "status": "completed",
+   "best_step": 600,
+   "best_score": 3.900647410904919,
+   "ckpt": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s2/ckpt_best.pt"
+  },
+  "filtered_sft_pilot_s0": {
+   "status": "completed",
+   "best_step": null,
+   "best_score": null,
+   "ckpt": null
+  },
+  "filtered_sft_pilot_s1": {
+   "status": "completed",
+   "best_step": null,
+   "best_score": null,
+   "ckpt": null
+  },
+  "filtered_sft_pilot_s2": {
+   "status": "completed",
+   "best_step": null,
+   "best_score": null,
+   "ckpt": null
+  },
   "m0_overfit": {
    "status": "completed",
    "best_step": 200,
@@ -90,7 +126,19 @@
    "ckpt": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s2/ckpt_best.pt"
   },
   "rl_pilot_s0": {
-   "status": "running",
+   "status": "completed",
+   "best_step": null,
+   "best_score": null,
+   "ckpt": null
+  },
+  "rl_pilot_s1": {
+   "status": "completed",
+   "best_step": null,
+   "best_score": null,
+   "ckpt": null
+  },
+  "rl_pilot_s2": {
+   "status": "completed",
    "best_step": null,
    "best_score": null,
    "ckpt": null
@@ -114,7 +162,7 @@
    "ckpt": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/synthetic_smoke/ckpt_best.pt"
   }
  },
- "gpu_hours": 1.91,
+ "gpu_hours": 2.27,
  "dev": {
   "available": true,
   "eval_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_dev",
@@ -127,6 +175,12 @@
   "methods": [
    "cp",
    "cv",
+   "extra_sft_pilot_s0",
+   "extra_sft_pilot_s1",
+   "extra_sft_pilot_s2",
+   "filtered_sft_pilot_s0",
+   "filtered_sft_pilot_s1",
+   "filtered_sft_pilot_s2",
    "m0_pilot_s0",
    "m0_pilot_s1",
    "m0_pilot_s2",
@@ -137,6 +191,9 @@
    "mind_pilot_s1",
    "mind_pilot_s2",
    "oracle_log",
+   "rl_pilot_s0",
+   "rl_pilot_s1",
+   "rl_pilot_s2",
    "select_m1_s0",
    "select_m1_s1",
    "select_m1_s2"
@@ -200,28 +257,28 @@
     "diversity": "10.4 [10.1, 10.8]"
    },
    "extra_sft_pilot": {
-    "jminADE": "pending",
-    "jminFDE": "pending",
-    "overlap32_pct": "pending",
-    "overlap32_jv_pct": "pending",
-    "offroad_pct": "pending",
-    "diversity": "pending"
+    "jminADE": "3.47 [3.25, 3.69]",
+    "jminFDE": "8.41 [7.79, 8.99]",
+    "overlap32_pct": "15.0 [13.5, 16.7] %",
+    "overlap32_jv_pct": "14.9 [13.3, 16.6] %",
+    "offroad_pct": "4.77 [4.06, 5.52] %",
+    "diversity": "10.4 [10.0, 10.8]"
    },
    "filtered_sft_pilot": {
-    "jminADE": "pending",
-    "jminFDE": "pending",
-    "overlap32_pct": "pending",
-    "overlap32_jv_pct": "pending",
-    "offroad_pct": "pending",
-    "diversity": "pending"
+    "jminADE": "3.55 [3.32, 3.78]",
+    "jminFDE": "8.59 [7.94, 9.20]",
+    "overlap32_pct": "14.1 [12.6, 15.7] %",
+    "overlap32_jv_pct": "13.9 [12.4, 15.6] %",
+    "offroad_pct": "4.79 [4.10, 5.54] %",
+    "diversity": "10.4 [10.0, 10.7]"
    },
    "rl_pilot": {
-    "jminADE": "pending",
-    "jminFDE": "pending",
-    "overlap32_pct": "pending",
-    "overlap32_jv_pct": "pending",
-    "offroad_pct": "pending",
-    "diversity": "pending"
+    "jminADE": "4.35 [4.11, 4.58]",
+    "jminFDE": "10.70 [10.00, 11.38]",
+    "overlap32_pct": "4.6 [3.7, 5.5] %",
+    "overlap32_jv_pct": "4.5 [3.6, 5.5] %",
+    "offroad_pct": "3.51 [2.75, 4.30] %",
+    "diversity": "9.1 [8.7, 9.5]"
    }
   },
   "suite": {
@@ -246,19 +303,19 @@
     "core_overlap_pct": "16.3 [15.0, 17.7] %"
    },
    "extra_sft_pilot": {
-    "core_jminADE": "pending",
-    "held_jminADE": "pending",
-    "core_overlap_pct": "pending"
+    "core_jminADE": "4.25 [4.04, 4.47]",
+    "held_jminADE": "6.26 [6.04, 6.48]",
+    "core_overlap_pct": "16.0 [14.7, 17.4] %"
    },
    "filtered_sft_pilot": {
-    "core_jminADE": "pending",
-    "held_jminADE": "pending",
-    "core_overlap_pct": "pending"
+    "core_jminADE": "4.36 [4.14, 4.58]",
+    "held_jminADE": "6.44 [6.20, 6.68]",
+    "core_overlap_pct": "15.1 [13.8, 16.4] %"
    },
    "rl_pilot": {
-    "core_jminADE": "pending",
-    "held_jminADE": "pending",
-    "core_overlap_pct": "pending"
+    "core_jminADE": "5.64 [5.38, 5.88]",
+    "held_jminADE": "8.00 [7.71, 8.30]",
+    "core_overlap_pct": "6.0 [5.2, 6.8] %"
    }
   },
   "deltas": {
@@ -267,12 +324,12 @@
    "m1_vs_m0_held": "-5.25 [-5.49, -4.99] (-45.5 %)",
    "m1_vs_m0_clean": "-0.22 [-0.33, -0.11] (-6.0 %)",
    "m1_vs_m0_core_overlap_pp": "+0.25 [-0.67, +1.20]",
-   "rl_vs_m1_clean": "pending",
-   "rl_vs_m1_overlap32_pp": "pending",
-   "rl_vs_m1_offroad_pp": "pending",
-   "rl_vs_m1_diversity": "pending",
-   "fsft_vs_m1_overlap32_pp": "pending",
-   "esft_vs_m1_overlap32_pp": "pending",
+   "rl_vs_m1_clean": "+0.84 [+0.72, +0.97] (+23.9 %)",
+   "rl_vs_m1_overlap32_pp": "-10.44 [-11.75, -9.27]",
+   "rl_vs_m1_offroad_pp": "-1.23 [-1.55, -0.91]",
+   "rl_vs_m1_diversity": "-1.26 [-1.46, -1.07]",
+   "fsft_vs_m1_overlap32_pp": "-0.96 [-1.45, -0.51]",
+   "esft_vs_m1_overlap32_pp": "-0.01 [-0.40, +0.37]",
    "select_vs_m1_overlap6_pp": "-13.77 [-15.36, -12.22]",
    "select_vs_m1_clean": "-0.20 [-0.28, -0.12] (-5.7 %)"
   },
@@ -298,16 +355,269 @@
     "overlap_pp": "-0.81 [-2.08, +0.54]",
     "verdict": "PASS"
    }
-  ]
+  ],
+  "rl_verdicts": [
+   {
+    "seed": 0,
+    "clean_rel": "+26.5 %",
+    "overlap_vs_extra_pp": "-11.5",
+    "overlap_vs_filtered_pp": "-10.7",
+    "verdict": "DOES NOT COUNT"
+   },
+   {
+    "seed": 1,
+    "clean_rel": "+26.7 %",
+    "overlap_vs_extra_pp": "-10.9",
+    "overlap_vs_filtered_pp": "-10.0",
+    "verdict": "DOES NOT COUNT"
+   },
+   {
+    "seed": 2,
+    "clean_rel": "+18.4 %",
+    "overlap_vs_extra_pp": "-8.9",
+    "overlap_vs_filtered_pp": "-7.7",
+    "verdict": "DOES NOT COUNT"
+   }
+  ],
+  "stopping": {
+   "m1_pilot": "0.43 %",
+   "select_m1": "0.44 %",
+   "extra_sft_pilot": "0.43 %",
+   "filtered_sft_pilot": "0.58 %",
+   "rl_pilot": "3.49 %",
+   "m0_pilot": "0.52 %"
+  }
  },
  "final": {
-  "available": false
+  "available": true,
+  "eval_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_final",
+  "n_scenes": 1000,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "methods": [
+   "cp",
+   "cv",
+   "extra_sft_pilot_s0",
+   "extra_sft_pilot_s1",
+   "extra_sft_pilot_s2",
+   "filtered_sft_pilot_s0",
+   "filtered_sft_pilot_s1",
+   "filtered_sft_pilot_s2",
+   "m0_pilot_s0",
+   "m0_pilot_s1",
+   "m0_pilot_s2",
+   "m1_pilot_s0",
+   "m1_pilot_s1",
+   "m1_pilot_s2",
+   "mind_pilot_s0",
+   "mind_pilot_s1",
+   "mind_pilot_s2",
+   "oracle_log",
+   "rl_pilot_s0",
+   "rl_pilot_s1",
+   "rl_pilot_s2",
+   "select_m1_s0",
+   "select_m1_s1",
+   "select_m1_s2"
+  ],
+  "which": "FINAL held-out (final.json, 1000 scenes, locked)",
+  "clean": {
+   "cp": {
+    "jminADE": "25.94 [24.78, 27.18]",
+    "jminFDE": "50.48 [48.26, 52.88]",
+    "overlap32_pct": "0.0 [0.0, 0.0] %",
+    "overlap32_jv_pct": "0.0 [0.0, 0.0] %",
+    "offroad_pct": "1.15 [0.65, 1.70] %",
+    "diversity": "nan [nan, nan]"
+   },
+   "cv": {
+    "jminADE": "11.11 [10.68, 11.56]",
+    "jminFDE": "28.46 [27.26, 29.60]",
+    "overlap32_pct": "17.3 [14.9, 19.7] %",
+    "overlap32_jv_pct": "17.3 [14.9, 19.7] %",
+    "offroad_pct": "5.65 [4.92, 6.43] %",
+    "diversity": "nan [nan, nan]"
+   },
+   "oracle_log": {
+    "jminADE": "0.00 [0.00, 0.00]",
+    "jminFDE": "0.00 [0.00, 0.00]",
+    "overlap32_pct": "nan [nan, nan] %",
+    "overlap32_jv_pct": "1.0 [0.4, 1.6] %",
+    "offroad_pct": "0.95 [0.61, 1.33] %",
+    "diversity": "nan [nan, nan]"
+   },
+   "mind_pilot": {
+    "jminADE": "3.65 [3.51, 3.81]",
+    "jminFDE": "9.01 [8.57, 9.45]",
+    "overlap32_pct": "19.0 [17.7, 20.3] %",
+    "overlap32_jv_pct": "18.9 [17.6, 20.2] %",
+    "offroad_pct": "5.75 [5.26, 6.26] %",
+    "diversity": "11.6 [11.3, 11.9]"
+   },
+   "m0_pilot": {
+    "jminADE": "3.49 [3.35, 3.64]",
+    "jminFDE": "8.61 [8.21, 9.03]",
+    "overlap32_pct": "15.9 [14.7, 17.1] %",
+    "overlap32_jv_pct": "15.7 [14.6, 16.9] %",
+    "offroad_pct": "5.54 [5.04, 6.07] %",
+    "diversity": "11.8 [11.5, 12.1]"
+   },
+   "m1_pilot": {
+    "jminADE": "3.20 [3.06, 3.35]",
+    "jminFDE": "7.85 [7.46, 8.28]",
+    "overlap32_pct": "15.7 [14.5, 17.0] %",
+    "overlap32_jv_pct": "15.6 [14.4, 16.8] %",
+    "offroad_pct": "4.51 [4.06, 4.99] %",
+    "diversity": "9.9 [9.6, 10.1]"
+   },
+   "select_m1": {
+    "jminADE": "3.03 [2.89, 3.17]",
+    "jminFDE": "7.42 [7.02, 7.82]",
+    "overlap32_pct": "15.7 [14.4, 17.0] %",
+    "overlap32_jv_pct": "15.6 [14.3, 16.9] %",
+    "offroad_pct": "1.34 [1.07, 1.63] %",
+    "diversity": "9.9 [9.6, 10.1]"
+   },
+   "extra_sft_pilot": {
+    "jminADE": "3.12 [2.98, 3.26]",
+    "jminFDE": "7.65 [7.27, 8.07]",
+    "overlap32_pct": "15.4 [14.2, 16.8] %",
+    "overlap32_jv_pct": "15.3 [14.1, 16.6] %",
+    "offroad_pct": "4.73 [4.27, 5.23] %",
+    "diversity": "9.8 [9.6, 10.1]"
+   },
+   "filtered_sft_pilot": {
+    "jminADE": "3.19 [3.05, 3.35]",
+    "jminFDE": "7.81 [7.43, 8.22]",
+    "overlap32_pct": "14.5 [13.3, 15.7] %",
+    "overlap32_jv_pct": "14.4 [13.2, 15.6] %",
+    "offroad_pct": "4.45 [4.00, 4.92] %",
+    "diversity": "9.8 [9.6, 10.1]"
+   },
+   "rl_pilot": {
+    "jminADE": "3.97 [3.81, 4.13]",
+    "jminFDE": "10.07 [9.60, 10.54]",
+    "overlap32_pct": "5.0 [4.3, 5.8] %",
+    "overlap32_jv_pct": "4.9 [4.2, 5.7] %",
+    "offroad_pct": "3.12 [2.67, 3.62] %",
+    "diversity": "8.7 [8.5, 8.9]"
+   }
+  },
+  "suite": {
+   "cv": {
+    "core_jminADE": "11.51 [11.09, 11.95]",
+    "held_jminADE": "13.12 [12.73, 13.53]",
+    "core_overlap_pct": "17.4 [15.5, 19.2] %"
+   },
+   "mind_pilot": {
+    "core_jminADE": "7.62 [7.46, 7.79]",
+    "held_jminADE": "11.88 [11.67, 12.08]",
+    "core_overlap_pct": "18.1 [17.2, 19.0] %"
+   },
+   "m0_pilot": {
+    "core_jminADE": "7.30 [7.15, 7.47]",
+    "held_jminADE": "11.40 [11.19, 11.60]",
+    "core_overlap_pct": "16.8 [15.9, 17.7] %"
+   },
+   "m1_pilot": {
+    "core_jminADE": "3.92 [3.79, 4.06]",
+    "held_jminADE": "5.94 [5.79, 6.09]",
+    "core_overlap_pct": "17.3 [16.2, 18.3] %"
+   },
+   "extra_sft_pilot": {
+    "core_jminADE": "3.90 [3.77, 4.04]",
+    "held_jminADE": "5.95 [5.80, 6.10]",
+    "core_overlap_pct": "17.3 [16.2, 18.3] %"
+   },
+   "filtered_sft_pilot": {
+    "core_jminADE": "3.98 [3.85, 4.13]",
+    "held_jminADE": "6.14 [5.98, 6.30]",
+    "core_overlap_pct": "16.1 [15.1, 17.1] %"
+   },
+   "rl_pilot": {
+    "core_jminADE": "5.27 [5.10, 5.45]",
+    "held_jminADE": "7.72 [7.52, 7.92]",
+    "core_overlap_pct": "6.4 [5.7, 7.0] %"
+   }
+  },
+  "deltas": {
+   "joint_vs_independent_clean": "-0.16 [-0.24, -0.08] (-4.3 %)",
+   "m1_vs_m0_core": "-3.39 [-3.50, -3.28] (-46.4 %)",
+   "m1_vs_m0_held": "-5.46 [-5.63, -5.29] (-47.9 %)",
+   "m1_vs_m0_clean": "-0.30 [-0.38, -0.22] (-8.5 %)",
+   "m1_vs_m0_core_overlap_pp": "+0.51 [-0.19, +1.19]",
+   "rl_vs_m1_clean": "+0.77 [+0.67, +0.86] (+24.0 %)",
+   "rl_vs_m1_overlap32_pp": "-10.67 [-11.60, -9.80]",
+   "rl_vs_m1_offroad_pp": "-1.39 [-1.63, -1.16]",
+   "rl_vs_m1_diversity": "-1.17 [-1.29, -1.05]",
+   "fsft_vs_m1_overlap32_pp": "-1.23 [-1.53, -0.91]",
+   "esft_vs_m1_overlap32_pp": "-0.26 [-0.56, +0.03]",
+   "select_vs_m1_overlap6_pp": "-14.62 [-15.80, -13.52]",
+   "select_vs_m1_clean": "-0.17 [-0.22, -0.12] (-5.4 %)"
+  },
+  "verdicts": [
+   {
+    "seed": 0,
+    "core_rel": "-47.7 % [-49.5, -45.9]",
+    "clean_rel": "-9.0 % [-13.0, -5.3]",
+    "overlap_pp": "-0.26 [-1.16, +0.62]",
+    "verdict": "PASS"
+   },
+   {
+    "seed": 1,
+    "core_rel": "-45.8 % [-47.6, -43.8]",
+    "clean_rel": "-8.2 % [-11.8, -4.6]",
+    "overlap_pp": "+1.72 [+0.77, +2.67]",
+    "verdict": "FAIL"
+   },
+   {
+    "seed": 2,
+    "core_rel": "-45.5 % [-47.7, -43.4]",
+    "clean_rel": "-8.2 % [-11.8, -4.6]",
+    "overlap_pp": "+0.06 [-0.91, +1.08]",
+    "verdict": "PASS"
+   }
+  ],
+  "rl_verdicts": [
+   {
+    "seed": 0,
+    "clean_rel": "+26.3 %",
+    "overlap_vs_extra_pp": "-11.0",
+    "overlap_vs_filtered_pp": "-9.9",
+    "verdict": "DOES NOT COUNT"
+   },
+   {
+    "seed": 1,
+    "clean_rel": "+29.1 %",
+    "overlap_vs_extra_pp": "-10.5",
+    "overlap_vs_filtered_pp": "-9.5",
+    "verdict": "DOES NOT COUNT"
+   },
+   {
+    "seed": 2,
+    "clean_rel": "+16.8 %",
+    "overlap_vs_extra_pp": "-9.8",
+    "overlap_vs_filtered_pp": "-9.0",
+    "verdict": "DOES NOT COUNT"
+   }
+  ],
+  "stopping": {
+   "m1_pilot": "0.43 %",
+   "select_m1": "0.44 %",
+   "extra_sft_pilot": "0.43 %",
+   "filtered_sft_pilot": "0.58 %",
+   "rl_pilot": "3.49 %",
+   "m0_pilot": "0.52 %"
+  }
  },
  "figures": {
-  "fig_baseline_comparison": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/dev/fig_baseline_comparison.png",
-  "fig_error_vs_severity": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/dev/fig_error_vs_severity.png",
-  "fig_tradeoff": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/dev/fig_tradeoff.png",
-  "fig_rl_controls": null,
+  "fig_baseline_comparison": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/final/fig_baseline_comparison.png",
+  "fig_error_vs_severity": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/final/fig_error_vs_severity.png",
+  "fig_tradeoff": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/final/fig_tradeoff.png",
+  "fig_rl_controls": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/final/fig_rl_controls.png",
   "fig_architecture": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/fig_architecture.png",
   "fig_real_scenes": "/home/jarettpoliner/Desktop/Waymo_AV/reports/figures/fig_real_scenes.png"
  },
@@ -535,7 +845,173 @@
     "jminADE_8s_Joint_M0": 8.32662471337244
    },
    "rule": "pool = first 64 manifest scenes; select 'mixed' by Joint_M0 joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/188b664aaf94c975_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/188b664aaf94c975_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/188b664aaf94c975_clean.mp4"
+   ],
+   "scenario_id": "188b664aaf94c975",
+   "condition": "clean",
+   "selected_as": "best",
+   "scores": {
+    "jminADE_8s_CV": 15.724247277613504,
+    "jminADE_8s_M1_supervised": 0.9872174821794033,
+    "jminADE_8s_M1_reward_selection": 0.2944557371083647,
+    "jminADE_8s_M1_bounded_RL": 0.44650873914361
+   },
+   "rule": "pool = first 64 manifest scenes; select 'mixed' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/2b08843b848b0796_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/2b08843b848b0796_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/2b08843b848b0796_clean.mp4"
+   ],
+   "scenario_id": "2b08843b848b0796",
+   "condition": "clean",
+   "selected_as": "best",
+   "scores": {
+    "jminADE_8s_CV": 1.1427566448011248,
+    "jminADE_8s_M1_supervised": 0.8077052748703863,
+    "jminADE_8s_M1_reward_selection": 0.9132698315370362,
+    "jminADE_8s_M1_bounded_RL": 0.5822683071019128
+   },
+   "rule": "pool = first 64 manifest scenes; select 'mixed' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/7c3700652bd41a62_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/7c3700652bd41a62_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/7c3700652bd41a62_clean.mp4"
+   ],
+   "scenario_id": "7c3700652bd41a62",
+   "condition": "clean",
+   "selected_as": "best",
+   "scores": {
+    "jminADE_8s_CV": 16.16216933908668,
+    "jminADE_8s_M1_supervised": 0.8527383628872133,
+    "jminADE_8s_M1_reward_selection": 1.4721315409387312,
+    "jminADE_8s_M1_bounded_RL": 0.7868756065445561
+   },
+   "rule": "pool = first 64 manifest scenes; select 'mixed' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/d5d511761e2f9612_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/d5d511761e2f9612_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/d5d511761e2f9612_clean.mp4"
+   ],
+   "scenario_id": "d5d511761e2f9612",
+   "condition": "clean",
+   "selected_as": "worst",
+   "scores": {
+    "jminADE_8s_CV": 18.754863602634654,
+    "jminADE_8s_M1_supervised": 5.158770026639104,
+    "jminADE_8s_M1_reward_selection": 6.556910561397672,
+    "jminADE_8s_M1_bounded_RL": 10.937824850901961
+   },
+   "rule": "pool = first 64 manifest scenes; select 'mixed' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/937d05b6de7e3dad_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/937d05b6de7e3dad_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/937d05b6de7e3dad_clean.mp4"
+   ],
+   "scenario_id": "937d05b6de7e3dad",
+   "condition": "clean",
+   "selected_as": "worst",
+   "scores": {
+    "jminADE_8s_CV": 4.7420049329562435,
+    "jminADE_8s_M1_supervised": 9.892567116999999,
+    "jminADE_8s_M1_reward_selection": 8.891092782607302,
+    "jminADE_8s_M1_bounded_RL": 10.683147071162239
+   },
+   "rule": "pool = first 64 manifest scenes; select 'mixed' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/2af0a7d33865f301_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/2af0a7d33865f301_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_selection_vs_RL_clean/2af0a7d33865f301_clean.mp4"
+   ],
+   "scenario_id": "2af0a7d33865f301",
+   "condition": "clean",
+   "selected_as": "worst",
+   "scores": {
+    "jminADE_8s_CV": 10.89530741912601,
+    "jminADE_8s_M1_supervised": 7.85619543393453,
+    "jminADE_8s_M1_reward_selection": 7.4753780489166575,
+    "jminADE_8s_M1_bounded_RL": 9.187461136778195
+   },
+   "rule": "pool = first 64 manifest scenes; select 'mixed' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/19fa0c7c1d108e88_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_RL_overlap_cases/19fa0c7c1d108e88_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_RL_overlap_cases/19fa0c7c1d108e88_clean.mp4"
+   ],
+   "scenario_id": "19fa0c7c1d108e88",
+   "condition": "clean",
+   "selected_as": "overlap",
+   "scores": {
+    "jminADE_8s_CV": 1.8546906912052012,
+    "jminADE_8s_M1_supervised": 4.6589521545683965,
+    "jminADE_8s_M1_bounded_RL": 3.005849918932654
+   },
+   "rule": "pool = first 64 manifest scenes; select 'overlap' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/5ff135b8c6d774e9_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_RL_overlap_cases/5ff135b8c6d774e9_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_RL_overlap_cases/5ff135b8c6d774e9_clean.mp4"
+   ],
+   "scenario_id": "5ff135b8c6d774e9",
+   "condition": "clean",
+   "selected_as": "overlap",
+   "scores": {
+    "jminADE_8s_CV": 5.9348319403919945,
+    "jminADE_8s_M1_supervised": 4.207284208736382,
+    "jminADE_8s_M1_bounded_RL": 6.4886433681240305
+   },
+   "rule": "pool = first 64 manifest scenes; select 'overlap' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/b83c35f2590a6d2a_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_RL_overlap_cases/b83c35f2590a6d2a_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_RL_overlap_cases/b83c35f2590a6d2a_clean.mp4"
+   ],
+   "scenario_id": "b83c35f2590a6d2a",
+   "condition": "clean",
+   "selected_as": "overlap",
+   "scores": {
+    "jminADE_8s_CV": 10.158734556326623,
+    "jminADE_8s_M1_supervised": 2.663225709926337,
+    "jminADE_8s_M1_bounded_RL": 5.815049989789259
+   },
+   "rule": "pool = first 64 manifest scenes; select 'overlap' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
+  },
+  {
+   "still": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/stills/45974846007a8013_clean_f24.png",
+   "gif": "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_RL_overlap_cases/45974846007a8013_clean.gif",
+   "mp4": [
+    "/home/jarettpoliner/Desktop/Waymo_AV/reports/demos/final_M1_vs_RL_overlap_cases/45974846007a8013_clean.mp4"
+   ],
+   "scenario_id": "45974846007a8013",
+   "condition": "clean",
+   "selected_as": "overlap",
+   "scores": {
+    "jminADE_8s_CV": 10.199229849169177,
+    "jminADE_8s_M1_supervised": 3.0545588980894536,
+    "jminADE_8s_M1_bounded_RL": 1.0888489785720594
+   },
+   "rule": "pool = first 64 manifest scenes; select 'overlap' by M1_bounded_RL joint minADE@6; identical scenes/corruption/sampling across methods"
   }
  ],
- "regenerate": "python scripts/build_slide_content.py --dev-eval /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_dev --seeds 0,1,2 --label PRELIMINARY (development set, 3 seeds; RL pending) --figures reports/figures/dev --demos reports/demos/prelim_M0_vs_M1_missing_0.3 reports/demos/prelim_M0_vs_M1_noise_0.5 reports/demos/prelim_independent_vs_joint_clean && node slides/build_deck.js"
+ "regenerate": "python scripts/build_slide_content.py --dev-eval /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_dev --final-eval /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_final --seeds 0,1,2 --label FINAL (locked held-out set, 3 seeds) --figures reports/figures/final --demos reports/demos/prelim_M0_vs_M1_missing_0.3 reports/demos/prelim_M0_vs_M1_noise_0.5 reports/demos/prelim_independent_vs_joint_clean reports/demos/final_M1_vs_selection_vs_RL_clean reports/demos/final_M1_vs_RL_overlap_cases && node slides/build_deck.js"
 }

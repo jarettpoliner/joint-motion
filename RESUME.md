@@ -3,20 +3,16 @@
 Last updated: 2026-11-03 15:35 (session 3).
 
 ## Current stage
-Stage final_eval RUNNING with resume (D-032). Progress = conditions with per_scene.npz for all 24
-frozen methods under <data_root>/runs/eval_final/<method>/<condition>/. Observed rate ≈ 31 min per
-condition (GPU 0 shared with a higher-priority job at 96 % SM; our process is sampling-starved).
-Logs: <data_root>/logs/campaign_final_eval.log (first run: clean, missing_0.1) and
-campaign_final_eval_resume.log (resumed run with cached geometry + 4 metric workers).
+CAMPAIGN COMPLETE (D-033). No jobs running. All stages in registry/campaign_state.json are
+completed. Deliverables: reports/report.{md,html,pdf}; reports/tables/{dev,final}/;
+reports/figures/{fig_architecture,fig_real_scenes}.* and reports/figures/{dev,final}/*;
+reports/demos/{prelim_*,final_*}/ (GIF+MP4; demo_metrics.json documents the selection rule);
+slides/waymo_av_results_final.{pptx,pdf} (and _prelim). Regeneration commands: README.md,
+slides/README.md, each figure's *.sources.json, slides/content.json["regenerate"].
 
-Exact resume command (safe at any time; completed conditions are skipped, partial ones redone):
-```
-cd /home/jarettpoliner/Desktop/Waymo_AV
-<data_root>/env/train/bin/python -m waymo_av.campaign --stage final_eval
-```
-To pause: kill the `waymo_av.campaign --stage final_eval` process and its `waymo_av.evaluate` child;
-nothing is lost except the condition in progress. NEXT after it finishes: `--stage report`, then
-slides (`scripts/build_slide_content.py --final-eval <data_root>/runs/eval_final ...`), STATUS.
+Remaining gaps (not blockers): official Waymo metrics package unavailable (D-019a); overlap
+metric is approximate (D-028a/b); source-segment grouping heuristic (D-025a); single compact
+model size; timings descriptive only (D-032).
 
 ## Metric qualification (done before RL)
 Overlap audit v2 and validity-masked metrics are in place (D-028a/b). The RL reward is an approximate
