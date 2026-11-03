@@ -65,13 +65,26 @@ bash scripts/download_womd.sh 24 8 1_3_0      # ~24 training + 8 validation scen
 
 ## Reproduce the main result
 
+All stages are resumable; completed stages are skipped (registry/campaign_state.json, registry/runs/*.json).
+
 ```
-<py> -m waymo_av.campaign --stage all            # audit → download → preprocess → manifests → calibrate → overfit → pilot
-<py> -m waymo_av.evaluate --methods cp cv ckpt:<runs>/m0_pilot_s0/ckpt_best.pt@M0 ckpt:<runs>/m1_pilot_s0/ckpt_best.pt@M1 \
-     --conditions clean missing_0.1 missing_0.3 missing_0.5 noise_0.1 noise_0.3 noise_0.5 compound_0 \
-     --manifest manifests/dev.json --out <runs>/eval_dev
-<py> -m waymo_av.aggregate --eval-dir <runs>/eval_dev --reference M0 --out reports/tables/dev
+PY=<data_root>/env/train/bin/python
+$PY -m waymo_av.campaign --stage all --until pilot --n-train-shards 48 --n-val-shards 12 --seeds 0,1,2
+#   audit → download (48 train + 12 val shards) → preprocess → manifests (--lock-final) → calibrate
+#   → overfit gate → pilots m0/m1/mind × 3 seeds
+PYTHONPATH=src $PY scripts/audit_timestamps.py --shards 0-47 --val-shards 0-11     # timing-rule audit (D-024)
+PYTHONPATH=src $PY scripts/segment_overlap.py                                         # source-segment groups (D-025)
+$PY -m waymo_av.data.manifests --lock-final --drop-train-from manifests/segment_overlap.json
+PYTHONPATH=src $PY scripts/overlap_floor_audit.py                                     # logged-future overlap audit v2 (D-028a)
+PYTHONPATH=src $PY scripts/model_overlap_inspection.py --ckpt <runs>/m0_pilot_s0/ckpt_best.pt   # D-028b
+$PY -m waymo_av.campaign --stage dev_eval --seeds 0,1,2      # matched dev eval + aggregate + compare + figures
+$PY -m waymo_av.campaign --stage posttrain --seeds 0,1,2     # RL, filtered-SFT, extra-SFT (+ their dev eval)
+$PY -m waymo_av.campaign --stage freeze --seeds 0,1,2        # manifests/freeze.json (methods, sampling, rules)
+$PY -m waymo_av.campaign --stage final_eval                  # locked final set, once per frozen method
+$PY -m waymo_av.campaign --stage report                      # reports/report.md (+ html/pdf)
+$PY -m waymo_av.demo --ckpts M0=<ckpt> M1=<ckpt> --manifest manifests/dev.json --condition missing_0.3 --scenes 6 --out reports/demos/<name>
 ```
+Slides: see slides/README.md. Figures: `python -m waymo_av.figures --architecture --scene --eval-dir <eval> --seeds 0,1,2 --out reports/figures/<name> --label "<label>"`.
 
 Licence: Waymo Open Dataset License Agreement for Non-Commercial Use (https://waymo.com/open/terms).
 Raw data and processed windows are not redistributed. Code: MIT (this repository).
