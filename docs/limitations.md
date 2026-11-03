@@ -25,3 +25,7 @@
   remain inside each split, so the scenario-level bootstrap slightly overstates independence.
 - **Overlap-metric floor.** The 2 Hz-waypoint OBB overlap test flags 3.2 % of logged (ground-truth)
   joint futures on dev; model overlap rates must be read against the oracle_log rate.
+- **Mixture training as regulariser.** The pilot over-fits after ≈ 30 epochs (D-027); corruption
+  mixture training also augments the data, so part of any M1 gain may be regularisation rather
+  than corruption awareness. The matched extra-SFT control and clean guardrail bound, but do not
+  remove, this confound.
