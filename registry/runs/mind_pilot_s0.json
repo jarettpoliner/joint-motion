@@ -55,7 +55,7 @@
  "n_train": 9144,
  "n_dev": 500,
  "device": "cuda:0",
- "step": 4000,
+ "step": 5000,
  "best": {
   "score": 3.8683134569304936,
   "step": 4000,
@@ -65,10 +65,10 @@
    "selection_score": 3.8683134569304936
   }
  },
- "elapsed_s": 221.59400606155396,
+ "elapsed_s": 273.2842562198639,
  "last_dev": {
-  "nll_clean": 2.088600514960473,
-  "jminADE6_clean": 3.8683134569304936,
-  "selection_score": 3.8683134569304936
+  "nll_clean": 2.1248261481760937,
+  "jminADE6_clean": 3.880343770878924,
+  "selection_score": 3.880343770878924
  }
 }
