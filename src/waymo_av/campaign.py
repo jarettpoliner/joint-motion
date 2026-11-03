@@ -263,7 +263,9 @@ def stage_final_eval():
 
 
 def stage_report():
-    run([PY, "-m", "waymo_av.report", "--dev-tables", "reports/tables/dev", "--final-tables", "reports/tables/final", "--figures", *[str(p) for p in sorted((REPO_ROOT / "reports" / "figures").glob("*.png"))], "--anims", *[str(p) for p in sorted((REPO_ROOT / "reports" / "demos").rglob("*.gif"))]])
+    figs = [p for p in sorted((REPO_ROOT / "reports" / "figures").rglob("*.png")) if not p.name.startswith("inspect_") and "SYNTHETIC" not in str(p)]
+    anims = [p for p in sorted((REPO_ROOT / "reports" / "demos").rglob("*.gif")) if "SYNTHETIC" not in str(p) and "_smoke" not in str(p)]
+    run([PY, "-m", "waymo_av.report", "--dev-tables", "reports/tables/dev", "--final-tables", "reports/tables/final", "--figures", *[str(p) for p in figs], "--anims", *[str(p) for p in anims]])
     _set("report", "completed")
 
 
