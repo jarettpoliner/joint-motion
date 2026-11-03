@@ -1,35 +1,44 @@
 # STATUS.md
 
-Updated: 2026-11-02 (session 1).
+Updated: 2026-11-02 23:05 (session 1). Commits: ea127b1, 2c62c65 (+ this update).
 
-## Overall: IMPLEMENTATION COMPLETE, REAL-DATA WORK BLOCKED ON DATASET ACCESS
+## Overall: IMPLEMENTATION COMPLETE AND VERIFIED ON SYNTHETIC FIXTURES; REAL-DATA CAMPAIGN BLOCKED ON DATASET ACCESS
 
 | Stage | State | Evidence |
 |---|---|---|
-| 0 Workspace/hardware/env | done | DECISIONS.md D-001..D-006; requirements/train.lock; GPU 0 selected |
-| 1 Source research | done | docs/source_matrix.md |
-| 2 Data pipeline + evaluator | implemented, verified on SYNTHETIC fixtures only | tests/ (28 passing), src/waymo_av/data, metrics |
-| 3 MotionLM-style model | implemented; tiny-batch overfit passes on synthetic | tests/test_model_and_leakage.py |
-| 4 Robustness extension (M0/M1) | implemented (corruption, mixture training, suites); not run on real data | src/waymo_av/corruption.py, configs/train |
-| 5 RL post-training + controls | implemented; reward-driven update test passes; not run on real data | src/waymo_av/rl.py |
-| 6 Final evaluation, report, figures | pending real data | — |
+| 0 Workspace/hardware/env | done | DECISIONS.md D-001..D-006, D-018; requirements/train.lock, requirements/wod_metrics.lock |
+| 1 Source research | done | docs/source_matrix.md (MotionLM, Waymo RL paper, scenario/map protos, terms, Waymax config read) |
+| 2 Data pipeline + evaluator | implemented; verified on SYNTHETIC only | 28 tests pass (CPU); scripts/smoke_synthetic.sh passes (train → resume → eval → tables) |
+| 3 MotionLM-style model | implemented; tiny-batch overfit passes; leakage tests pass; throughput profiled | tests/test_model_and_leakage.py; D-018 |
+| 4 Robustness extension (M0/M1/Mind) | implemented, configs ready; NOT RUN on real data | corruption.py, configs/train/*.yaml |
+| 5 RL + controls | implemented (REINFORCE+LOO+KL+replay; filtered-SFT; extra-SFT; selection); reward-update test passes; synthetic smoke passes; NOT RUN on real data | rl.py, configs/rl/*.yaml |
+| 6 Final evaluation / report / animations | generators implemented and smoke-tested; no real results | viz.py, aggregate.py, report.py |
 
-## Blocker (requires one user action)
+## Blocker (one user action)
 
-The Waymo Open Motion Dataset buckets require a Google account that has accepted the licence at
-https://waymo.com/open. Anonymous access returns HTTP 401. No credentials exist on this machine.
-
-User action (run in this Claude Code session so the credential lands in the default config):
+WOMD buckets return HTTP 401 anonymously; `gcloud auth list` shows no credentialed accounts.
+Run in this Claude Code session (the account must have accepted the licence at https://waymo.com/open):
 
 ```
 ! /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/tools/google-cloud-sdk/bin/gcloud auth login --no-browser
 ```
 
-Then the campaign resumes with `bash scripts/campaign.sh` (downloads ~24 training + 8 validation
-scenario shards, ≈ 15–25 GiB, preprocesses, builds manifests, trains, evaluates).
+Then: `<data_root>/env/train/bin/python -m waymo_av.campaign --stage all` (RESUME.md).
+
+## Secondary (optional) user action
+Relocate the data root to a top-level directory on extradrive1 (needs sudo once); see
+`<data_root>/README_WAYMO_AV_DATA.txt`. Not required to proceed.
 
 ## Resource use so far
 
-- GPU-hours: 0 (only seconds of smoke testing).
-- Storage: env + uv cache + gcloud SDK ≈ 9 GiB under the data root; raw/processed data: 0.
-- Root volume untouched except the repo (< 5 MiB).
+| Item | Value |
+|---|---|
+| GPU-hours (registry/gpu_hours.jsonl) | < 0.01 (smoke tests only) |
+| Storage under data root | env 5.5 GiB, uv cache 0.8 GiB, gcloud SDK 0.5 GiB, synthetic runs 0.12 GiB; raw/processed real data: 0 |
+| Free on extradrive1 | 946 GiB (floor 360 GiB) |
+| Root volume | repo only (< 10 MiB); 8.2 GiB free (pre-existing condition, not consumed) |
+
+## Not done (real-data dependent)
+Download, preprocessing, manifests, calibration (tokenizer saturation + offroad sign), overfit
+gate, M0/M1/Mind pilots (3 seeds planned), dev evaluation + sampling freeze, RL stage with four
+controls, locked final evaluation, report/figures/animations with real numbers.
