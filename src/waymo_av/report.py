@@ -38,6 +38,45 @@ def _runs_table() -> str:
     return "\n".join(rows)
 
 
+def _demote(md: str, levels: int = 2) -> str:
+    """Demote markdown headings so embedded comparison files nest under the report sections."""
+    out = []
+    for line in md.splitlines():
+        if line.startswith("#"):
+            n = len(line) - len(line.lstrip("#"))
+            line = "#" * min(n + levels, 6) + line[n:]
+        out.append(line)
+    return "\n".join(out)
+
+
+def _key_results(tables: Path, label: str) -> str:
+    """Headline numbers generated from aggregate outputs (summary.json / paired_vs_reference.json)."""
+    sj, pj = tables / "summary.json", tables / "paired_vs_reference.json"
+    if not sj.exists():
+        return f"- {label}: not available\n"
+    S = json.load(open(sj)); P = json.load(open(pj)) if pj.exists() else {}
+    fam = {"cv": "constant velocity", "mind_pilot": "independent decoder", "m0_pilot": "joint M0 (clean-trained)", "m1_pilot": "joint M1 (corruption-trained)", "select_m1": "M1 + best-6-of-32 reward selection", "extra_sft_pilot": "M1 + extra SFT", "filtered_sft_pilot": "M1 + reward-filtered SFT", "rl_pilot": "M1 + bounded RL"}
+    rows = ["| method | clean joint minADE@6 (m) | core-suite joint minADE@6 (m) | clean overlap, own 6 outputs (%) | clean offroad (%) | n seeds |", "|---|---|---|---|---|---|"]
+    core = ["missing_0.1", "missing_0.3", "missing_0.5", "noise_0.1", "noise_0.3", "noise_0.5"]
+    for base, name in fam.items():
+        ms = sorted({k.split("|")[0] for k in S if k.split("|")[0] == base or k.split("|")[0].startswith(base + "_s")})
+        if not ms:
+            continue
+        g = lambda m, c, k: S.get(f"{m}|{c}", {}).get(k)
+        cl = [g(m, "clean", "joint_minADE_8s") for m in ms if g(m, "clean", "joint_minADE_8s") is not None]
+        cs = [sum(g(m, c, "joint_minADE_8s") for c in core) / len(core) for m in ms if all(g(m, c, "joint_minADE_8s") is not None for c in core)]
+        ov = [g(m, "clean", "overlap_rate") for m in ms if g(m, "clean", "overlap_rate") is not None]
+        of = [g(m, "clean", "offroad_frac") for m in ms if g(m, "clean", "offroad_frac") is not None]
+        f = lambda v, p=2, sc=1: (f"{sc*sum(v)/len(v):.{p}f}" + (f" (seeds: {', '.join(f'{sc*x:.{p}f}' for x in v)})" if len(v) > 1 else "")) if v else "—"
+        rows.append(f"| {name} | {f(cl)} | {f(cs)} | {f(ov, 1, 100)} | {f(of, 1, 100)} | {len(ms)} |")
+    lines = [f"**{label}** (per-method means over seeds; CIs and paired differences in the tables below)", "", *rows, ""]
+    ref = next((k for k in P if k.endswith("|CORE_SUITE") and k.startswith("m1_pilot")), None)
+    if ref:
+        d = P[ref]["joint_minADE_8s"]
+        lines.append(f"- M1 vs M0 core-suite joint minADE@6 (seed of reference): {100*d['rel_delta']:+.1f} % [{100*d['rel_ci_low']:+.1f}, {100*d['rel_ci_high']:+.1f}] ({d.get('unit','scenario')}-level bootstrap). Per-seed verdicts against the preregistered thresholds: see the comparison section.")
+    return "\n".join(lines) + "\n"
+
+
 def _metric_qualification() -> str:
     out = []
     f = REPO_ROOT / "manifests" / "overlap_floor_audit.json"
@@ -62,6 +101,10 @@ def build(dev_tables: Path | None, final_tables: Path | None, rl_tables: Path | 
     parts = [
         "# Waymo_AV — Robust Joint Motion Forecasting Under Missing and Noisy Observations",
         f"\nGenerated {time.strftime('%Y-%m-%d %H:%M')} from commit `{git_commit()}`. Simplified MotionLM-style two-agent joint predictor; local metrics (not official challenge scores).\n",
+        "## 0. Key results\n",
+        _key_results(dev_tables, "Development set (500 scenes; checkpoint selection; NOT held-out)") if dev_tables else "",
+        _key_results(final_tables, "FINAL held-out set (1,000 locked scenes; one pass per frozen method)") if final_tables and (final_tables / "summary.json").exists() else "- FINAL held-out results: pending\n",
+        "RL outcome (D-031): recorded as mixed/negative under the frozen comparison rule — see section 3a (Q5/Q6) and DECISIONS.md.\n",
         "## 1. Setup\n",
         f"- Dataset: `{_read(dv, '{}').strip()}`" if dv.exists() else "- Dataset: NOT DOWNLOADED (blocked on licence login)",
         f"- Calibration: `{_read(cal, '{}').strip()[:1500]}`" if cal.exists() else "- Calibration: not run",
@@ -76,11 +119,13 @@ def build(dev_tables: Path | None, final_tables: Path | None, rl_tables: Path | 
                   "Selection rules: M0/Mind checkpoints = lowest clean joint minADE@6 on the first 256 dev scenes; M1 = lowest mean of clean and core-suite joint minADE@6 on the same scenes (D-017). These selection scores are NOT comparable across models; every table below is a matched evaluation of the selected checkpoints on identical scenes, conditions and sampling.\n",
                   _read(dev_tables / "table.md")]
         if (dev_tables / "comparison.md").exists():
-            parts += ["### 3a. Per-seed development comparison\n", _read(dev_tables / "comparison.md")]
+            parts += ["### 3a. Per-seed development comparison\n", _demote(_read(dev_tables / "comparison.md"))]
     if rl_tables and (rl_tables / "table.md").exists():
         parts += ["## 4. Post-training controls (dev)\n", _read(rl_tables / "table.md")]
     if final_tables and (final_tables / "table.md").exists():
         parts += ["## 5. Locked final evaluation (official validation shards; one pass per frozen method)\n", _read(final_tables / "table.md")]
+        if (final_tables / "comparison.md").exists():
+            parts += ["### 5a. Per-seed final comparison\n", _demote(_read(final_tables / "comparison.md"))]
     if figures:
         parts.append("## 6. Figures\n")
         for f in figures:

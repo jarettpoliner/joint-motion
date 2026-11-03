@@ -97,6 +97,10 @@
     "extra_sft_pilot_s1",
     "extra_sft_pilot_s2"
    ]
+  },
+  "report": {
+   "status": "completed",
+   "t": "2026-11-03T15:26:52"
   }
  }
 }
