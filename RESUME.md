@@ -1,13 +1,14 @@
 # RESUME.md — how to continue this campaign
 
-Last updated: 2026-11-03 09:40 (session 2).
+Last updated: 2026-11-03 10:12 (session 2).
 
 ## Current stage
-Pilot training (stage pilot) running on GPU 0 via
-`python -m waymo_av.campaign --stage pilot --seeds 0,1,2` (log: <data_root>/logs/campaign_pilot.log).
-Order: m0_pilot_s0, m1_pilot_s0, mind_pilot_s0, then seeds 1 and 2. Each run ≈ 20 min (12k steps,
-0.085 s/step, data-loading bound on the shared CPU). Completed runs have
-registry/runs/<name>.json status "completed"; the runner skips those on restart.
+All nine pilots completed. Stage dev_eval (3 seeds) is running, chained behind the pilots by
+<data_root>/logs/chain_dev_eval.sh (log: chain_dev_eval.log; prints CHAIN_DEV_EVAL_DONE). It writes
+<data_root>/runs/eval_dev, reports/tables/dev/{table.md,comparison.md}, reports/figures/dev/*.
+NEXT after inspecting those results: `campaign --stage posttrain --seeds 0,1,2` (RL + filtered-SFT +
+extra-SFT per seed, then their matched dev evaluation), `--stage freeze`, `--stage final_eval`,
+`--stage report`, then refresh demos and slides (see Visualization pipeline).
 
 ## Metric qualification (done before RL)
 Overlap audit v2 and validity-masked metrics are in place (D-028a/b). The RL reward is an approximate

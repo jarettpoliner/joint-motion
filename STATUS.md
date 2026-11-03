@@ -1,6 +1,6 @@
 # STATUS.md
 
-Updated: 2026-11-03 09:40 (session 2). Last commit: see `git log -1`.
+Updated: 2026-11-03 10:12 (session 2). Last commit: see `git log -1`.
 
 ## Overall: REAL-DATA CAMPAIGN RUNNING — data, manifests, calibration and overfit gates passed; pilots training
 
@@ -15,11 +15,11 @@ Updated: 2026-11-03 09:40 (session 2). Last commit: see `git log -1`.
 | 2e Real-scene inspection | done | reports/figures/inspect_training_shard0.png; D-023 |
 | 2f Calibration on dev | done | manifests/calibration.json, metric_config.json; D-026 |
 | 3a Overfit gate (32 real scenes) | done | registry/runs/m0_overfit.json: NLL 0.0002, free-running jminADE@6 0.093 m (= tokenizer floor); reports/figures/inspect_overfit_rollouts.png |
-| 3b/4 Pilots M0 / M1 / Mind × seeds 0,1,2 | RUNNING: s0 all done, m0_s1 done, m1_s1 running (as of 09:40) | <data_root>/logs/campaign_pilot.log; registry/runs/*_pilot_s*.json |
+| 3b/4 Pilots M0 / M1 / Mind × seeds 0,1,2 | done (9 runs, 10–15 min each) | registry/runs/*_pilot_s*.json; selection scores (own rule, 256 dev scenes, NOT comparable across models): m0 3.83/3.74/3.60, m1 3.99/3.84/3.89, mind 3.84/4.06/3.83 |
 | 4a Metric qualification before RL | done | D-028a (overlap audit v2, validity masks, denominators), D-028b (model-flag inspection); 35 tests pass |
 | 4a' Preliminary matched dev eval (seed 0; cp/cv/oracle/M0/M1/Mind, 500 scenes, 10 conditions) | done | <data_root>/runs/eval_dev_prelim; reports/tables/dev_prelim/{table.md,comparison.md} |
 | 6' Preliminary deliverables | done (PRELIMINARY) | reports/figures/{fig_architecture,fig_real_scenes}.{pdf,svg,png}; reports/figures/dev_prelim/*; reports/demos/prelim_*/*.{gif,mp4}; slides/waymo_av_results_prelim.{pptx,pdf} |
-| 4b Dev evaluation | pending | — |
+| 4b Matched dev evaluation, 3 seeds (cp/cv/oracle_log, M0/M1/Mind × 3, select-control × 3; 10 conditions; 500 scenes) | RUNNING (chained; <data_root>/logs/chain_dev_eval.log) | <data_root>/runs/eval_dev → reports/tables/dev, reports/figures/dev |
 | 5 RL + controls | pending | — |
 | 6 Freeze, final evaluation, report, animations | pending | — |
 
@@ -27,7 +27,7 @@ Updated: 2026-11-03 09:40 (session 2). Last commit: see `git log -1`.
 
 | Item | Value |
 |---|---|
-| GPU-hours (registry/gpu_hours.jsonl) | see `python -c "from waymo_av.budget import gpu_hours_used;print(gpu_hours_used())"` (≈ 0.03 before pilots) |
+| GPU-hours (registry/gpu_hours.jsonl) | 1.89 after the nine pilots (ceiling 48) |
 | Storage under data root | raw 23 GB, processed 1.0 GB, env 5.5 GB, uv cache 0.8 GB, SDK 0.5 GB, runs < 1 GB |
 | Free on extradrive1 | ≈ 925 GiB (floor 360 GiB) |
 

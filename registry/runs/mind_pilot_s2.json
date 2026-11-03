@@ -1,0 +1,81 @@
+{
+ "name": "mind_pilot_s2",
+ "kind": "train",
+ "created": "2026-11-03T09:58:26",
+ "status": "completed",
+ "events": [
+  {
+   "t": "2026-11-03T09:58:26",
+   "status": "registered",
+   "pid": 3204211
+  },
+  {
+   "t": "2026-11-03T09:58:26",
+   "status": "running",
+   "pid": 3204211
+  },
+  {
+   "t": "2026-11-03T10:08:49",
+   "status": "completed",
+   "pid": 3204211
+  }
+ ],
+ "config": {
+  "run_name": "mind_pilot_s2",
+  "train_manifest": "manifests/train.json",
+  "dev_manifest": "manifests/dev.json",
+  "corruption": "clean",
+  "seed": 2,
+  "model": {
+   "d_model": 128,
+   "n_heads": 4,
+   "d_ff": 512,
+   "n_latents": 64,
+   "enc_layers": 2,
+   "dec_layers": 4,
+   "dropout": 0.1,
+   "max_agent_slots": 32,
+   "independent": true
+  },
+  "batch_size": 64,
+  "lr": 0.0004,
+  "warmup_steps": 500,
+  "total_steps": 12000,
+  "schedule": "cosine",
+  "weight_decay": 0.1,
+  "grad_clip": 1.0,
+  "log_every": 50,
+  "eval_every": 1000,
+  "dev_eval_scenes": 256,
+  "eval_batch_size": 64,
+  "num_workers": 8,
+  "amp": true,
+  "planned_gpu_hours": 3.0
+ },
+ "code_commit": "cbb2e69",
+ "code_dirty": true,
+ "pid": 3204211,
+ "run_dir": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s2",
+ "n_params": 1787049,
+ "n_train": 9144,
+ "n_dev": 500,
+ "device": "cuda:0",
+ "step": 12000,
+ "best": {
+  "score": 3.831291175519941,
+  "step": 6000,
+  "dev": {
+   "nll_clean": 2.232147063442211,
+   "jminADE6_clean": 3.831291175519941,
+   "selection_score": 3.831291175519941
+  }
+ },
+ "elapsed_s": 623.3594205379486,
+ "last_dev": {
+  "nll_clean": 2.6367851787519916,
+  "jminADE6_clean": 4.1665560559567485,
+  "selection_score": 4.1665560559567485
+ },
+ "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s2/ckpt_best.pt",
+ "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s2/ckpt_last.pt"
+}
