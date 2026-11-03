@@ -1,29 +1,40 @@
 {
  "summary": {
+  "version": 2,
   "n_scenes": 500,
-  "n_flagged_gt": 15,
-  "flag_rate": 0.03,
-  "classes": {
-   "position_interpolation": 2,
-   "in_logged_gap": 4,
-   "heading_inference": 6,
+  "n_initial_overlap_excluded": 1,
+  "n_flagged_unmasked_full_horizon": 15,
+  "rate_unmasked": 0.03,
+  "n_flagged_jointly_valid": 5,
+  "rate_jointly_valid": 0.01,
+  "classes_of_unmasked_flags": {
+   "heading_inference": 2,
+   "outside_jointly_valid": 10,
    "annotation_contact": 3
   },
-  "type_pairs_flagged": {
-   "1-1": 10,
-   "1-3": 1,
-   "1-2": 4
-  }
+  "classes_of_jointly_valid_flags": {
+   "heading_inference": 2,
+   "annotation_contact": 3
+  },
+  "type_pairs_flagged_jv": {
+   "1-1": 2,
+   "1-2": 3
+  },
+  "note": "denominator = dev scenes without initial overlap; 'rate_jointly_valid' is the reference rate for overlap_rate_jointvalid; the unmasked full-horizon rate on logged futures is NOT a valid reference (invalid labels are zero-filled)."
  },
  "cases": [
   {
    "scenario_id": "418f8354b4d64009",
-   "class": "position_interpolation",
+   "class": "heading_inference",
    "A": true,
    "B": true,
    "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 20,
+   "n_jointly_valid": 80,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": true,
    "min_center_dist_m": 2.923944691364703,
    "sizes": [
     [
@@ -43,12 +54,16 @@
   },
   {
    "scenario_id": "2af0a7d33865f301",
-   "class": "in_logged_gap",
+   "class": "outside_jointly_valid",
    "A": false,
    "B": false,
    "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 74,
+   "n_jointly_valid": 70,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 3.0710874148291603,
    "sizes": [
     [
@@ -68,12 +83,16 @@
   },
   {
    "scenario_id": "b55324a7dead03d3",
-   "class": "in_logged_gap",
+   "class": "outside_jointly_valid",
    "A": false,
    "B": false,
    "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 63,
+   "n_jointly_valid": 60,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 15.855432685609916,
    "sizes": [
     [
@@ -93,12 +112,16 @@
   },
   {
    "scenario_id": "470c42b2b79be9b1",
-   "class": "heading_inference",
-   "A": true,
+   "class": "outside_jointly_valid",
+   "A": false,
    "B": false,
-   "C": true,
+   "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 70,
+   "n_jointly_valid": 70,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 10.736398241476172,
    "sizes": [
     [
@@ -118,12 +141,16 @@
   },
   {
    "scenario_id": "351ac4a3cc152f81",
-   "class": "position_interpolation",
+   "class": "heading_inference",
    "A": true,
    "B": true,
    "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 56,
+   "n_jointly_valid": 80,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": true,
    "min_center_dist_m": 3.253256248657733,
    "sizes": [
     [
@@ -143,12 +170,16 @@
   },
   {
    "scenario_id": "3b9989fd79cfce0d",
-   "class": "in_logged_gap",
+   "class": "outside_jointly_valid",
    "A": false,
    "B": false,
    "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 79,
+   "n_jointly_valid": 70,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 8.822259098546297,
    "sizes": [
     [
@@ -168,12 +199,16 @@
   },
   {
    "scenario_id": "2a00473531f6b447",
-   "class": "heading_inference",
-   "A": true,
+   "class": "outside_jointly_valid",
+   "A": false,
    "B": false,
-   "C": true,
+   "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 70,
+   "n_jointly_valid": 70,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 7.314378517493594,
    "sizes": [
     [
@@ -193,12 +228,16 @@
   },
   {
    "scenario_id": "e0fee3f2acf7df5",
-   "class": "heading_inference",
-   "A": true,
+   "class": "outside_jointly_valid",
+   "A": false,
    "B": false,
-   "C": true,
+   "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 37,
+   "n_jointly_valid": 35,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 7.946982929248363,
    "sizes": [
     [
@@ -223,7 +262,11 @@
    "B": false,
    "C": true,
    "D": true,
+   "A_any": true,
    "t_first_A": 60,
+   "n_jointly_valid": 80,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": true,
    "min_center_dist_m": 1.952968896349593,
    "sizes": [
     [
@@ -243,12 +286,16 @@
   },
   {
    "scenario_id": "a5d71dc606bfc070",
-   "class": "in_logged_gap",
+   "class": "outside_jointly_valid",
    "A": false,
    "B": false,
    "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 79,
+   "n_jointly_valid": 70,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 12.275285325550877,
    "sizes": [
     [
@@ -268,12 +315,16 @@
   },
   {
    "scenario_id": "cb05f7cbb278efda",
-   "class": "heading_inference",
-   "A": true,
+   "class": "outside_jointly_valid",
+   "A": false,
    "B": false,
-   "C": true,
+   "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 72,
+   "n_jointly_valid": 70,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 24.851688849983304,
    "sizes": [
     [
@@ -298,7 +349,11 @@
    "B": true,
    "C": true,
    "D": true,
+   "A_any": true,
    "t_first_A": 52,
+   "n_jointly_valid": 80,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": true,
    "min_center_dist_m": 1.094260832159695,
    "sizes": [
     [
@@ -318,12 +373,16 @@
   },
   {
    "scenario_id": "f511fd86de2754f6",
-   "class": "heading_inference",
-   "A": true,
+   "class": "outside_jointly_valid",
+   "A": false,
    "B": false,
-   "C": true,
+   "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 11,
+   "n_jointly_valid": 5,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 21.823945916189167,
    "sizes": [
     [
@@ -348,7 +407,11 @@
    "B": true,
    "C": true,
    "D": true,
+   "A_any": true,
    "t_first_A": 55,
+   "n_jointly_valid": 80,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": true,
    "min_center_dist_m": 2.48010377376462,
    "sizes": [
     [
@@ -368,12 +431,16 @@
   },
   {
    "scenario_id": "bc392308f3ff36f1",
-   "class": "heading_inference",
-   "A": true,
+   "class": "outside_jointly_valid",
+   "A": false,
    "B": false,
-   "C": true,
+   "C": false,
    "D": false,
+   "A_any": true,
    "t_first_A": 66,
+   "n_jointly_valid": 65,
+   "flagged_unmasked": true,
+   "flagged_jointvalid": false,
    "min_center_dist_m": 5.183510429672827,
    "sizes": [
     [

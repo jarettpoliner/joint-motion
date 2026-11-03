@@ -23,14 +23,18 @@
 - **Source-segment overlap.** Identified only through SDC motion n-gram matching (D-025); train
   scenes sharing a segment with dev were removed, final shares none, but same-segment windows
   remain inside each split, so the scenario-level bootstrap slightly overstates independence.
-- **Overlap-metric floor.** The 2 Hz-waypoint OBB overlap test flags 3.2 % of logged (ground-truth)
-  joint futures on dev; model overlap rates must be read against the oracle_log rate.
+- **Overlap-metric reference rate.** On jointly valid intervals the 2 Hz-waypoint OBB test flags
+  1.0 % of logged joint futures on dev (D-028a: 3 annotation-level vehicle–pedestrian contacts,
+  2 heading-inference artefacts). The full-horizon rate on logged futures is undefined (invalid
+  labels carry no geometry); model `overlap_rate` (full horizon) and `overlap_rate_jointvalid`
+  (identical intervals as the logged reference) are both reported with their denominators.
 - **Mixture training as regulariser.** The pilot over-fits after ≈ 30 epochs (D-027); corruption
   mixture training also augments the data, so part of any M1 gain may be regularisation rather
   than corruption awareness. The matched extra-SFT control and clean guardrail bound, but do not
   remove, this confound.
-- **Overlap reference rate (D-028).** The logged-future flag rate on dev (3.0 %) mixes annotation
-  contacts, heading inference and interpolation effects; it is a reference rate for the same test
-  applied to logs, not a lower bound. Vehicle–pedestrian pairs are over-represented among flags.
+- **Overlap reference rate is not a lower bound (D-028a).** It is the same approximate test applied
+  to logs; it mixes annotation contacts and heading-inference artefacts, and vehicle–pedestrian
+  pairs dominate it. The RL overlap reward is therefore an approximate geometric-consistency
+  objective, not a verified safety measure.
 - **Bootstrap unit.** CIs resample heuristic source-segment groups (D-025a); the grouping is
   derived from SDC motion matching and cannot guarantee independence.

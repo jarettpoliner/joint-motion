@@ -71,10 +71,26 @@ def obb_penetration(c1, h1, s1, c2, h2, s2) -> np.ndarray:
     return np.maximum(depth, 0.0)
 
 
-def target_overlap(pred, cur_xy, cur_heading, size, buffer=0.0) -> dict:
-    """pred [B,S,2,T,2]; cur_xy [B,2,2]; cur_heading [B,2]; size [B,2,2].
-    Returns per-(scene,sample) overlap flag [B,S] (any 10 Hz step), the initial (t=0) GT overlap flag
-    [B] used for exclusion, and the first overlapping time [B,S] in seconds (NaN if none)."""
+def expand_valid_10hz(valid2hz: np.ndarray) -> np.ndarray:
+    """valid2hz [...,T] (2 Hz waypoints; t=0 current step is always valid) -> [...,T*5] bool: the
+    5 interpolated sub-steps between waypoint t-1 and t are valid only when both endpoints are
+    valid (so no invalid logged coordinate is ever used as geometry)."""
+    prev = np.concatenate([np.ones_like(valid2hz[..., :1]), valid2hz[..., :-1]], axis=-1)
+    seg_ok = valid2hz & prev
+    return np.repeat(seg_ok, INTERP_PER_STEP, axis=-1)
+
+
+def target_overlap(pred, cur_xy, cur_heading, size, buffer=0.0, valid=None) -> dict:
+    """pred [B,S,2,T,2]; cur_xy [B,2,2]; cur_heading [B,2]; size [B,2,2]; valid optional [B,2,T]
+    (2 Hz logged validity of the two targets).
+    Returns per-(scene,sample):
+      overlap [B,S]           any overlapping 10 Hz step over the FULL generated horizon (80 steps)
+      overlap_jointvalid [B,S] same test restricted to sub-steps where BOTH targets have valid
+                              logged labels (denominator n_jointvalid_steps [B]); NaN when no
+                              such step exists. Only this variant is defined for logged futures.
+      initial_overlap [B]     boxes already overlapping at t=0 (scene excluded from overlap denominators)
+      first_overlap_s [B,S]   first overlapping time (s), NaN if none (full horizon)
+      max_depth_m [B,S]       maximum penetration depth over the full horizon"""
     B, S, A, T, _ = pred.shape
     assert A == 2
     h2 = predicted_headings(np.broadcast_to(cur_xy[:, None], (B, S, 2, 2)), np.broadcast_to(cur_heading[:, None], (B, S, 2)), pred)  # [B,S,2,T]
@@ -86,62 +102,111 @@ def target_overlap(pred, cur_xy, cur_heading, size, buffer=0.0) -> dict:
     init = obb_intersect(cur_xy[:, 0], cur_heading[:, 0], size[:, 0], cur_xy[:, 1], cur_heading[:, 1], size[:, 1])  # [B]
     any_hit = hit.any(-1)
     first = np.where(any_hit, (hit.argmax(-1) + 1) * 0.1, np.nan)
-    depth = obb_penetration(xy10[:, :, 0], h10[:, :, 0], sz[:, :, 0], xy10[:, :, 1], h10[:, :, 1], sz[:, :, 1]).max(-1)  # [B,S] max penetration (m)
-    return {"overlap": any_hit, "initial_overlap": init, "first_overlap_s": first, "max_depth_m": depth}
+    depth = obb_penetration(xy10[:, :, 0], h10[:, :, 0], sz[:, :, 0], xy10[:, :, 1], h10[:, :, 1], sz[:, :, 1]).max(-1)  # [B,S]
+    out = {"overlap": any_hit, "initial_overlap": init, "first_overlap_s": first, "max_depth_m": depth}
+    if valid is not None:
+        jv = expand_valid_10hz(valid[:, 0] & valid[:, 1])  # [B,T*5]
+        n_jv = jv.sum(-1)  # [B]
+        hit_jv = (hit & jv[:, None]).any(-1).astype(float)
+        hit_jv[n_jv == 0] = np.nan
+        out["overlap_jointvalid"] = hit_jv
+        out["n_jointvalid_steps"] = n_jv
+    return out
 
 
-def offroad_fraction(points: np.ndarray, edge_xy: np.ndarray, edge_poly: np.ndarray, sign_convention: int = +1, max_dist: float = 50.0):
+def _segments(edge_xy, edge_poly):
+    same = edge_poly[1:] == edge_poly[:-1]
+    a = edge_xy[:-1][same].astype(np.float64)
+    b = edge_xy[1:][same].astype(np.float64)
+    return a, b
+
+
+def offroad_fraction(points: np.ndarray, edge_xy: np.ndarray, edge_poly: np.ndarray, sign_convention: int = +1, max_dist: float = 50.0, k_candidates: int = 24):
     """points [N,2]; road-edge polyline points edge_xy [E,2] with polyline ids edge_poly [E].
     A point is offroad when it lies on the `sign_convention` side of its nearest edge segment:
     cross(seg_dir, p - seg_start) * sign_convention < 0 -> offroad (so with +1, points left of the
     oriented edge are on-road). Returns (offroad [N] bool, valid [N] bool); valid=False when no
-    segment lies within `max_dist`."""
+    segment lies within `max_dist`. Nearest segment = exact point-segment distance among the
+    k_candidates segments whose midpoints are nearest (KD-tree); edge polylines are sampled at
+    ≤ ~1 m so this equals the brute-force nearest segment (tests/test_metrics_and_rl.py)."""
+    from scipy.spatial import cKDTree
+
     if len(edge_xy) < 2:
         return np.zeros(len(points), bool), np.zeros(len(points), bool)
-    same = edge_poly[1:] == edge_poly[:-1]
-    a = edge_xy[:-1][same].astype(np.float64)
-    b = edge_xy[1:][same].astype(np.float64)
+    a, b = _segments(edge_xy, edge_poly)
     if len(a) == 0:
         return np.zeros(len(points), bool), np.zeros(len(points), bool)
     ab = b - a
     ab2 = np.maximum((ab * ab).sum(1), 1e-9)
     P = points.astype(np.float64)
-    # chunk to bound memory
+    k = min(k_candidates, len(a))
+    _, cand = cKDTree((a + b) / 2).query(P, k=k)  # [N,k]
+    cand = np.sort(cand.reshape(len(P), k), axis=1)  # ascending index: exact ties resolve like brute force
+    ac, abc, ab2c = a[cand], ab[cand], ab2[cand]  # [N,k,2]
+    ap = P[:, None, :] - ac
+    t = np.clip((ap * abc).sum(-1) / ab2c, 0, 1)
+    proj = ac + t[..., None] * abc
+    d = np.linalg.norm(P[:, None] - proj, axis=-1)  # [N,k]
+    jj = d.argmin(1)
+    j = cand[np.arange(len(P)), jj]
+    dmin = d[np.arange(len(P)), jj]
+    cross = ab[j, 0] * (P[:, 1] - a[j, 1]) - ab[j, 1] * (P[:, 0] - a[j, 0])
+    return cross * sign_convention < 0, dmin <= max_dist
+
+
+def offroad_fraction_bruteforce(points, edge_xy, edge_poly, sign_convention=+1, max_dist=50.0):
+    """Reference implementation (all segments) used only by tests."""
+    if len(edge_xy) < 2:
+        return np.zeros(len(points), bool), np.zeros(len(points), bool)
+    a, b = _segments(edge_xy, edge_poly)
+    ab = b - a
+    ab2 = np.maximum((ab * ab).sum(1), 1e-9)
+    P = points.astype(np.float64)
     off = np.zeros(len(P), bool)
     val = np.zeros(len(P), bool)
-    for i in range(0, len(P), 2048):
-        p = P[i : i + 2048]
-        ap = p[:, None, :] - a[None]  # [n,E,2]
+    for i in range(0, len(P), 512):
+        p = P[i : i + 512]
+        ap = p[:, None, :] - a[None]
         t = np.clip((ap * ab[None]).sum(-1) / ab2[None], 0, 1)
         proj = a[None] + t[..., None] * ab[None]
         d = np.linalg.norm(p[:, None] - proj, axis=-1)
         j = d.argmin(1)
         dmin = d[np.arange(len(p)), j]
         cross = ab[j, 0] * (p[:, 1] - a[j, 1]) - ab[j, 1] * (p[:, 0] - a[j, 0])
-        off[i : i + 2048] = cross * sign_convention < 0
-        val[i : i + 2048] = dmin <= max_dist
+        off[i : i + 512] = cross * sign_convention < 0
+        val[i : i + 512] = dmin <= max_dist
     return off, val
 
 
-def vehicle_offroad(pred, cur_xy, types, edge_xy_list, edge_poly_list, sign_convention=+1):
-    """pred [B,S,A,T,2]; types [B,A]; per-scene edge arrays. Returns per-(scene,sample,agent)
-    offroad fraction over the 10 Hz steps [B,S,A] (NaN when not a vehicle or map metric invalid)
-    and the per-scene validity flag [B]."""
+def vehicle_offroad(pred, cur_xy, types, edge_xy_list, edge_poly_list, sign_convention=+1, valid=None):
+    """pred [B,S,A,T,2]; types [B,A]; per-scene edge arrays; valid optional [B,A,T] 2 Hz logged
+    validity. Returns per-(scene,sample,agent) offroad fraction over the 10 Hz steps [B,S,A]
+    (NaN when not a vehicle, map metric invalid, or — with `valid` — no valid step) and the
+    per-scene validity flag [B]. With `valid`, only sub-steps between two valid waypoints enter
+    the numerator and denominator (required for logged futures; optional for generated ones)."""
     B, S, A, T, _ = pred.shape
     frac = np.full((B, S, A), np.nan)
     valid_scene = np.zeros(B, bool)
     xy10 = interpolate_10hz(np.broadcast_to(cur_xy[:, None], (B, S, A, 2)), pred)  # [B,S,A,T*5,2]
+    v10 = expand_valid_10hz(valid) if valid is not None else None  # [B,A,T*5]
     for b in range(B):
         pts = xy10[b].reshape(-1, 2)
         off, val = offroad_fraction(pts, edge_xy_list[b], edge_poly_list[b], sign_convention)
         off = off.reshape(S, A, -1)
         val = val.reshape(S, A, -1)
-        ok = val.mean() > 0.9  # map metric valid when nearly all points have a nearby edge
+        if v10 is not None:
+            m = v10[b][None]  # [1,A,T*5]
+            ok = (val[:, m[0]].mean() > 0.9) if m.any() else False
+        else:
+            ok = val.mean() > 0.9  # map metric valid when nearly all points have a nearby edge
         valid_scene[b] = ok
         if ok:
             for a_ in range(A):
                 if types[b, a_] == 1:
-                    frac[b, :, a_] = off[:, a_].mean(-1)
+                    if v10 is None:
+                        frac[b, :, a_] = off[:, a_].mean(-1)
+                    elif v10[b, a_].any():
+                        frac[b, :, a_] = off[:, a_][:, v10[b, a_]].mean(-1)
     return frac, valid_scene
 
 

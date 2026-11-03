@@ -43,7 +43,18 @@ def predict(method: str, model, batch, n_samples, temperature, top_p, tokenizer=
     return r["xy_scene"].cpu().numpy(), {"tokens": r["tokens"].cpu().numpy(), "logp_policy": r["logp_policy"].cpu().numpy()}
 
 
-def scene_metrics(pred, batch, windows, offroad_sign=+1):
+def scene_metrics(pred, batch, windows, offroad_sign=+1, logged: bool = False):
+    """Per-scene metrics for pred [B,S,A,T,2] (scene frame).
+    Denominators (explicit):
+      overlap_rate            full generated horizon (80 interpolated steps), all (scene,sample)
+                              pairs except scenes whose boxes already overlap at t=0; NaN for logged
+                              futures (their invalid steps carry no geometry).
+      overlap_rate_jointvalid same test restricted to sub-steps between two waypoints where BOTH
+                              targets have valid logged labels; defined for generated AND logged
+                              trajectories on identical intervals (reference comparison).
+      offroad_frac            vehicles only, full generated horizon (logged: valid steps only).
+    Generated trajectories are never truncated or removed because of missing labels; labels never
+    enter the policy input."""
     gt = batch["gt_future_xy"].cpu().numpy()
     v = batch["gt_future_valid"].cpu().numpy()
     cur_xy = batch["cur_xy"].cpu().numpy()
@@ -51,12 +62,20 @@ def scene_metrics(pred, batch, windows, offroad_sign=+1):
     size = batch["target_size"][..., :2].cpu().numpy()
     types = batch["target_type"].cpu().numpy()
     out = displacement_metrics(pred, gt, v)
-    ov = target_overlap(pred, cur_xy, cur_h, size)
-    out["overlap_rate"] = ov["overlap"].mean(1)  # mean over samples per scene
-    out["overlap_any"] = ov["overlap"].any(1).astype(float)
-    out["initial_overlap"] = ov["initial_overlap"].astype(float)
-    out["first_overlap_s"] = np.nanmean(np.where(ov["overlap"], ov["first_overlap_s"], np.nan), axis=1) if ov["overlap"].any() else np.full(len(pred), np.nan)
-    fr, valid_map = vehicle_offroad(pred, cur_xy, types, [w.edge_xy for w in windows], [w.edge_poly for w in windows], offroad_sign)
+    ov = target_overlap(pred, cur_xy, cur_h, size, valid=v)
+    init = ov["initial_overlap"]
+    full = ov["overlap"].mean(1).astype(float)
+    full[init] = np.nan
+    out["overlap_rate"] = np.full(len(pred), np.nan) if logged else full
+    out["overlap_any"] = np.full(len(pred), np.nan) if logged else np.where(init, np.nan, ov["overlap"].any(1).astype(float))
+    jv = np.nanmean(ov["overlap_jointvalid"], axis=1) if ov["overlap_jointvalid"].size else np.full(len(pred), np.nan)
+    jv[init] = np.nan
+    out["overlap_rate_jointvalid"] = jv
+    out["n_jointvalid_steps"] = ov["n_jointvalid_steps"].astype(float)
+    out["initial_overlap"] = init.astype(float)
+    out["first_overlap_s"] = np.nanmean(np.where(ov["overlap"], ov["first_overlap_s"], np.nan), axis=1) if (ov["overlap"].any() and not logged) else np.full(len(pred), np.nan)
+    out["max_depth_m"] = np.full(len(pred), np.nan) if logged else ov["max_depth_m"].max(1)
+    fr, valid_map = vehicle_offroad(pred, cur_xy, types, [w.edge_xy for w in windows], [w.edge_poly for w in windows], offroad_sign, valid=v if logged else None)
     out["offroad_frac"] = np.nanmean(fr.reshape(len(pred), -1), axis=1) if fr.size else np.full(len(pred), np.nan)
     out["offroad_any"] = np.where(np.isnan(fr).all((1, 2)), np.nan, (np.nan_to_num(fr) > 0).any((1, 2)).astype(float))
     out["offroad_map_valid"] = valid_map.astype(float)
@@ -67,11 +86,14 @@ def scene_metrics(pred, batch, windows, offroad_sign=+1):
     out["yaw_rate_max"] = kin["yaw_rate_max"].max((1, 2))
     out["implausible_rate"] = kin["implausible"].mean((1, 2))
     out["final_disp_mean"] = kin["final_disp"].mean((1, 2))
+    if logged:  # kinematics of logged futures are only meaningful where labels are valid
+        for k in ("speed_mean", "speed_max", "acc_max", "yaw_rate_max", "implausible_rate", "final_disp_mean"):
+            out[k] = np.where(v.all((1, 2)), out[k], np.nan)
     out["diversity_fde"] = sample_diversity(pred, v[:, :, -1]) if pred.shape[1] > 1 else np.full(len(pred), np.nan)
-    # GT reference kinematics for distribution comparison
+    # GT reference kinematics for distribution comparison (fully valid scenes only)
     gk = kinematics(gt[:, None], cur_xy, cur_h)
-    out["gt_speed_mean"] = gk["speed_mean"].mean((1, 2))
-    out["gt_final_disp"] = gk["final_disp"].mean((1, 2))
+    out["gt_speed_mean"] = np.where(v.all((1, 2)), gk["speed_mean"].mean((1, 2)), np.nan)
+    out["gt_final_disp"] = np.where(v.all((1, 2)), gk["final_disp"].mean((1, 2)), np.nan)
     return out
 
 
@@ -106,13 +128,13 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
                 t1 = time.time()
                 pred, _ = predict(m, models.get(m), b, ns, sampling["temperature"], sampling["top_p"])
                 timing[m] += time.time() - t1
-                mets = scene_metrics(pred, b, windows, offroad_sign)
+                mets = scene_metrics(pred, b, windows, offroad_sign, logged=(m == "oracle_log"))
                 for k, v in mets.items():
                     per[m].setdefault(k, []).append(np.asarray(v, dtype=np.float64))
                 if m.startswith("ckpt:") and sampling.get("audit_samples", 0) > ns:
                     pred32, _ = predict(m, models[m], b, sampling["audit_samples"], sampling["temperature"], sampling["top_p"])
                     am = scene_metrics(pred32, b, windows, offroad_sign)
-                    for k in ("overlap_rate", "overlap_any", "offroad_frac", "offroad_any", "speed_mean", "implausible_rate", "diversity_fde", "final_disp_mean", "joint_minADE_8s"):
+                    for k in ("overlap_rate", "overlap_rate_jointvalid", "overlap_any", "offroad_frac", "offroad_any", "speed_mean", "implausible_rate", "diversity_fde", "final_disp_mean", "joint_minADE_8s", "max_depth_m"):
                         per[m].setdefault("audit32_" + k, []).append(np.asarray(am[k], dtype=np.float64))
         for m in methods:
             arrs = {k: np.concatenate(v) for k, v in per[m].items()}
@@ -130,7 +152,7 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
             s["tag"] = tag
             json.dump(s, open(mdir / "summary.json", "w"), indent=1)
             summary[f"{m}|{cond}"] = s
-            print(f"[{cond}] {m}: jminADE8={s.get('joint_minADE_8s', float('nan')):.3f} jminFDE8={s.get('joint_minFDE_8s', float('nan')):.3f} overlap={s['overlap_rate']:.4f} offroad={s['offroad_frac']:.4f} n={len(ids)} ({time.time()-t0:.0f}s)", flush=True)
+            print(f"[{cond}] {m}: jminADE8={s.get('joint_minADE_8s', float('nan')):.3f} jminFDE8={s.get('joint_minFDE_8s', float('nan')):.3f} overlap={s['overlap_rate']:.4f} overlap_jv={s['overlap_rate_jointvalid']:.4f} offroad={s['offroad_frac']:.4f} n={len(ids)} ({time.time()-t0:.0f}s)", flush=True)
     json.dump(summary, open(out_dir / "summary_all.json", "w"), indent=1)
     return summary
 

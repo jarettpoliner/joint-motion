@@ -2,7 +2,7 @@
  "name": "m0_pilot_s1",
  "kind": "train",
  "created": "2026-11-03T08:50:55",
- "status": "running",
+ "status": "completed",
  "events": [
   {
    "t": "2026-11-03T08:50:55",
@@ -12,6 +12,11 @@
   {
    "t": "2026-11-03T08:50:55",
    "status": "running",
+   "pid": 820057
+  },
+  {
+   "t": "2026-11-03T09:02:22",
+   "status": "completed",
    "pid": 820057
   }
  ],
@@ -55,20 +60,22 @@
  "n_train": 9144,
  "n_dev": 500,
  "device": "cuda:0",
- "step": 2000,
+ "step": 12000,
  "best": {
-  "score": 4.382480464944832,
-  "step": 2000,
+  "score": 3.7437833070258293,
+  "step": 6000,
   "dev": {
-   "nll_clean": 2.1128351001386507,
-   "jminADE6_clean": 4.382480464944832,
-   "selection_score": 4.382480464944832
+   "nll_clean": 2.2089669000490257,
+   "jminADE6_clean": 3.7437833070258293,
+   "selection_score": 3.7437833070258293
   }
  },
- "elapsed_s": 114.32087278366089,
+ "elapsed_s": 686.9467792510986,
  "last_dev": {
-  "nll_clean": 2.1128351001386507,
-  "jminADE6_clean": 4.382480464944832,
-  "selection_score": 4.382480464944832
- }
+  "nll_clean": 2.533855563066859,
+  "jminADE6_clean": 4.094898676705899,
+  "selection_score": 4.094898676705899
+ },
+ "ckpt_best": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s1/ckpt_best.pt",
+ "ckpt_last": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s1/ckpt_last.pt"
 }

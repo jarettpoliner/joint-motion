@@ -24,7 +24,7 @@ def load_groups(scenario_ids) -> np.ndarray | None:
     g = json.load(open(f)).get("groups", {})
     return np.array([g.get(str(s), str(s)) for s in scenario_ids])
 
-KEY_METRICS = ["joint_minADE_8s", "joint_minFDE_8s", "joint_minADE_3s", "joint_minADE_5s", "marginal_minADE_8s", "joint_meanADE_8s", "overlap_rate", "audit32_overlap_rate", "offroad_frac", "audit32_offroad_frac", "implausible_rate", "audit32_implausible_rate", "diversity_fde", "audit32_diversity_fde", "speed_mean", "audit32_speed_mean", "final_disp_mean", "gt_speed_mean", "gt_final_disp"]
+KEY_METRICS = ["joint_minADE_8s", "joint_minFDE_8s", "joint_minADE_3s", "joint_minADE_5s", "marginal_minADE_8s", "joint_meanADE_8s", "overlap_rate", "overlap_rate_jointvalid", "audit32_overlap_rate", "audit32_overlap_rate_jointvalid", "max_depth_m", "offroad_frac", "audit32_offroad_frac", "implausible_rate", "audit32_implausible_rate", "diversity_fde", "audit32_diversity_fde", "speed_mean", "audit32_speed_mean", "final_disp_mean", "gt_speed_mean", "gt_final_disp"]
 
 
 def load_eval_dir(d: Path) -> dict:
@@ -68,7 +68,7 @@ def aggregate(eval_dir: Path, reference: str | None, out_dir: Path, n_boot: int 
             ref = data[(reference, c)]
             assert np.array_equal(ref["scenario_ids"], arrs["scenario_ids"]), "scenario sets differ"
             grp = load_groups(arrs["scenario_ids"])
-            paired[f"{m}|{c}"] = {k: paired_bootstrap(ref[k], arrs[k], n_boot, groups=grp) for k in ("joint_minADE_8s", "joint_minFDE_8s", "overlap_rate", "audit32_overlap_rate", "offroad_frac") if k in arrs and k in ref}
+            paired[f"{m}|{c}"] = {k: paired_bootstrap(ref[k], arrs[k], n_boot, groups=grp) for k in ("joint_minADE_8s", "joint_minFDE_8s", "overlap_rate", "overlap_rate_jointvalid", "audit32_overlap_rate", "audit32_overlap_rate_jointvalid", "offroad_frac") if k in arrs and k in ref}
         # suite-level: mean over the core corruption conditions (per scene, then paired)
         core = [c for c in conds if c.startswith(("missing_", "noise_")) and c in ("missing_0.1", "missing_0.3", "missing_0.5", "noise_0.1", "noise_0.3", "noise_0.5")]
         for m in methods:

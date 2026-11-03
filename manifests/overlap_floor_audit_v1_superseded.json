@@ -1,0 +1,396 @@
+{
+ "summary": {
+  "n_scenes": 500,
+  "n_flagged_gt": 15,
+  "flag_rate": 0.03,
+  "classes": {
+   "position_interpolation": 2,
+   "in_logged_gap": 4,
+   "heading_inference": 6,
+   "annotation_contact": 3
+  },
+  "type_pairs_flagged": {
+   "1-1": 10,
+   "1-3": 1,
+   "1-2": 4
+  }
+ },
+ "cases": [
+  {
+   "scenario_id": "418f8354b4d64009",
+   "class": "position_interpolation",
+   "A": true,
+   "B": true,
+   "C": false,
+   "D": false,
+   "t_first_A": 20,
+   "min_center_dist_m": 2.923944691364703,
+   "sizes": [
+    [
+     4.472445487976074,
+     2.0369679927825928
+    ],
+    [
+     4.591988563537598,
+     2.0553994178771973
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/418f8354b4d64009.npz"
+  },
+  {
+   "scenario_id": "2af0a7d33865f301",
+   "class": "in_logged_gap",
+   "A": false,
+   "B": false,
+   "C": false,
+   "D": false,
+   "t_first_A": 74,
+   "min_center_dist_m": 3.0710874148291603,
+   "sizes": [
+    [
+     4.698446750640869,
+     2.091186046600342
+    ],
+    [
+     5.285999774932861,
+     2.3320000171661377
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/2af0a7d33865f301.npz"
+  },
+  {
+   "scenario_id": "b55324a7dead03d3",
+   "class": "in_logged_gap",
+   "A": false,
+   "B": false,
+   "C": false,
+   "D": false,
+   "t_first_A": 63,
+   "min_center_dist_m": 15.855432685609916,
+   "sizes": [
+    [
+     4.979288578033447,
+     2.1847262382507324
+    ],
+    [
+     4.885725975036621,
+     2.4368233680725098
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/b55324a7dead03d3.npz"
+  },
+  {
+   "scenario_id": "470c42b2b79be9b1",
+   "class": "heading_inference",
+   "A": true,
+   "B": false,
+   "C": true,
+   "D": false,
+   "t_first_A": 70,
+   "min_center_dist_m": 10.736398241476172,
+   "sizes": [
+    [
+     4.08937931060791,
+     2.034297227859497
+    ],
+    [
+     4.300378322601318,
+     1.9685592651367188
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/470c42b2b79be9b1.npz"
+  },
+  {
+   "scenario_id": "351ac4a3cc152f81",
+   "class": "position_interpolation",
+   "A": true,
+   "B": true,
+   "C": false,
+   "D": false,
+   "t_first_A": 56,
+   "min_center_dist_m": 3.253256248657733,
+   "sizes": [
+    [
+     4.7550764083862305,
+     2.101668357849121
+    ],
+    [
+     5.285999774932861,
+     2.3320000171661377
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/351ac4a3cc152f81.npz"
+  },
+  {
+   "scenario_id": "3b9989fd79cfce0d",
+   "class": "in_logged_gap",
+   "A": false,
+   "B": false,
+   "C": false,
+   "D": false,
+   "t_first_A": 79,
+   "min_center_dist_m": 8.822259098546297,
+   "sizes": [
+    [
+     4.624870777130127,
+     2.100924015045166
+    ],
+    [
+     1.6306763887405396,
+     0.8759402632713318
+    ]
+   ],
+   "types": [
+    1,
+    3
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/3b9989fd79cfce0d.npz"
+  },
+  {
+   "scenario_id": "2a00473531f6b447",
+   "class": "heading_inference",
+   "A": true,
+   "B": false,
+   "C": true,
+   "D": false,
+   "t_first_A": 70,
+   "min_center_dist_m": 7.314378517493594,
+   "sizes": [
+    [
+     4.698435306549072,
+     2.103262424468994
+    ],
+    [
+     4.432405471801758,
+     1.9834707975387573
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/2a00473531f6b447.npz"
+  },
+  {
+   "scenario_id": "e0fee3f2acf7df5",
+   "class": "heading_inference",
+   "A": true,
+   "B": false,
+   "C": true,
+   "D": false,
+   "t_first_A": 37,
+   "min_center_dist_m": 7.946982929248363,
+   "sizes": [
+    [
+     4.497034549713135,
+     1.9503647089004517
+    ],
+    [
+     10.949516296386719,
+     3.131685256958008
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/e0fee3f2acf7df5.npz"
+  },
+  {
+   "scenario_id": "a2e9e273bbe5ed7b",
+   "class": "annotation_contact",
+   "A": true,
+   "B": false,
+   "C": true,
+   "D": true,
+   "t_first_A": 60,
+   "min_center_dist_m": 1.952968896349593,
+   "sizes": [
+    [
+     4.608575344085693,
+     2.0711162090301514
+    ],
+    [
+     1.1001282930374146,
+     1.030993103981018
+    ]
+   ],
+   "types": [
+    1,
+    2
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/a2e9e273bbe5ed7b.npz"
+  },
+  {
+   "scenario_id": "a5d71dc606bfc070",
+   "class": "in_logged_gap",
+   "A": false,
+   "B": false,
+   "C": false,
+   "D": false,
+   "t_first_A": 79,
+   "min_center_dist_m": 12.275285325550877,
+   "sizes": [
+    [
+     4.925463676452637,
+     2.123466730117798
+    ],
+    [
+     4.537159442901611,
+     2.025054931640625
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/a5d71dc606bfc070.npz"
+  },
+  {
+   "scenario_id": "cb05f7cbb278efda",
+   "class": "heading_inference",
+   "A": true,
+   "B": false,
+   "C": true,
+   "D": false,
+   "t_first_A": 72,
+   "min_center_dist_m": 24.851688849983304,
+   "sizes": [
+    [
+     4.716759204864502,
+     2.098503828048706
+    ],
+    [
+     4.958610534667969,
+     2.154733896255493
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/cb05f7cbb278efda.npz"
+  },
+  {
+   "scenario_id": "382a81368d0a3386",
+   "class": "annotation_contact",
+   "A": true,
+   "B": true,
+   "C": true,
+   "D": true,
+   "t_first_A": 52,
+   "min_center_dist_m": 1.094260832159695,
+   "sizes": [
+    [
+     4.348355770111084,
+     2.0184245109558105
+    ],
+    [
+     0.9630853533744812,
+     1.0004502534866333
+    ]
+   ],
+   "types": [
+    1,
+    2
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/382a81368d0a3386.npz"
+  },
+  {
+   "scenario_id": "f511fd86de2754f6",
+   "class": "heading_inference",
+   "A": true,
+   "B": false,
+   "C": true,
+   "D": false,
+   "t_first_A": 11,
+   "min_center_dist_m": 21.823945916189167,
+   "sizes": [
+    [
+     4.874820709228516,
+     2.16860032081604
+    ],
+    [
+     1.23293936252594,
+     0.909837543964386
+    ]
+   ],
+   "types": [
+    1,
+    2
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/f511fd86de2754f6.npz"
+  },
+  {
+   "scenario_id": "14886b03ddc2d1a4",
+   "class": "annotation_contact",
+   "A": true,
+   "B": true,
+   "C": true,
+   "D": true,
+   "t_first_A": 55,
+   "min_center_dist_m": 2.48010377376462,
+   "sizes": [
+    [
+     4.80120849609375,
+     2.132856845855713
+    ],
+    [
+     0.9253470301628113,
+     0.8945969343185425
+    ]
+   ],
+   "types": [
+    1,
+    2
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/14886b03ddc2d1a4.npz"
+  },
+  {
+   "scenario_id": "bc392308f3ff36f1",
+   "class": "heading_inference",
+   "A": true,
+   "B": false,
+   "C": true,
+   "D": false,
+   "t_first_A": 66,
+   "min_center_dist_m": 5.183510429672827,
+   "sizes": [
+    [
+     4.491270065307617,
+     1.954937219619751
+    ],
+    [
+     5.9406304359436035,
+     2.662999153137207
+    ]
+   ],
+   "types": [
+    1,
+    1
+   ],
+   "window_path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/processed/training/bc392308f3ff36f1.npz"
+  }
+ ],
+ "SUPERSEDED": "2026-11-03: attribution of B/C was reversed and invalid (zero-filled) logged steps were used as geometry; see manifests/overlap_floor_audit.json (v2) and DECISIONS D-028a."
+}

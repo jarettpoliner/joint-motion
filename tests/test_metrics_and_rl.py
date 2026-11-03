@@ -162,3 +162,57 @@ def test_group_bootstrap_widens_ci_for_duplicated_groups():
     assert (r_group["ci_high"] - r_group["ci_low"]) > 1.5 * (r_scene["ci_high"] - r_scene["ci_low"])
     m = mean_ci(a_dup, n_boot=500, groups=groups)
     assert m["n"] == 200
+
+
+def test_offroad_kdtree_matches_bruteforce_on_real_or_synthetic_map():
+    from waymo_av.metrics.physical import offroad_fraction, offroad_fraction_bruteforce
+    from waymo_av.paths import load_paths
+    from pathlib import Path
+    import glob
+    proc = Path(load_paths()["processed_dir"])
+    files = sorted(glob.glob(str(proc / "training" / "*.npz")))[:3]
+    rng = np.random.default_rng(0)
+    if files:
+        for f in files:
+            z = np.load(f)
+            edge_xy, edge_poly = z["edge_xy"], z["edge_poly"]
+            c = z["agent_xy"][0, 10]
+            pts = c + rng.normal(0, 25, size=(3000, 2))
+            o1, v1 = offroad_fraction(pts, edge_xy, edge_poly, +1)
+            o2, v2 = offroad_fraction_bruteforce(pts, edge_xy, edge_poly, +1)
+            assert (v1 == v2).mean() > 0.999 and (o1[v1 & v2] == o2[v1 & v2]).mean() > 0.999
+    else:  # synthetic fallback: one long polyline
+        xs = np.linspace(0, 100, 201)
+        edge_xy = np.stack([xs, np.zeros_like(xs)], 1).astype(np.float32)
+        edge_poly = np.zeros(len(xs), np.int32)
+        pts = rng.uniform([-5, -10], [105, 10], size=(2000, 2))
+        o1, v1 = offroad_fraction(pts, edge_xy, edge_poly, +1)
+        o2, v2 = offroad_fraction_bruteforce(pts, edge_xy, edge_poly, +1)
+        assert np.array_equal(o1, o2) and np.array_equal(v1, v2)
+
+
+def test_overlap_jointvalid_mask_ignores_invalid_logged_steps():
+    """An invalid (zero-filled) logged waypoint would sweep agent B through agent A; the
+    joint-valid variant must ignore it while the full-horizon variant on generated data keeps it."""
+    from waymo_av.metrics.physical import target_overlap, expand_valid_10hz
+    T = 16
+    cur = np.array([[[0.0, 0.0], [-20.0, 6.0]]])  # A parked at origin, B passes 6 m to the side
+    ch = np.zeros((1, 2))
+    size = np.array([[[4.5, 2.0], [4.5, 2.0]]])
+    k = np.arange(1, T + 1)[:, None]
+    a_traj = cur[0, 0] + k * np.array([0.0, 0.0])
+    b_traj = cur[0, 1] + k * np.array([5.0, 0.0])
+    b_bad = b_traj.copy()
+    b_bad[7] = 0.0  # a zero-filled invalid label -> segment sweeps across A's lane
+    pred = np.stack([a_traj, b_bad])[None, None]  # [1,1,2,T,2]
+    valid = np.ones((1, 2, T), bool)
+    valid[0, 1, 7] = False
+    o = target_overlap(pred, cur, ch, size, valid=valid)
+    assert o["overlap"][0, 0]  # full-horizon test is fooled by the invalid coordinate
+    assert o["overlap_jointvalid"][0, 0] == 0.0  # masked test is not
+    m = expand_valid_10hz(valid[:, 0] & valid[:, 1])[0]
+    assert m.sum() == (T - 2) * 5  # sub-steps 7 and 8 (both touch the invalid waypoint) removed
+    assert o["n_jointvalid_steps"][0] == (T - 2) * 5
+    valid[:] = True
+    o2 = target_overlap(pred, cur, ch, size, valid=valid)
+    assert o2["overlap_jointvalid"][0, 0] == 1.0

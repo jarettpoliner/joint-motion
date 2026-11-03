@@ -190,3 +190,43 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
   oracle_log rate for the same scenes, and RL success is judged on the model's excess over that
   reference, not on reaching zero. Vehicle–pedestrian pairs are over-represented among reference
   flags (4 of 15 vs 15 % of dev pairs) — noted in limitations.
+- D-028a (2026-11-03) — SUPERSEDES D-028. Two defects in the first overlap audit: (1) the
+  attribution of representations B (logged positions + inferred headings) and C (interpolated
+  positions + logged headings) was reversed — B-only implicates heading inference, C-only
+  implicates position interpolation; (2) invalid future labels are zero-filled in the window
+  arrays, and the log-playback oracle, the audit and the unmasked overlap test used those zeros
+  as geometry (a target "jumping" to the scene origin sweeps across the scene). Fixes:
+  `waymo_av.metrics.overlap_audit` (pure attribution rule + constructed mechanism tests in
+  tests/test_overlap_audit.py: lane-change-with-logged-heading → heading_inference; pedestrian
+  rounding a parked car's corner → position_interpolation; zero-filled label → never geometry);
+  `target_overlap(..., valid=)` and `vehicle_offroad(..., valid=)` restrict to sub-steps between
+  two valid waypoints; evaluate.py reports two denominators: `overlap_rate` (full 80-step
+  generated horizon, all samples, scenes with initial overlap excluded; NaN for logged futures)
+  and `overlap_rate_jointvalid` (same test on sub-steps where both targets have valid labels;
+  defined for generated AND logged trajectories on identical intervals). Generated trajectories
+  are never truncated or dropped because of missing labels, and labels never enter the policy
+  input. Regenerated audit (manifests/overlap_floor_audit.json v2; v1 kept as
+  manifests/overlap_floor_audit_v1_superseded.json): of 500 dev scenes (1 excluded for initial
+  overlap), 15 were flagged by the old unmasked test — 10 only on non-jointly-valid steps
+  (label-gap artefacts), 3 annotation-level contacts, 2 heading-inference artefacts, 0
+  position-interpolation cases. Reference rate on jointly valid intervals: 5/500 = 1.0 %
+  (3 annotation contacts — all vehicle–pedestrian — and 2 heading-inference cases). Report and
+  slides use the v2 numbers; the "3.2 %/3.0 %" figures in D-026/D-028 are superseded.
+- D-028b (2026-11-03) — Model overlap flags inspected, not inferred
+  (scripts/model_overlap_inspection.py → manifests/model_overlap_inspection_m0_pilot_s0.json,
+  figure reports/figures/model_overlap_cases_m0_pilot_s0.png). m0_pilot_s0, clean dev, 6
+  samples, torch seed 0: 449 of 2,994 (scene, sample) pairs flagged on the full generated
+  horizon (15.0 %), 444 of them also on jointly valid intervals. Evaluator-independent re-tests
+  (overlap at the 2 Hz waypoints themselves with inferred headings, W; with headings held at the
+  current observed heading, Wh; penetration depth): 324 (72 %) confirmed geometric (W and Wh
+  and depth ≥ 0.5 m, no stationary agent), 56 (12 %) approximation-sensitive (flagged only
+  between waypoints or under only one heading choice), 69 (15 %) ambiguous (shallow or a
+  stationary agent involved). By stratum (first 12 per stratum inspected in manifest order):
+  straight-moving 11/12 confirmed, vehicle–vehicle 10/12, cyclist pairs 9/12, turning 7/12,
+  vehicle–pedestrian 5/12, stationary-agent 0/12 (all ambiguous/approximation-sensitive — the
+  motion-heading fallback makes flags involving a stopped agent unreliable). Consequence: the
+  model's excess over the logged reference is mostly genuine box intersection at waypoints, but
+  ≈ 28 % of flags are approximation-dependent; the RL reward is therefore described and
+  interpreted as an approximate geometric-consistency objective, not a verified safety
+  measure, and RL/control effects are reported on both `overlap_rate` and
+  `overlap_rate_jointvalid` with the 32-sample audit.
