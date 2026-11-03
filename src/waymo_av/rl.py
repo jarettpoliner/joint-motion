@@ -14,6 +14,11 @@ Controls (all start from the same dev-selected supervised checkpoint):
   selection     : inference-time reward-based best-of-N candidate selection (evaluate.py: select:)
   filtered_sft  : sample K, keep the best-reward sample, supervised fine-tune on it (+ replay)
   rl            : this module
+
+Reward semantics (D-028a/b): the overlap/offroad/kinematic terms are APPROXIMATE geometric-consistency
+diagnostics computed on 2 Hz waypoints (10 Hz interpolation, motion-inferred headings); they are not a
+verified safety measure. Effects are reported on overlap_rate and overlap_rate_jointvalid against the
+log-playback reference, and against the extra-SFT and reward-filtered-SFT controls.
 """
 from __future__ import annotations
 

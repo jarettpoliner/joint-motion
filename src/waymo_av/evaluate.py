@@ -1,6 +1,11 @@
 """Evaluation runner: methods x conditions -> per-scene raw metrics (npz + json) and summaries.
 
-Methods: cp | cv | oracle_log | oracle_tokens | ckpt:<path>[@tag]
+Methods: cp | cv | oracle_log | oracle_tokens | ckpt:<path>[@tag] | select:<path>[@tag]
+  select: = reward-based candidate selection control — sample `audit_samples` joint candidates from the
+  checkpoint with the frozen sampling settings, score each with the RL reward (configs/rl/rl_pilot.yaml
+  weights; approximate geometric-consistency terms), keep the `n_samples` best-reward joint samples
+  (sample index shared by both agents) and evaluate those as the method's 6-sample output. Its
+  audit32_* columns are computed on the UNSELECTED candidate pool (= the base checkpoint).
 Conditions: clean, missing_0.3, noise_0.5, compound_0, ... (see corruption.py)
 """
 from __future__ import annotations
@@ -27,6 +32,22 @@ DEFAULT_SAMPLING = {"n_samples": 6, "audit_samples": 32, "temperature": 1.0, "to
 
 def _to_dev(batch, dev):
     return {k: (v.to(dev) if torch.is_tensor(v) else v) for k, v in batch.items()}
+
+
+def _reward_weights():
+    import yaml
+
+    return yaml.safe_load(open(REPO_ROOT / "configs" / "rl" / "rl_pilot.yaml"))["reward"]
+
+
+def select_by_reward(pred_pool: np.ndarray, batch, windows, n_keep: int, offroad_sign: int, w: dict) -> np.ndarray:
+    """pred_pool [B,N,A,T,2] -> [B,n_keep,A,T,2]: the n_keep joint samples with the highest reward
+    (stable order: ties keep the lower sample index)."""
+    from waymo_av.rl import reward_from_terms, reward_terms
+
+    r = reward_from_terms(reward_terms(pred_pool, batch, windows, offroad_sign), w)  # [B,N]
+    order = np.argsort(-r, axis=1, kind="stable")[:, :n_keep]
+    return np.take_along_axis(pred_pool, order[:, :, None, None, None], axis=1)
 
 
 def predict(method: str, model, batch, n_samples, temperature, top_p, tokenizer=None):
@@ -106,10 +127,11 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
         files = files[:limit]
     models = {}
     for m in methods:
-        if m.startswith("ckpt:"):
+        if m.startswith(("ckpt:", "select:")):
             path = m.split(":", 1)[1].split("@")[0]
             models[m], _ = load_model_from_ckpt(path, dev)
             models[m].eval()
+    rw = _reward_weights() if any(m.startswith("select:") for m in methods) else None
     out_dir.mkdir(parents=True, exist_ok=True)
     summary = {}
     for cond in conditions:
@@ -125,15 +147,20 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
             windows = [load_window(p) for p in batch["window_path"]]
             ids.extend(batch["scenario_id"])
             for m in methods:
-                ns = sampling["n_samples"] if m.startswith("ckpt:") else 1
+                ns = sampling["n_samples"] if m.startswith(("ckpt:", "select:")) else 1
                 t1 = time.time()
-                pred, _ = predict(m, models.get(m), b, ns, sampling["temperature"], sampling["top_p"])
+                pool = None
+                if m.startswith("select:"):
+                    pool, _ = predict(m, models[m], b, sampling["audit_samples"], sampling["temperature"], sampling["top_p"])
+                    pred = select_by_reward(pool, b, windows, ns, offroad_sign, rw)
+                else:
+                    pred, _ = predict(m, models.get(m), b, ns, sampling["temperature"], sampling["top_p"])
                 timing[m] += time.time() - t1
                 mets = scene_metrics(pred, b, windows, offroad_sign, logged=(m == "oracle_log"))
                 for k, v in mets.items():
                     per[m].setdefault(k, []).append(np.asarray(v, dtype=np.float64))
-                if m.startswith("ckpt:") and sampling.get("audit_samples", 0) > ns:
-                    pred32, _ = predict(m, models[m], b, sampling["audit_samples"], sampling["temperature"], sampling["top_p"])
+                if m.startswith(("ckpt:", "select:")) and sampling.get("audit_samples", 0) > ns:
+                    pred32 = pool if pool is not None else predict(m, models[m], b, sampling["audit_samples"], sampling["temperature"], sampling["top_p"])[0]
                     am = scene_metrics(pred32, b, windows, offroad_sign)
                     for k in ("overlap_rate", "overlap_rate_jointvalid", "overlap_any", "offroad_frac", "offroad_any", "speed_mean", "implausible_rate", "diversity_fde", "final_disp_mean", "joint_minADE_8s", "max_depth_m"):
                         per[m].setdefault("audit32_" + k, []).append(np.asarray(am[k], dtype=np.float64))
@@ -154,14 +181,17 @@ def run_eval(methods: list[str], conditions: list[str], manifest: Path, out_dir:
             json.dump(s, open(mdir / "summary.json", "w"), indent=1)
             summary[f"{m}|{cond}"] = s
             print(f"[{cond}] {m}: jminADE8={s.get('joint_minADE_8s', float('nan')):.3f} jminFDE8={s.get('joint_minFDE_8s', float('nan')):.3f} overlap={s['overlap_rate']:.4f} overlap_jv={s['overlap_rate_jointvalid']:.4f} offroad={s['offroad_frac']:.4f} n={len(ids)} ({time.time()-t0:.0f}s)", flush=True)
-    json.dump(summary, open(out_dir / "summary_all.json", "w"), indent=1)
+    sa = out_dir / "summary_all.json"
+    merged = json.load(open(sa)) if sa.exists() else {}
+    merged.update(summary)
+    json.dump(merged, open(sa, "w"), indent=1)
     return summary
 
 
 def _safe(m: str) -> str:
-    if m.startswith("ckpt:"):
+    if m.startswith(("ckpt:", "select:")):
         tag = m.split("@")[1] if "@" in m else Path(m.split(":", 1)[1]).parent.name
-        return tag
+        return tag if m.startswith("ckpt:") else (tag if tag.startswith("select") else f"select_{tag}")
     return m
 
 

@@ -137,12 +137,14 @@ def stage_pilot(seeds=(0,)):
 
 
 def _methods(seeds, which=("m0_pilot", "m1_pilot", "mind_pilot")):
-    ms = ["cp", "cv"]
+    ms = ["cp", "cv", "oracle_log"]  # oracle_log = logged-future reference for overlap_rate_jointvalid / offroad
     for s in seeds:
         for base in which:
             ck = RUNS / f"{base}_s{s}" / "ckpt_best.pt"
             if ck.exists():
                 ms.append(f"ckpt:{ck}@{base}_s{s}")
+                if base == "m1_pilot":  # reward-based candidate-selection control on the same checkpoint
+                    ms.append(f"select:{ck}@select_m1_s{s}")
     return ms
 
 
@@ -153,7 +155,10 @@ def stage_dev_eval(seeds=(0,)):
     else:
         run([PY, "-m", "waymo_av.evaluate", "--methods", *_methods(seeds), "--conditions", *CORE, *HELDOUT, "--manifest", "manifests/dev.json", "--out", str(out), "--tag", "dev"])
         _set("dev_eval", "completed", out=str(out))
+    seeds_csv = ",".join(str(s) for s in seeds)
     run([PY, "-m", "waymo_av.aggregate", "--eval-dir", str(out), "--reference", f"m0_pilot_s{seeds[0]}", "--out", "reports/tables/dev"])
+    run([PY, "-m", "waymo_av.compare", "--eval-dir", str(out), "--seeds", seeds_csv, "--out", "reports/tables/dev/comparison.md"])
+    run([PY, "-m", "waymo_av.figures", "--eval-dir", str(out), "--seeds", seeds_csv, "--out", "reports/figures/dev", "--label", "development set (checkpoint selection; not held-out)"])
 
 
 def stage_freeze(seeds=(0,)):
@@ -162,18 +167,20 @@ def stage_freeze(seeds=(0,)):
     if fz.exists():
         _set("freeze", "completed", skipped=True)
         return
-    methods = {}
+    methods = {}  # name -> evaluate.py method string (kind:path)
     for s in seeds:
         for base in ("m0_pilot", "m1_pilot", "mind_pilot"):
             ck = RUNS / f"{base}_s{s}" / "ckpt_best.pt"
             if ck.exists():
-                methods[f"{base}_s{s}"] = str(ck)
+                methods[f"{base}_s{s}"] = f"ckpt:{ck}"
+                if base == "m1_pilot":
+                    methods[f"select_m1_s{s}"] = f"select:{ck}"
     for base in ("rl_pilot", "filtered_sft_pilot", "extra_sft_pilot"):
         for s in seeds:
-            for fn in ("ckpt_final.pt", "ckpt_best.pt"):
+            for fn in ("ckpt_best.pt", "ckpt_final.pt"):
                 ck = RUNS / f"{base}_s{s}" / fn
                 if ck.exists():
-                    methods[f"{base}_s{s}"] = str(ck)
+                    methods[f"{base}_s{s}"] = f"ckpt:{ck}"
                     break
     freeze = {
         "t": time.strftime("%Y-%m-%dT%H:%M:%S"),
@@ -181,6 +188,12 @@ def stage_freeze(seeds=(0,)):
         "sampling": {"n_samples": 6, "audit_samples": 32, "temperature": 1.0, "top_p": 0.95},
         "conditions": CORE + HELDOUT,
         "thresholds": {"primary_rel_reduction_core_suite": 0.05, "clean_guardrail_rel_worsening": 0.03, "overlap_guardrail_pp": 0.5},
+        "comparison_rules": {
+            "reference": "m0_pilot (clean-trained joint) per seed; paired, group bootstrap (D-025a)",
+            "rl_effect_counts_only_if": "exceeds BOTH extra_sft and filtered_sft controls under identical sampling, on overlap_rate AND overlap_rate_jointvalid (32-sample audit), without clean jminADE worsening > 3 %",
+            "reward_semantics": "approximate geometric-consistency objective (D-028a/b), not a verified safety measure",
+            "selection_control": "select_m1_s*: best-6-of-32 by reward from the same M1 checkpoint (inference-time control)",
+        },
         "final_manifest_sha256": json.load(open(REPO_ROOT / "manifests" / "final.json"))["sha256_ids"],
         "note": "frozen before any evaluation on manifests/final.json",
     }
@@ -209,6 +222,22 @@ def stage_posttrain(seeds=(0,)):
         name = f"extra_sft_pilot_s{s}"
         if not _completed(name):
             _train("configs/train/extra_sft_pilot.yaml", run_name=name, overrides=[f"init_from={init}", f"seed={s}", f"run_name={name}"])
+    # matched dev evaluation of the post-trained models into the same eval_dev directory (same scenes/conditions/sampling)
+    out = RUNS / "eval_dev"
+    ms = []
+    for s in seeds:
+        for base in ("rl_pilot", "filtered_sft_pilot", "extra_sft_pilot"):
+            for fn in ("ckpt_best.pt", "ckpt_final.pt"):
+                ck = RUNS / f"{base}_s{s}" / fn
+                if ck.exists() and not (out / f"{base}_s{s}" / "clean" / "per_scene.npz").exists():
+                    ms.append(f"ckpt:{ck}@{base}_s{s}")
+                    break
+    if ms:
+        run([PY, "-m", "waymo_av.evaluate", "--methods", *ms, "--conditions", *CORE, *HELDOUT, "--manifest", "manifests/dev.json", "--out", str(out), "--tag", "dev"])
+    seeds_csv = ",".join(str(s) for s in seeds)
+    run([PY, "-m", "waymo_av.aggregate", "--eval-dir", str(out), "--reference", f"m0_pilot_s{seeds[0]}", "--out", "reports/tables/dev"])
+    run([PY, "-m", "waymo_av.compare", "--eval-dir", str(out), "--seeds", seeds_csv, "--out", "reports/tables/dev/comparison.md"])
+    run([PY, "-m", "waymo_av.figures", "--eval-dir", str(out), "--seeds", seeds_csv, "--out", "reports/figures/dev", "--label", "development set (checkpoint selection; not held-out)"])
     _set("posttrain", "completed", seeds=list(seeds))
 
 
@@ -222,12 +251,15 @@ def stage_final_eval():
     if (out / "summary_all.json").exists():
         _set("final_eval", "completed", skipped=True)
     else:
-        methods = ["cp", "cv"] + [f"ckpt:{p}@{n}" for n, p in f["methods"].items()]
+        methods = ["cp", "cv", "oracle_log"] + [f"{p}@{n}" if ":" in p else f"ckpt:{p}@{n}" for n, p in f["methods"].items()]
         sm = f["sampling"]
         run([PY, "-m", "waymo_av.evaluate", "--methods", *methods, "--conditions", *f["conditions"], "--manifest", "manifests/final.json", "--out", str(out), "--n-samples", str(sm["n_samples"]), "--audit-samples", str(sm["audit_samples"]), "--temperature", str(sm["temperature"]), "--top-p", str(sm["top_p"]), "--tag", "final"])
         _set("final_eval", "completed", out=str(out))
     ref = next((n for n in f["methods"] if n.startswith("m0_pilot")), None)
+    seeds_csv = ",".join(sorted({n.split("_s")[-1] for n in f["methods"] if "_s" in n}))
     run([PY, "-m", "waymo_av.aggregate", "--eval-dir", str(out), "--reference", ref, "--out", "reports/tables/final"])
+    run([PY, "-m", "waymo_av.compare", "--eval-dir", str(out), "--seeds", seeds_csv, "--out", "reports/tables/final/comparison.md"])
+    run([PY, "-m", "waymo_av.figures", "--eval-dir", str(out), "--seeds", seeds_csv, "--out", "reports/figures/final", "--label", "FINAL held-out set (locked; one pass per frozen method)"])
 
 
 def stage_report():
