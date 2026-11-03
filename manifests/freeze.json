@@ -1,0 +1,57 @@
+{
+ "t": "2026-11-03T15:15:16",
+ "methods": {
+  "m0_pilot_s0": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s0/ckpt_best.pt",
+  "m1_pilot_s0": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_best.pt",
+  "select_m1_s0": "select:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_best.pt",
+  "mind_pilot_s0": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s0/ckpt_best.pt",
+  "m0_pilot_s1": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s1/ckpt_best.pt",
+  "m1_pilot_s1": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_best.pt",
+  "select_m1_s1": "select:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_best.pt",
+  "mind_pilot_s1": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s1/ckpt_best.pt",
+  "m0_pilot_s2": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s2/ckpt_best.pt",
+  "m1_pilot_s2": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s2/ckpt_best.pt",
+  "select_m1_s2": "select:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s2/ckpt_best.pt",
+  "mind_pilot_s2": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/mind_pilot_s2/ckpt_best.pt",
+  "rl_pilot_s0": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s0/ckpt_final.pt",
+  "rl_pilot_s1": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s1/ckpt_final.pt",
+  "rl_pilot_s2": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/rl_pilot_s2/ckpt_final.pt",
+  "filtered_sft_pilot_s0": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/filtered_sft_pilot_s0/ckpt_final.pt",
+  "filtered_sft_pilot_s1": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/filtered_sft_pilot_s1/ckpt_final.pt",
+  "filtered_sft_pilot_s2": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/filtered_sft_pilot_s2/ckpt_final.pt",
+  "extra_sft_pilot_s0": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s0/ckpt_best.pt",
+  "extra_sft_pilot_s1": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s1/ckpt_best.pt",
+  "extra_sft_pilot_s2": "ckpt:/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/extra_sft_pilot_s2/ckpt_best.pt"
+ },
+ "sampling": {
+  "n_samples": 6,
+  "audit_samples": 32,
+  "temperature": 1.0,
+  "top_p": 0.95
+ },
+ "conditions": [
+  "clean",
+  "missing_0.1",
+  "missing_0.3",
+  "missing_0.5",
+  "noise_0.1",
+  "noise_0.3",
+  "noise_0.5",
+  "missing_0.7",
+  "noise_1",
+  "compound_0"
+ ],
+ "thresholds": {
+  "primary_rel_reduction_core_suite": 0.05,
+  "clean_guardrail_rel_worsening": 0.03,
+  "overlap_guardrail_pp": 0.5
+ },
+ "comparison_rules": {
+  "reference": "m0_pilot (clean-trained joint) per seed; paired, group bootstrap (D-025a)",
+  "rl_effect_counts_only_if": "exceeds BOTH extra_sft and filtered_sft controls under identical sampling, on overlap_rate AND overlap_rate_jointvalid (32-sample audit), without clean jminADE worsening > 3 %",
+  "reward_semantics": "approximate geometric-consistency objective (D-028a/b), not a verified safety measure",
+  "selection_control": "select_m1_s*: best-6-of-32 by reward from the same M1 checkpoint (inference-time control)"
+ },
+ "final_manifest_sha256": "6ea346e8f9c228b181175f48b5475abc767d169e7a922d1feb4777aa5814d797",
+ "note": "frozen before any evaluation on manifests/final.json"
+}
