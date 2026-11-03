@@ -1,0 +1,14 @@
+torch==2.5.1
+numpy>=2.0,<3
+scipy
+pyyaml
+tqdm
+matplotlib
+pandas
+protobuf==4.25.3
+grpcio-tools==1.62.2
+pytest
+shapely
+tensorboard
+imageio
+imageio-ffmpeg

@@ -1,0 +1,21 @@
+# M1: same architecture/budget as M0, trained on the recorded 50/50 clean/corrupted mixture (TRAIN_MIXTURE).
+run_name: m1_pilot_s0
+train_manifest: manifests/train.json
+dev_manifest: manifests/dev.json
+corruption: mixture
+seed: 0
+model: {d_model: 128, n_heads: 4, d_ff: 512, n_latents: 64, enc_layers: 2, dec_layers: 4, dropout: 0.1, max_agent_slots: 32, independent: false}
+batch_size: 64
+lr: 0.0004
+warmup_steps: 500
+total_steps: 12000
+schedule: cosine
+weight_decay: 0.1
+grad_clip: 1.0
+log_every: 50
+eval_every: 1000
+dev_eval_scenes: 256
+eval_batch_size: 64
+num_workers: 8
+amp: true
+planned_gpu_hours: 3.0

@@ -1,0 +1,14 @@
+# Resolved paths for this machine (see DECISIONS.md D-002).
+data_root: /media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data
+raw_dir: ${data_root}/raw
+processed_dir: ${data_root}/processed
+runs_dir: ${data_root}/runs
+gcloud_bin: ${data_root}/tools/google-cloud-sdk/bin
+train_python: ${data_root}/env/train/bin/python
+# Free-space floor on the data volume (bytes): max(50 GiB, 10% of volume) = 360 GiB on a 3.6 TiB volume.
+min_free_bytes: 386547056640
+# Additional project storage ceiling (bytes): 100 GiB.
+max_project_bytes: 107374182400
+# GPU-hour ceiling for the first campaign.
+max_gpu_hours: 48
+gpu_index: 0

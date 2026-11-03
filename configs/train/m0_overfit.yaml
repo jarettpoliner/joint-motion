@@ -1,0 +1,20 @@
+run_name: m0_overfit
+train_manifest: manifests/overfit.json
+dev_manifest: manifests/overfit.json
+corruption: clean
+seed: 0
+model: {d_model: 128, n_heads: 4, d_ff: 512, n_latents: 64, enc_layers: 2, dec_layers: 4, dropout: 0.0, max_agent_slots: 32}
+batch_size: 16
+lr: 0.0005
+warmup_steps: 50
+total_steps: 600
+schedule: cosine
+weight_decay: 0.01
+grad_clip: 1.0
+log_every: 25
+eval_every: 200
+dev_eval_scenes: 32
+eval_batch_size: 32
+num_workers: 4
+amp: true
+planned_gpu_hours: 0.1
