@@ -22,7 +22,7 @@ Updated: 2026-11-03 15:35 (session 3). Last commit: see `git log -1`.
 | 4b Matched dev evaluation, 3 seeds (cp/cv/oracle_log, M0/M1/Mind × 3, select-control × 3; 10 conditions; 500 scenes) | done | <data_root>/runs/eval_dev; reports/tables/dev/{table,comparison}.md; reports/figures/dev/*; D-029 |
 | 5 RL + controls (rl, filtered_sft, extra_sft × 3 seeds) + matched dev eval (90/90 outputs verified) | done — MIXED/NEGATIVE RL outcome (D-031) | registry/runs/{rl,filtered_sft,extra_sft}_pilot_s*.json; reports/tables/dev/comparison.md Q5–Q6; manifests/stopping_diagnostic.json |
 | 6a Freeze | done | manifests/freeze.json (21 learned methods + cp/cv/oracle_log; sampling 6/32, T 1.0, top-p 0.95; thresholds; comparison rules) |
-| 6b Locked final evaluation (1,000 scenes × 10 conditions × 24 methods) | RUNNING (<data_root>/logs/campaign_final_eval.log) | <data_root>/runs/eval_final → reports/tables/final, reports/figures/final |
+| 6b Locked final evaluation (1,000 scenes × 10 conditions × 24 methods) | RUNNING since 15:00 (<data_root>/logs/campaign_final_eval.log; > 45 min per condition on the GPU shared at 100 % with an unrelated job → est. 8–15 h) | <data_root>/runs/eval_final → reports/tables/final, reports/figures/final |
 | 6c Final report, deck, animations | pending final_eval | — |
 
 ## Resource use so far
