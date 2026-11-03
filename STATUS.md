@@ -6,7 +6,7 @@ Updated: 2026-11-02 23:05 (session 1). Commits: ea127b1, 2c62c65 (+ this update)
 
 | Stage | State | Evidence |
 |---|---|---|
-| 0 Workspace/hardware/env | done | DECISIONS.md D-001..D-006, D-018; requirements/train.lock, requirements/wod_metrics.lock |
+| 0 Workspace/hardware/env | done | DECISIONS.md D-001..D-006, D-018, D-020 (fresh-env verification passed); requirements/train.lock |
 | 1 Source research | done | docs/source_matrix.md (MotionLM, Waymo RL paper, scenario/map protos, terms, Waymax config read) |
 | 2 Data pipeline + evaluator | implemented; verified on SYNTHETIC only | 28 tests pass (CPU); scripts/smoke_synthetic.sh passes (train → resume → eval → tables) |
 | 3 MotionLM-style model | implemented; tiny-batch overfit passes; leakage tests pass; throughput profiled | tests/test_model_and_leakage.py; D-018 |
@@ -37,6 +37,9 @@ Relocate the data root to a top-level directory on extradrive1 (needs sudo once)
 | Storage under data root | env 5.5 GiB, uv cache 0.8 GiB, gcloud SDK 0.5 GiB, synthetic runs 0.12 GiB; raw/processed real data: 0 |
 | Free on extradrive1 | 946 GiB (floor 360 GiB) |
 | Root volume | repo only (< 10 MiB); 8.2 GiB free (pre-existing condition, not consumed) |
+
+## Known gaps
+- Official Waymo metrics package could not be installed (D-019a); custom metrics are audited on analytic cases and oracles only.
 
 ## Not done (real-data dependent)
 Download, preprocessing, manifests, calibration (tokenizer saturation + offroad sign), overfit

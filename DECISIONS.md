@@ -91,3 +91,12 @@ Format: `D-NNN (date) — decision. Rationale. Consequence.`
 - D-019 (2026-11-02) — Official metrics audit environment: separate Python 3.10 venv
   `<data_root>/env/wod_metrics` with waymo-open-dataset-tf-2-12-0==1.6.7 (requirements/wod_metrics.lock),
   used only to cross-check the custom joint minADE/minFDE on a real-data subset (stage 2 gate).
+- D-019a (2026-11-02) — Official metrics environment NOT available: waymo-open-dataset-tf-2-12-0
+  1.6.7 pins jaxlib 0.4.13 (no wheel resolvable here) and, installed with --no-deps on TF 2.12.0 and
+  2.12.1, its compiled `metrics_ops.so` fails to load (undefined abseil symbol
+  `absl::lts_20230125::Status`). The custom joint minADE/minFDE implementation is therefore audited
+  only against analytic constructed cases (tests/test_metrics_and_rl.py) and the log-playback and
+  token-round-trip oracles; this is recorded as a limitation and the metrics are labelled local.
+- D-020 (2026-11-02) — Fresh-environment verification: a new venv built from requirements/train.lock
+  + `pip install -e .` + scripts/build_protos.sh passed all 28 tests (CPU). The verification venv was
+  deleted afterwards to save space; the procedure is in README.md.

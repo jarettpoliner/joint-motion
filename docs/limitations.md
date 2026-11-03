@@ -4,7 +4,7 @@
   verify the implementation; they are labelled as such and are not scientific results.
 - **Simplified reproduction.** Compact model (1.8 M params vs MotionLM's 9 M), far fewer training
   steps, a subset of WOMD shards, no NMS/k-means mode aggregation, six raw samples for local metrics.
-  Not an official challenge submission; official metrics are only cross-checked on a subset.
+  Not an official challenge submission; the official metrics package could not be installed here (DECISIONS D-019a), so the custom metrics are audited on analytic cases and oracles only.
 - **Benchmark-provided targets.** The two targets are the dataset's `objects_of_interest` pair; this is
   evaluation metadata, not an onboard target-selection algorithm.
 - **Open-loop context.** Context agents are not simulated; only the two targets interact
