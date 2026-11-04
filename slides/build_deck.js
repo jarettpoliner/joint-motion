@@ -104,8 +104,26 @@ const THEME = { name: "WaymoAV", headFontFace: "Cambria", bodyFontFace: "Calibri
   s = addLight("Bounded RL post-training and controls", (fin && fin.available) ? "FINAL" : TAG);
   img(s, C0.figures.fig_rl_controls, { x: 0.6, y: 1.25, w: 12.1, h: 3.0 });
   const rlAvail = blk && blk.available && blk.methods && blk.methods.some(m => m.startsWith("rl_pilot"));
-  card(s, 0.6, 4.4, 6.0, 2.45, "RL vs its M1 initialisation (clean, paired)", rlAvail ? `jminADE@6: ${val(blk, "deltas.rl_vs_m1_clean")}\nOverlap (32 samples): ${val(blk, "deltas.rl_vs_m1_overlap32_pp")} pp\nOffroad: ${val(blk, "deltas.rl_vs_m1_offroad_pp")} pp\nDiversity (mean pairwise FDE): ${val(blk, "deltas.rl_vs_m1_diversity")} m\nExcessive stopping (dev diagnostic; eligible agents moving > 5 m): RL ${(blk.stopping||{}).rl_pilot ?? "—"} vs M1 ${(blk.stopping||{}).m1_pilot ?? "—"}\nFrozen rule (beats both SFT controls on overlap AND clean worsening ≤ 3 %): ${(blk.rl_verdicts||[]).map(v => "seed " + v.seed + " " + v.verdict).join("; ") || "pending"}` : "PENDING — post-training stage not yet run. Runs planned: rl_pilot, filtered_sft_pilot, extra_sft_pilot per seed, all initialised from the dev-selected M1 checkpoint.", undefined, 11);
-  card(s, 6.8, 4.4, 5.9, 2.45, "Controls vs M1", rlAvail ? `Reward-filtered SFT, overlap32: ${val(blk, "deltas.fsft_vs_m1_overlap32_pp")} pp\nExtra SFT (matched steps), overlap32: ${val(blk, "deltas.esft_vs_m1_overlap32_pp")} pp\nReward-based selection (best 6 of 32): own-output overlap ${val(blk, "deltas.select_vs_m1_overlap6_pp")} pp, clean jminADE ${val(blk, "deltas.select_vs_m1_clean")} — at 32 candidate rollouts + reward scoring per scene\nReward = approximate geometric consistency (not verified safety); overlap read against the logged reference.` : "PENDING — controls run in the same stage. Interpretation rule (frozen before final evaluation): an RL effect counts only if it exceeds both the extra-SFT and reward-filtered-SFT controls under identical sampling.", undefined, 11);
+  // Short lines (< 60 characters) so the card keeps a margin when Calibri is substituted by a wider font.
+  const rlv = (blk && blk.rl_verdicts) || [];
+  const rlRule = !rlv.length ? "pending" : (rlv.every(v => v.verdict === rlv[0].verdict) ? `${rlv[0].verdict.toLowerCase()} in seeds ${rlv.map(v => v.seed).join(", ")}` : rlv.map(v => "seed " + v.seed + " " + v.verdict.toLowerCase()).join("; "));
+  card(s, 0.6, 4.4, 6.0, 2.45, "RL vs its M1 initialisation (clean, paired)", rlAvail ? [
+    `Clean jminADE@6: ${val(blk, "deltas.rl_vs_m1_clean")}`,
+    `Overlap, 32 samples: ${val(blk, "deltas.rl_vs_m1_overlap32_pp")} pp`,
+    `Offroad: ${val(blk, "deltas.rl_vs_m1_offroad_pp")} pp`,
+    `Diversity, pairwise FDE: ${val(blk, "deltas.rl_vs_m1_diversity")} m`,
+    `Excessive stopping: RL ${(blk.stopping||{}).rl_pilot ?? "—"} vs M1 ${(blk.stopping||{}).m1_pilot ?? "—"} (dev diagnostic)`,
+    `   ends < 1 m when logged motion > 5 m, per agent-sample`,
+    `Frozen rule: ${rlRule}`,
+    `   needs: beat both SFT controls on overlap, clean Δ ≤ +3 %`].join("\n") : "PENDING — post-training stage not yet run. Runs planned: rl_pilot, filtered_sft_pilot, extra_sft_pilot per seed, all initialised from the dev-selected M1 checkpoint.", undefined, 11);
+  card(s, 6.8, 4.4, 5.9, 2.45, "Controls vs M1", rlAvail ? [
+    `Reward-filtered SFT, overlap32: ${val(blk, "deltas.fsft_vs_m1_overlap32_pp")} pp`,
+    `Extra SFT (matched steps), overlap32: ${val(blk, "deltas.esft_vs_m1_overlap32_pp")} pp`,
+    `Reward-based selection, best 6 of 32:`,
+    `   own-output overlap ${val(blk, "deltas.select_vs_m1_overlap6_pp")} pp`,
+    `   clean jminADE ${val(blk, "deltas.select_vs_m1_clean")}`,
+    `   cost: 32 rollouts + reward scoring per scene`,
+    `Reward = approximate geometric consistency, not verified safety`].join("\n") : "PENDING — controls run in the same stage. Interpretation rule (frozen before final evaluation): an RL effect counts only if it exceeds both the extra-SFT and reward-filtered-SFT controls under identical sampling.", undefined, 11);
 
   // 9 qualitative
   s = addLight("Qualitative examples and failures", LABEL);
