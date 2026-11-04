@@ -1,4 +1,4 @@
-"""Development comparison across seeds from evaluate.py outputs.
+"""Per-seed comparison across seeds from evaluate.py outputs (development or locked final set).
 
 python -m waymo_av.compare --eval-dir <runs>/eval_dev --seeds 0,1,2 --out reports/tables/dev/comparison.md
 
@@ -53,7 +53,12 @@ def main(argv=None):
     for k, v in data.items():
         assert np.array_equal(v["scenario_ids"], ids), f"scenario sets differ for {k}"
     grp = load_groups(ids)
-    L = [f"# Development comparison ({len(ids)} dev scenes; bootstrap unit = {'heuristic source-segment group' if grp is not None else 'scenario'}, 95% CI)", ""]
+    # label the table by the scene set actually evaluated (the locked final manifest vs development)
+    final_ids = set(json.loads((REPO_ROOT / "manifests" / "final.json").read_text())["scenario_ids"])
+    is_final = set(map(str, ids)) <= final_ids
+    title = "Locked final-set comparison" if is_final else "Development comparison"
+    scenes = "held-out final scenes from manifests/final.json" if is_final else "dev scenes"
+    L = [f"# {title} ({len(ids)} {scenes}; bootstrap unit = {'heuristic source-segment group' if grp is not None else 'scenario'}, 95% CI)", ""]
     L += ["Sampling: learned models 6 samples (joint metrics) + 32-sample audit; cp/cv deterministic (1 sample, listed separately).", ""]
     # --- table 1: per method x seed, clean and suites
     L += ["## Per-seed results (joint minADE@6 8 s, m; overlap and offroad rates as fractions)", "",

@@ -1,0 +1,90 @@
+{
+ "note": "README presentation assets derived from saved outputs; no model run or evaluation.",
+ "assets": {
+  "architecture.png": {
+   "op": "drawn by scripts/build_readme_media.py; content mirrors reports/figures/fig_architecture.svg and src/waymo_av/model.py"
+  },
+  "robustness_vs_severity_final.png": {
+   "source": "reports/figures/final/fig_error_vs_severity.png",
+   "source_sha256": "3ca28ff8a504c083c85a06a093e98f23eb22d7cc89b2b797aab565bc748b9bbe",
+   "op": "severity_crop",
+   "crop_box_px": [
+    549,
+    76,
+    3069,
+    1173
+   ],
+   "source_data": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_final"
+  },
+  "rl_controls_final.png": {
+   "source": "reports/figures/final/fig_rl_controls.png",
+   "source_sha256": "9a33ac7d921f73af453a94e3be361956a9e4d25626d9e08e09ee1005e00a695f",
+   "op": "rl_montage",
+   "panel_bounds_px": [
+    0,
+    779,
+    1336,
+    1996,
+    2637,
+    3197,
+    3854,
+    4526
+   ],
+   "title_bounds_px": [
+    0,
+    761,
+    1399,
+    2003,
+    2626,
+    3241,
+    3864,
+    4526
+   ],
+   "spines_px": [
+    215,
+    834,
+    1453,
+    2073,
+    2692,
+    3311,
+    3930
+   ],
+   "crop_top_px": 92,
+   "title_axes_split_px": 186,
+   "layout": "row 1: clean jminADE, core-suite jminADE, diversity, key; row 2: overlap own 6, overlap 32-pool, offroad, kinematically implausible",
+   "source_data": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/eval_final"
+  },
+  "demo_noise0.5_M0_vs_M1_d42aba08c268ec8b.gif": {
+   "source": "reports/demos/prelim_M0_vs_M1_noise_0.5/d42aba08c268ec8b_noise_0.5.gif",
+   "source_sha256": "9a678eedf6874868bf95a9b343fee1d4d93353c335601a3e815d98e3ce6ef4ef",
+   "mp4": "reports/demos/prelim_M0_vs_M1_noise_0.5/d42aba08c268ec8b_noise_0.5.mp4",
+   "demo_metrics": "reports/demos/prelim_M0_vs_M1_noise_0.5/demo_metrics.json",
+   "selection": "dev set; noise_0.5; rule 'mixed' by M1 joint minADE@6 over the first 64 dev-manifest scenes; selected_as=best",
+   "op": "optimise_gif",
+   "ffmpeg_filter": "split[s0][s1];[s0]palettegen=max_colors=128:stats_mode=diff[p];[s1][p]paletteuse=dither=none:diff_mode=rectangle",
+   "frames": 40,
+   "size_px": [
+    1500,
+    560
+   ],
+   "bytes_before": 4189521,
+   "bytes_after": 1670454
+  },
+  "demo_clean_M1_selection_RL_d5d511761e2f9612.gif": {
+   "source": "reports/demos/final_M1_vs_selection_vs_RL_clean/d5d511761e2f9612_clean.gif",
+   "source_sha256": "cdfc1e725820e8502a80d0f6e521d742e4f4291d08531097b3d1aa4805d9e26f",
+   "mp4": "reports/demos/final_M1_vs_selection_vs_RL_clean/d5d511761e2f9612_clean.mp4",
+   "demo_metrics": "reports/demos/final_M1_vs_selection_vs_RL_clean/demo_metrics.json",
+   "selection": "dev set; clean; rule 'mixed' by M1_bounded_RL joint minADE@6 over the first 64 dev-manifest scenes; selected_as=worst",
+   "op": "optimise_gif",
+   "ffmpeg_filter": "split[s0][s1];[s0]palettegen=max_colors=128:stats_mode=diff[p];[s1][p]paletteuse=dither=none:diff_mode=rectangle",
+   "frames": 40,
+   "size_px": [
+    2000,
+    560
+   ],
+   "bytes_before": 3585435,
+   "bytes_after": 2063430
+  }
+ }
+}

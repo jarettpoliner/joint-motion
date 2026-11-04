@@ -1,4 +1,4 @@
-# Development comparison (1000 dev scenes; bootstrap unit = heuristic source-segment group, 95% CI)
+# Locked final-set comparison (1000 held-out final scenes from manifests/final.json; bootstrap unit = heuristic source-segment group, 95% CI)
 
 Sampling: learned models 6 samples (joint metrics) + 32-sample audit; cp/cv deterministic (1 sample, listed separately).
 
