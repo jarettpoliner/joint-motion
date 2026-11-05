@@ -1,0 +1,56 @@
+{
+ "rule": "PROTOCOL.md \u00a74",
+ "subset": "first 200 dev scenes, seed-0 M0/M1",
+ "candidates": {
+  "ols1s": {
+   "per_model": {
+    "m0_pilot_s0": {
+     "r_corr": -0.05441474187236217,
+     "r_clean": 0.019057103549092735,
+     "clean_overlap_jv_pp": -2.7755575615628914e-15,
+     "clean_offroad_pp": 0.0,
+     "r_corr_noise": -0.053590836032682,
+     "r_struct": -0.06030708459756495
+    },
+    "m1_pilot_s0": {
+     "r_corr": -0.06808171558127807,
+     "r_clean": 0.03140859855800726,
+     "clean_overlap_jv_pp": -0.7500000000000007,
+     "clean_offroad_pp": -0.1187500000000001,
+     "r_corr_noise": -0.06085129746237883,
+     "r_struct": -0.09629873553452528
+    }
+   },
+   "admissible": false,
+   "score": -0.06124822872682012,
+   "mean_r_clean": 0.02523285105355,
+   "qualifies": false
+  },
+  "anchored1s": {
+   "per_model": {
+    "m0_pilot_s0": {
+     "r_corr": -0.05386917286853077,
+     "r_clean": 0.005109080151168843,
+     "clean_overlap_jv_pp": 0.24999999999999745,
+     "clean_offroad_pp": -0.0911458333333337,
+     "r_corr_noise": -0.06225293987781111,
+     "r_struct": 0.006089169660152383
+    },
+    "m1_pilot_s0": {
+     "r_corr": -0.07571239008043418,
+     "r_clean": 0.012965791499840895,
+     "clean_overlap_jv_pp": -0.8333333333333359,
+     "clean_offroad_pp": -0.1869791666666669,
+     "r_corr_noise": -0.0979738905651868,
+     "r_struct": 0.01116407999888236
+    }
+   },
+   "admissible": true,
+   "score": -0.06479078147448247,
+   "mean_r_clean": 0.00903743582550487,
+   "qualifies": true
+  }
+ },
+ "selected": "anchored1s",
+ "best_scoring_candidate": "anchored1s"
+}
