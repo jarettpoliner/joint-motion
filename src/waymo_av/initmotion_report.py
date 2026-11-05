@@ -225,6 +225,168 @@ def stage_diag():
     print("\n".join(L))
 
 
+# ----------------------------------------------------------------------------- comparison (dev / confirm)
+OUTCOMES = [("clean", ["clean"]), ("noise 0.1", ["noise_0.1"]), ("noise 0.3", ["noise_0.3"]), ("noise 0.5", ["noise_0.5"]), ("noise 1.0", ["noise_1"]),
+            ("bias 0.5", [STRUCT]), ("noise mean (4)", NOISE), ("corrupted mean (5)", CORRUPTED)]
+SEEDS = (0, 1, 2)
+
+
+def _contrasts(sel):
+    """name -> (description, f(seed, conds, key) -> (ref, new) per-scene arrays)."""
+    def arm(stage, tag, a, conds, key):
+        return cmean(stage, tag, a, conds, key)
+    return {
+        "E_on_M0": (f"Estimator effect on M0: M0+{sel} − M0+orig", lambda st, s, c, k: (arm(st, f"m0_pilot_s{s}", "orig", c, k), arm(st, f"m0_pilot_s{s}", sel, c, k))),
+        "E_on_M1": (f"Estimator effect on M1: M1+{sel} − M1+orig", lambda st, s, c, k: (arm(st, f"m1_pilot_s{s}", "orig", c, k), arm(st, f"m1_pilot_s{s}", sel, c, k))),
+        "M1_vs_M0_orig": ("M1 advantage under the original estimator: M1+orig − M0+orig", lambda st, s, c, k: (arm(st, f"m0_pilot_s{s}", "orig", c, k), arm(st, f"m1_pilot_s{s}", "orig", c, k))),
+        "M1_vs_M0_sel": (f"M1 advantage under the selected estimator: M1+{sel} − M0+{sel}", lambda st, s, c, k: (arm(st, f"m0_pilot_s{s}", sel, c, k), arm(st, f"m1_pilot_s{s}", sel, c, k))),
+        "DiD": (f"Interaction: (M1−M0 | {sel}) − (M1−M0 | orig)", lambda st, s, c, k: (arm(st, f"m1_pilot_s{s}", "orig", c, k) - arm(st, f"m0_pilot_s{s}", "orig", c, k), arm(st, f"m1_pilot_s{s}", sel, c, k) - arm(st, f"m0_pilot_s{s}", sel, c, k))),
+        "oracle_on_M0": ("ORACLE diagnostic on M0: M0+oracle − M0+orig", lambda st, s, c, k: (arm(st, f"m0_pilot_s{s}", "orig", c, k), arm(st, f"m0_pilot_s{s}", "oracle", c, k))),
+        "oracle_on_M1": ("ORACLE diagnostic on M1: M1+oracle − M1+orig", lambda st, s, c, k: (arm(st, f"m1_pilot_s{s}", "orig", c, k), arm(st, f"m1_pilot_s{s}", "oracle", c, k))),
+    }
+
+
+def verdict(ds, dev_sign=None):
+    """Per-seed CIs -> wording (PROTOCOL.md §6). dev_sign: expected direction (+1/-1) or None."""
+    signs = [np.sign(d["delta"]) for d in ds]
+    excl = [(d["ci_low"] > 0) or (d["ci_high"] < 0) for d in ds]
+    same = len(set(signs)) == 1
+    direction = signs[0] if same else 0
+    if dev_sign is not None and same and direction != dev_sign:
+        return "opposite to dev"
+    if same and all(excl):
+        return "confirmed" if dev_sign is not None else "all seeds exclude 0"
+    if same:
+        return "directionally consistent, not confirmed" if dev_sign is not None else "consistent sign"
+    return "not confirmed" if dev_sign is not None else "MIXED sign"
+
+
+def stage_compare(st):
+    sel_info = json.load(open(TRACKED / "selection.json"))
+    sel = sel_info["selected"] or sel_info["best_scoring_candidate"]
+    ids = load_metrics(st, "m0_pilot_s0", "clean", "orig")["scenario_ids"]
+    for s in SEEDS:
+        for m in ("m0_pilot", "m1_pilot"):
+            for c in CONDITIONS:
+                for a in ("orig", sel, "oracle"):
+                    assert np.array_equal(load_metrics(st, f"{m}_s{s}", c, a)["scenario_ids"], ids)
+    grp = groups_for(st, ids)
+    n_groups = len(np.unique(grp)) if grp is not None else len(ids)
+    dev_res = json.load(open(TRACKED / "dev_results.json")) if st == "confirm" else None
+    label = "EXPLORATORY development comparison" if st == "dev" else "CONFIRMATION (one pass of the frozen comparison)"
+    scenes = "all 500 dev scenes (manifests/dev.json)" if st == "dev" else f"{len(ids)} confirmation scenes ({json.load(open(TRACKED / 'freeze.json'))['confirm_manifest']})"
+    L = [f"# FU-IM {label}", "",
+         f"{scenes}; checkpoints m0_pilot_s{{0,1,2}}, m1_pilot_s{{0,1,2}} (version-1 ckpt_best.pt); selected estimator `{sel}`{'' if sel_info['selected'] else ' (NON-QUALIFYING)'}. "
+         f"Paired 95 % CIs: cluster bootstrap over heuristic source-segment groups ({n_groups} groups, 2000 resamples). Within a (model, seed, condition) all estimator arms decode identical sampled tokens. "
+         "Pooled = per-scene mean over the three seeds (CI conditional on these checkpoints). Oracle rows are ORACLE DIAGNOSTICS (unavailable in deployment).", ""]
+    res = {"stage": st, "n_scenes": int(len(ids)), "n_groups": int(n_groups), "selected": sel, "means": {}, "contrasts": {}}
+    # C1 means
+    L += ["## C1. Joint minADE@6 (8 s, m): mean over seeds (± SD across seeds)", "",
+          f"| condition | M0+orig | M0+{sel} | M1+orig | M1+{sel} | M0+oracle (diag.) | M1+oracle (diag.) | CV+orig | CV+{sel} |", "|---|---|---|---|---|---|---|---|---|"]
+    for c in CONDITIONS:
+        cells = []
+        for m, a in (("m0_pilot", "orig"), ("m0_pilot", sel), ("m1_pilot", "orig"), ("m1_pilot", sel), ("m0_pilot", "oracle"), ("m1_pilot", "oracle")):
+            v = [float(np.nanmean(load_metrics(st, f"{m}_s{s}", c, a)["joint_minADE_8s"])) for s in SEEDS]
+            res["means"][f"{m}|{a}|{c}"] = v
+            cells.append(f"{np.mean(v):.3f} (±{np.std(v):.3f})")
+        for a in ("orig", sel):
+            v = float(np.nanmean(load_metrics(st, "cv", c, a)["joint_minADE_8s"]))
+            res["means"][f"cv|{a}|{c}"] = [v]
+            cells.append(f"{v:.3f}")
+        L.append(f"| {COND_LABEL[c]} | " + " | ".join(cells) + " |")
+    # C2 contrasts on jminADE
+    C = _contrasts(sel)
+    for key_metric, mlabel, p, scale, rel in (("joint_minADE_8s", "jminADE@6 8 s, m", 3, 1, True), ("joint_minFDE_8s", "jminFDE@6 8 s, m", 2, 1, True)):
+        for cname, (desc, fn) in C.items():
+            if key_metric == "joint_minFDE_8s" and cname.startswith("oracle"):
+                continue
+            L += ["", f"## C2 · {desc} ({mlabel}; negative = lower error)", "", "| seed | " + " | ".join(o for o, _ in OUTCOMES) + " |", "|---|" + "---|" * len(OUTCOMES)]
+            per_out = {o: [] for o, _ in OUTCOMES}
+            rows = {}
+            for s in SEEDS:
+                cells = []
+                for o, conds in OUTCOMES:
+                    a_, b_ = fn(st, s, conds, key_metric)
+                    d = paired_bootstrap(a_, b_, NBOOT, groups=grp)
+                    if cname == "DiD":  # relative change is not meaningful for a difference of differences
+                        d["rel_delta"] = np.nan
+                    per_out[o].append(d)
+                    cells.append(fmt_d(d, p, scale, rel and cname != "DiD"))
+                rows[s] = cells
+                L.append(f"| {s} | " + " | ".join(cells) + " |")
+            pooled = []
+            for o, conds in OUTCOMES:
+                a_ = np.nanmean(np.stack([fn(st, s, conds, key_metric)[0] for s in SEEDS]), 0)
+                b_ = np.nanmean(np.stack([fn(st, s, conds, key_metric)[1] for s in SEEDS]), 0)
+                d = paired_bootstrap(a_, b_, NBOOT, groups=grp)
+                if cname == "DiD":
+                    d["rel_delta"] = np.nan
+                pooled.append(d)
+                res["contrasts"][f"{cname}|{key_metric}|{o}"] = {"per_seed": per_out[o], "pooled": d}
+            L.append("| pooled | " + " | ".join(fmt_d(d, p, scale, rel and cname != "DiD") for d in pooled) + " |")
+            if st == "confirm":
+                vs = []
+                for o, _ in OUTCOMES:
+                    dv = dev_res["contrasts"].get(f"{cname}|{key_metric}|{o}")
+                    dsign = int(np.sign(dv["pooled"]["delta"])) if dv else None
+                    v = verdict(per_out[o], dsign)
+                    res["contrasts"][f"{cname}|{key_metric}|{o}"]["verdict"] = v
+                    res["contrasts"][f"{cname}|{key_metric}|{o}"]["dev_direction"] = dsign
+                    vs.append(v)
+                L.append("| verdict vs dev | " + " | ".join(vs) + " |")
+            else:
+                vs = [verdict(per_out[o]) for o, _ in OUTCOMES]
+                for (o, _), v in zip(OUTCOMES, vs):
+                    res["contrasts"][f"{cname}|{key_metric}|{o}"]["seed_agreement"] = v
+                L.append("| seed agreement | " + " | ".join(vs) + " |")
+    # C3 horizon
+    L += ["", "## C3. Error by horizon (pooled over seeds; noise mean / bias / clean)", "", "| method | outcome | ADE 3 s | ADE 5 s | ADE 8 s | FDE 8 s |", "|---|---|---|---|---|---|"]
+    res["horizon"] = {}
+    for m, a in (("m0_pilot", "orig"), ("m0_pilot", sel), ("m1_pilot", "orig"), ("m1_pilot", sel)):
+        for o, conds in (("clean", ["clean"]), ("noise mean (4)", NOISE), ("bias 0.5", [STRUCT])):
+            vals = {k: float(np.mean([np.nanmean(cmean(st, f"{m}_s{s}", a, conds, k)) for s in SEEDS])) for k in ("joint_minADE_3s", "joint_minADE_5s", "joint_minADE_8s", "joint_minFDE_8s")}
+            res["horizon"][f"{m}|{a}|{o}"] = vals
+            L.append(f"| {m.replace('_pilot', '').upper()}+{a} | {o} | " + " | ".join(f"{v:.2f}" for v in vals.values()) + " |")
+    # C4 geometry
+    L += ["", "## C4. Geometric consistency (approximate tests; percentage points; per-seed CIs on the estimator effect)", "",
+          "| contrast | outcome | overlap jv Δ pp, seeds 0 / 1 / 2 | offroad Δ pp, seeds 0 / 1 / 2 |", "|---|---|---|---|"]
+    for cname in ("E_on_M0", "E_on_M1", "M1_vs_M0_orig", "M1_vs_M0_sel"):
+        for o, conds in (("clean", ["clean"]), ("corrupted mean (5)", CORRUPTED)):
+            cells = []
+            for k in ("overlap_rate_jointvalid", "offroad_frac"):
+                ds = [paired_bootstrap(*C[cname][1](st, s, conds, k), NBOOT, groups=grp) for s in SEEDS]
+                res["contrasts"][f"{cname}|{k}|{o}"] = {"per_seed": ds}
+                cells.append(" / ".join(fmt_d(d, 2, 100) for d in ds))
+            L.append(f"| {cname} | {o} | " + " | ".join(cells) + " |")
+    L += ["", "| method | clean overlap jv % | corrupted-mean overlap jv % | clean offroad % | corrupted-mean offroad % |", "|---|---|---|---|---|"]
+    for m, a in (("m0_pilot", "orig"), ("m0_pilot", sel), ("m1_pilot", "orig"), ("m1_pilot", sel)):
+        g = lambda conds, k: 100 * float(np.mean([np.nanmean(cmean(st, f"{m}_s{s}", a, conds, k)) for s in SEEDS]))
+        L.append(f"| {m.replace('_pilot', '').upper()}+{a} | {g(['clean'], 'overlap_rate_jointvalid'):.1f} | {g(CORRUPTED, 'overlap_rate_jointvalid'):.1f} | {g(['clean'], 'offroad_frac'):.2f} | {g(CORRUPTED, 'offroad_frac'):.2f} |")
+    # C5 initial-motion error (model-independent)
+    L += ["", "## C5. Initial-motion estimation error (m/s, per target agent; primary = same estimator on uncorrupted observed history)", "",
+          f"| condition | orig | {sel} | orig vs logged (eval-only) | {sel} vs logged (eval-only) |", "|---|---|---|---|---|"]
+    res["d0_error"] = {}
+    for c in CONDITIONS:
+        dg = load_diag(st, "m0_pilot_s0", c)
+        vals = [float(np.nanmean(d0_err_ms(dg, e, r))) for r in ("same", "logged") for e in ("orig", sel)]
+        res["d0_error"][c] = dict(zip(["orig|same", f"{sel}|same", "orig|logged", f"{sel}|logged"], vals))
+        L.append(f"| {COND_LABEL[c]} | " + " | ".join(f"{v:.3f}" for v in vals) + " |")
+    # token compensation per seed (descriptive)
+    L += ["", "## C6. Token compensation c_4 (2 s) of the version-1 d0 error, per seed (descriptive)", "", "| model | " + " | ".join(COND_LABEL[c] for c in CORRUPTED) + " |", "|---|" + "---|" * len(CORRUPTED)]
+    res["compensation_c4"] = {}
+    for m in ("m0_pilot", "m1_pilot"):
+        cells = []
+        for c in CORRUPTED:
+            v = [compensation(load_diag(st, f"{m}_s{s}", c))[3] for s in SEEDS]
+            res["compensation_c4"][f"{m}|{c}"] = v
+            cells.append(" / ".join(f"{x:.2f}" for x in v))
+        L.append(f"| {m.replace('_pilot', '').upper()} | " + " | ".join(cells) + " |")
+    out_name = "dev" if st == "dev" else "confirm"
+    json.dump(_clean(res), open(TRACKED / f"{out_name}_results.json", "w"), indent=1)
+    (TRACKED / f"{out_name}_tables.md").write_text("\n".join(L) + "\n")
+    print("\n".join(L))
+
+
 def _clean(o):
     if isinstance(o, dict):
         return {str(k): _clean(v) for k, v in o.items()}
@@ -246,6 +408,8 @@ def main(argv=None):
     TRACKED.mkdir(parents=True, exist_ok=True)
     if a.stage == "diag":
         stage_diag()
+    elif a.stage in ("dev", "confirm"):
+        stage_compare(a.stage)
     else:
         raise SystemExit(f"stage {a.stage}: not yet implemented")
 

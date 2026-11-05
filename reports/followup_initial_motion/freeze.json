@@ -1,0 +1,106 @@
+{
+ "t": "2026-11-04T20:50:04",
+ "status": "FROZEN before any confirmation scene was downloaded, processed or read",
+ "selected_estimator": "anchored1s",
+ "selection_rule": "PROTOCOL.md \u00a74 (selection.json)",
+ "arms": [
+  "orig",
+  "anchored1s",
+  "oracle"
+ ],
+ "oracle_is_diagnostic_only": true,
+ "methods_primary": [
+  "M0+orig",
+  "M0+anchored1s",
+  "M1+orig",
+  "M1+anchored1s"
+ ],
+ "secondary": [
+  "M0+oracle, M1+oracle (ORACLE diagnostics)",
+  "CV+orig, CV+anchored1s (non-learned reference)"
+ ],
+ "conditions": [
+  "clean",
+  "noise_0.1",
+  "noise_0.3",
+  "noise_0.5",
+  "noise_1",
+  "bias_0.5"
+ ],
+ "corruption_global_seed": 0,
+ "sampling": {
+  "n_samples": 6,
+  "temperature": 1.0,
+  "top_p": 0.95
+ },
+ "sampling_seed_rule": "crc32('fu_im|<model_tag>|<condition>')",
+ "checkpoints": {
+  "m0_pilot_s0": {
+   "path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s0/ckpt_best.pt",
+   "sha256": "1aaf3b7a65a0f31dddbc5dc742b4580dd36f6a785677cdd97375175551df341f"
+  },
+  "m0_pilot_s1": {
+   "path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s1/ckpt_best.pt",
+   "sha256": "76206c41ef10625cbc866d547f660fd83d42755bbd6a08bfb6af68e7c7d84b88"
+  },
+  "m0_pilot_s2": {
+   "path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m0_pilot_s2/ckpt_best.pt",
+   "sha256": "c8806a62c2e53beecd1650938b4c09850246712c58d1de5645e91e769dd3463d"
+  },
+  "m1_pilot_s0": {
+   "path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s0/ckpt_best.pt",
+   "sha256": "73d926a7a784ae56217909c05594ab6d43a043bd7a6781bdeb1afa156d157b83"
+  },
+  "m1_pilot_s1": {
+   "path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s1/ckpt_best.pt",
+   "sha256": "fd3c7c384a76eb8a109f02c55540f9a39f0cac4f5320980a2ba1cc3652a207c5"
+  },
+  "m1_pilot_s2": {
+   "path": "/media/jarettpoliner/extradrive1/recovered_seagate_files/Waymo_AV_data/runs/m1_pilot_s2/ckpt_best.pt",
+   "sha256": "170073be15178b66c2393f4a3e408561b8ceba6957c4572a6a724339ee44d29b"
+  }
+ },
+ "contrasts": [
+  "E_on_M0",
+  "E_on_M1",
+  "M1_vs_M0_orig",
+  "M1_vs_M0_sel",
+  "DiD",
+  "oracle_on_M0",
+  "oracle_on_M1"
+ ],
+ "outcomes": [
+  "clean",
+  "noise 0.1",
+  "noise 0.3",
+  "noise 0.5",
+  "noise 1.0",
+  "bias 0.5",
+  "noise mean (4)",
+  "corrupted mean (5)"
+ ],
+ "metrics": [
+  "joint_minADE_8s (primary)",
+  "joint_minFDE_8s",
+  "joint_minADE_3s/5s",
+  "overlap_rate_jointvalid",
+  "offroad_frac",
+  "initial-motion error (m/s)"
+ ],
+ "inference": "per-seed 95% paired cluster bootstrap (2000) over source-segment groups of the confirmation set; verdict wording PROTOCOL.md \u00a76 against the dev pooled direction",
+ "confirm_manifest": "reports/followup_initial_motion/confirm_manifest.json",
+ "confirm_groups": "reports/followup_initial_motion/confirm_groups.json",
+ "confirm_data_plan": "PROTOCOL.md \u00a76: 153 unused processed validation windows + validation shards 00012-00015 (separate raw/processed dirs); audit; target 500 (rng 20261104)",
+ "code_sha256": {
+  "src/waymo_av/initmotion.py": "3625fb3b1d2cf6db5efff661d460f9f14c44b4c039051aadcbbd1f9d1e646010",
+  "src/waymo_av/initmotion_report.py": "eaf8d16262b83638d8e481ee8b21dd3a4c0b8e53c9b1f92b2dc3c8f9418cd3ca",
+  "src/waymo_av/tokenizer.py": "20b5f8723f794e05779c5f49e705d0c9d568feead37719700ff8458b817c5d55",
+  "src/waymo_av/rollout.py": "c1991ca5a602a7549543b2e505a8e48af15b2e833bdd5ac6ba7cde0d6bd3685e",
+  "src/waymo_av/features.py": "7b57b80999181b05bdaf08c88d6e1d2020fbe2d53da33042b1d5416bb0ca021b",
+  "src/waymo_av/corruption.py": "d604c8726ad07d1a172d6459be8658cc1f35002858b747734a1d76974ddc8cb1",
+  "src/waymo_av/evaluate.py": "f10441e1eab204edb60b7630044a97ee8bd5d123ca9f0844a14eda6853786fac",
+  "src/waymo_av/metrics/stats.py": "371909c75f55825247daa610c0abaabfa8e8b42c170d564ab56af43357b615c8"
+ },
+ "registration_commit": "6895e37",
+ "selection_commit": "0671202"
+}
