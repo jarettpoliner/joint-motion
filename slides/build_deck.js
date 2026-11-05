@@ -147,6 +147,60 @@ const THEME = { name: "WaymoAV", headFontFace: "Cambria", bodyFontFace: "Calibri
   s.addText(concl.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < concl.length - 1, paraSpaceAfter: 8 } })), { x: 0.7, y: 1.5, w: 11.9, h: 5.2, fontSize: 15, color: "FFFFFF", isTextBox: true, valign: "top", margin: 0 });
   s.addNotes("Regenerate: " + C0.regenerate + "\nGPU-hours used at build time: " + C0.gpu_hours);
 
+  // 11 follow-up FU-IM (only when its saved results exist): inference-only, frozen v1 checkpoints
+  const FU = path.join(__dirname, "..", "reports", "followup_initial_motion");
+  const fuFiles = ["confirm_results.json", "dev_results.json", "verification.json", "confirm_audit.json", "selection.json"].map(f => path.join(FU, f));
+  if (fuFiles.every(f => fs.existsSync(f))) {
+    const [cr, dr, vf, au, sl] = fuFiles.map(f => JSON.parse(fs.readFileSync(f, "utf8")));
+    const sel = sl.selected;
+    const mn = a => a.reduce((x, y) => x + y, 0) / a.length;
+    const sgn = (x, d) => (x < 0 ? "−" : "+") + Math.abs(x).toFixed(d);
+    const pct = (x, d = 1) => sgn(100 * x, d) + " %";
+    const K = (c, o) => cr.contrasts[`${c}|joint_minADE_8s|${o}`];
+    const share = (res, mb, c) => { const A = mn(res.means[`${mb}|orig|${c}`]), B = mn(res.means[`${mb}|oracle|${c}`]), Cl = mn(res.means[`${mb}|orig|clean`]); return 100 * (A - B) / (A - Cl); };
+    const NZ = ["noise_0.1", "noise_0.3", "noise_0.5", "noise_1"];
+    const sh = [dr, cr].flatMap(r => NZ.map(c => share(r, "m0_pilot", c)));
+    const c4 = [...dr.compensation_c4["m1_pilot|noise_0.1"], ...cr.compensation_c4["m1_pilot|noise_0.1"]];
+    const G = (mb, k, o) => vf.geometry[`confirm|${mb}|${k}|${o}`].pooled_pp_exact;
+    const e0 = K("E_on_M0", "corrupted mean (5)"), e1 = K("E_on_M1", "corrupted mean (5)");
+    const c0 = K("E_on_M0", "clean").pooled, c1 = K("E_on_M1", "clean").pooled;
+    const gs = K("M1_vs_M0_sel", "corrupted mean (5)"), go = K("M1_vs_M0_orig", "corrupted mean (5)").pooled, dd = K("DiD", "corrupted mean (5)");
+    pres.defineSlideMaster({ title: "LIGHT_FU", background: { color: THEME.colors.lt1 },
+      objects: [{ placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.35, w: 12.1, h: 0.8, fontSize: 28, bold: true, color: C.text2, align: "left", margin: 0 } } },
+                { text: { text: "JointMotion follow-up FU-IM · inference only, frozen v1 checkpoints · reports/followup_initial_motion/REPORT.md", options: { x: 0.6, y: 7.0, w: 9.2, h: 0.3, fontSize: 9, color: "777777", margin: 0 } } },
+                { placeholder: { options: { name: "tag", type: "body", x: 9.9, y: 7.0, w: 2.8, h: 0.3, fontSize: 9, bold: true, color: C.accent2, align: "right", margin: 0 } } }] });
+    s = pres.addSlide({ masterName: "LIGHT_FU" });
+    s.addText("Follow-up: initial-motion error and a cheap estimator fix", { placeholder: "title" });
+    s.addText("FOLLOW-UP", { placeholder: "tag" });
+    s.addText(`Protocol registered before comparisons · dev 500 scenes (exploratory) · one frozen confirmation pass on ${au.n_chosen} unused validation scenes × 3 seeds`, { x: 0.6, y: 1.12, w: 12.1, h: 0.35, fontSize: 12, color: "555555", isTextBox: true, margin: 0 });
+    const fcard = (x, y, head, big, small, lines) => {
+      const w = 5.95, h = 2.6;
+      s.addShape(pres.ShapeType.roundRect, { x, y, w, h, fill: { color: THEME.colors.lt2 }, line: { color: THEME.colors.lt2 }, rectRadius: 0.08 });
+      s.addText(head, { x: x + 0.18, y: y + 0.1, w: w - 0.36, h: 0.38, fontSize: 15, bold: true, color: C.text2, isTextBox: true, margin: 0 });
+      if (big) s.addText([{ text: big, options: { fontSize: 24, bold: true, color: C.text2, breakLine: true } }, { text: small, options: { fontSize: 11, color: "555555" } }], { x: x + 0.18, y: y + 0.5, w: w - 0.36, h: 0.85, isTextBox: true, margin: 0, valign: "top" });
+      s.addText(lines.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < lines.length - 1, paraSpaceAfter: 3 } })), { x: x + 0.18, y: y + (big ? 1.4 : 0.55), w: w - 0.36, h: h - (big ? 1.5 : 0.65), fontSize: 11.5, color: C.text1, isTextBox: true, valign: "top", margin: 0 });
+    };
+    fcard(0.6, 1.6, "Mechanism test (oracle d0, identical tokens)", `${Math.round(Math.min(...sh))}–${Math.round(Math.max(...sh))} %`, "of M0's noise-induced excess error removed by oracle d0",
+      ["d0 = start velocity for integrating tokens; not a network input",
+       "Most of M0's noise penalty enters via corrupted input features",
+       `M1's tokens partly cancel d0 error (c₄ ${Math.min(...c4).toFixed(1)}–${Math.max(...c4).toFixed(1)} at 0.1 m)`]);
+    fcard(6.75, 1.6, `Estimator benefit: ${sel} (confirmation)`, `${pct(e0.pooled.rel_delta)} M0 · ${pct(e1.pooled.rel_delta)} M1`, `follow-up corrupted mean; ${e0.verdict} / ${e1.verdict} in all 3 seeds`.replace("confirmed / confirmed in all 3 seeds", "confirmed in all 3 seeds"),
+      [`Clean cost ${pct(c0.rel_delta)} M0, ${pct(c1.rel_delta)} M1 (pooled CIs exclude 0)`,
+       `Overlap ${sgn(G("m0_pilot", "overlap_rate_jointvalid", "corrupted mean (5)"), 1)} / ${sgn(G("m1_pilot", "overlap_rate_jointvalid", "corrupted mean (5)"), 1)} pp (adverse); offroad ${sgn(G("m0_pilot", "offroad_frac", "corrupted mean (5)"), 1)} / ${sgn(G("m1_pilot", "offroad_frac", "corrupted mean (5)"), 1)} pp`,
+       "No gain under 0.5 m bias; M1 slightly worse at 0.1 m noise"]);
+    fcard(0.6, 4.3, "Remaining M1 advantage (same estimator)", `${sgn(gs.pooled.delta, 2)} m (${pct(gs.pooled.rel_delta, 0)})`, `M1 − M0 with ${sel}, follow-up corrupted mean; ${gs.verdict}`,
+      [`With the v1 estimator: ${sgn(go.delta, 2)} m (${pct(go.rel_delta, 0)})`,
+       `Gap change ${sgn(dd.pooled.delta, 2)} m [${sgn(dd.pooled.ci_low, 2)}, ${sgn(dd.pooled.ci_high, 2)}]: ${dd.verdict}`,
+       "Not evidence of mediation; no model was retrained"]);
+    fcard(6.75, 4.3, "Confirmation limits", null, null,
+      [`${au.n_chosen} scenes, not the planned 500 (shard download needed reauth)`,
+       `The same ${au.n_chosen} scenes are used for all 3 seeds`,
+       `Source separation is heuristic; ${au.segment.not_testable_by_heuristic["candidate|no_moving_ngram"]} stationary-SDC scenes untestable`,
+       "Frozen v1 checkpoints; synthetic corruption with an exact current frame (favours the anchored fit)",
+       "Follow-up suite (noise 0.1–1.0 m, bias 0.5 m) is not the v1 core suite"]);
+    s.addNotes("Data: reports/followup_initial_motion/{confirm_results,dev_results,verification,confirm_audit,selection}.json (saved outputs only). Shares and compensation ranges pool dev and confirmation. See REPORT.md and verification.md.");
+  }
+
   await pres.writeFile({ fileName: outPath });
   await applyTheme(outPath, THEME);
   console.log("wrote", outPath);

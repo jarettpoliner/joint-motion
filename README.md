@@ -100,6 +100,51 @@ A development-set diagnostic shows the same tendency in aggregate. An agent's sa
 
 The denominator counts eligible agent-sample pairs, pooled over 3 seeds on the same 500 development scenes for both models. This diagnostic is descriptive only and was not used for any decision.
 
+## Follow-up: initial-motion estimation
+
+*An inference-only follow-up on the frozen version-1 checkpoints. It changes no result above.*
+
+The model turns its sampled motion tokens into a trajectory by integrating from an initial-velocity estimate, d0. Version 1 computes d0 by least squares over the last 0.5 s of observed positions, so position noise corrupts it directly. d0 is not a network input, so swapping it changes only the integration. The follow-up asked two questions. How much of the models' noise sensitivity enters through d0? Does corruption training still help once d0 is estimated better?
+
+The [protocol](reports/followup_initial_motion/PROTOCOL.md) was registered before any comparison. Development results are exploratory. One frozen pass on previously unused validation scenes served as the confirmation.
+
+- **Mechanism.** Replacing the corrupted d0 with an oracle d0 removes only **4–18 %** of M0's noise-induced error. The oracle is the same estimator applied to the uncorrupted history, decoding the identical tokens, and is not available in deployment. Most of M0's sensitivity enters through the corrupted input features instead.
+- **Estimator benefit.** The selected estimator, `anchored1s`, fits a line through the observed current position over the full 1 s of history. It lowers error on corrupted inputs for both models, at a small clean-input cost.
+- **Corruption training still adds value.** With `anchored1s` used for both models, M1 beats M0 by **−5.76 m (−53 %)** on the follow-up corruption suite, confirmed in all three seeds. With the version-1 estimator the gap is −5.87 m (−51 %). The change in the gap, +0.11 m [−0.02, +0.25], is not confirmed.
+
+| Confirmation set: 141 scenes × 3 seeds | M0 | M1 |
+|---|---|---|
+| Joint minADE@6 change from `anchored1s`, follow-up corrupted mean | **−5.8 %** [−6.9, −4.6], confirmed | **−9.9 %** [−11.8, −7.8], confirmed |
+| Clean-input cost | +1.3 % [+0.2, +2.6] | +1.5 % [+0.2, +2.8] |
+| Overlap change, follow-up corrupted mean (adverse) | +1.5 pp [+0.7, +2.3] | +1.7 pp [+0.6, +2.9] |
+| Offroad change, follow-up corrupted mean | −2.3 pp [−3.1, −1.6] | −2.1 pp [−2.8, −1.3] |
+
+Values are pooled over three seeds with 95 % paired bootstrap intervals. "Confirmed" means that all three per-seed intervals exclude zero, in the direction found on development data.
+
+**Two different corruption suites.** The follow-up's *corrupted mean* averages position noise at σ = 0.1, 0.3, 0.5 and 1.0 m and a structured 0.5 m bias, over the 141 confirmation scenes. That is a different suite on different scenes from the version-1 *Corrupted* column above, which covers missing frames and noise on 1,000 final-set scenes. The two sets of numbers are not comparable.
+
+**Caveats.**
+- **Small confirmation set.** It used **141 scenes, not the planned 500**: downloading more validation data needed an interactive login.
+- **Same scenes for every seed.** All three seeds were evaluated on the same 141 scenes.
+- **Heuristic source separation.** Separation from training, development and final scenes rests on a heuristic, which could not test 37 scenes whose SDC is stationary.
+- **Frozen checkpoints.** The estimator swap was tested only on frozen checkpoints trained with the version-1 estimator. Nothing was retrained.
+- **Synthetic corruption favours the anchored fit.** The synthetic corruption leaves the current frame exact, which favours an anchored fit.
+- **Bias and low noise.** `anchored1s` gives no gain under the bias corruption, and M1 is slightly worse with it at 0.1 m noise.
+
+<p align="center">
+  <img src="reports/followup_initial_motion/figures/fig_mechanism.png" width="100%"
+       alt="Six-panel mechanism figure. Initial-motion error grows linearly with position noise and is lowest for the anchored estimator. Joint error rises with initial-motion error, and an oracle initial velocity lowers it only partly for M0 but more for M1. Per-step error curves at 0.5 m noise. A two-by-two decomposition shows that corrupting only the input features adds far more error to M0 than corrupting only the initial velocity. M1's generated tokens partly cancel the initial-velocity error, while M0's do not. The share of the noise penalty removed by the oracle stays below about 20 % for M0 and reaches about 42 % for M1 at 1.0 m.">
+</p>
+
+*Mechanism, development data unless labelled. The oracle uses the uncorrupted history and is a diagnostic only. Panel (f) adds the confirmation set.*
+
+<p align="center">
+  <img src="reports/followup_initial_motion/figures/fig_estimator_training.png" width="100%"
+       alt="Four-panel comparison. Joint minADE@6 by condition for M0 and M1 with the version-1 and anchored estimators, on development and confirmation scenes. The anchored estimator lowers error under 0.5 and 1.0 m noise, most for M1 at 1.0 m, and changes little on clean inputs and under bias. The M1 minus M0 gap is nearly the same under both estimators.">
+</p>
+
+*Estimator and training comparison, development (500 scenes) and confirmation (141 scenes). Full results: [follow-up report](reports/followup_initial_motion/REPORT.md), [confirmation tables](reports/followup_initial_motion/confirm_tables.md), [independent verification](reports/followup_initial_motion/verification.md).*
+
 ## Reproduce
 
 Training and post-training of all 18 models logged 2.27 GPU-hours on one GPU, not counting evaluation. Trained checkpoints and data are not included in this repository.
@@ -112,7 +157,7 @@ uv pip install --python <data_root>/env/train/bin/python -r requirements/train.l
 uv pip install --python <data_root>/env/train/bin/python -e .
 PYTHON=<data_root>/env/train/bin/python bash scripts/build_protos.sh
 PY=<data_root>/env/train/bin/python
-CUDA_VISIBLE_DEVICES= $PY -m pytest tests      # 35 CPU tests on synthetic fixtures
+CUDA_VISIBLE_DEVICES= $PY -m pytest tests      # 46 CPU tests on synthetic fixtures
 bash scripts/smoke_synthetic.sh                # end-to-end smoke test, no WOMD data needed
 ```
 
@@ -177,14 +222,15 @@ src/waymo_av/
 configs/         paths, training and RL configs
 manifests/       split manifests (final set locked), dataset version, audits, freeze record
 registry/        experiment registry, GPU-hour log, campaign state
-tests/           35 CPU tests on synthetic fixtures
+tests/           46 CPU tests on synthetic fixtures
 ```
 </details>
 
 ## Reports, slides and records
 
 - **Final report**, covering development and final results, metric qualification and limitations: [PDF](reports/report.pdf) or [Markdown](reports/report.md). It keeps the original campaign title.
-- **Slides**, 10 slides with final results: [PDF](slides/waymo_av_results_final.pdf) or [PowerPoint](slides/waymo_av_results_final.pptx).
+- **Slides**, 10 slides with the version-1 final results plus 1 follow-up slide: [PDF](slides/waymo_av_results_final.pdf) or [PowerPoint](slides/waymo_av_results_final.pptx).
+- **Initial-motion follow-up**, inference only: [report](reports/followup_initial_motion/REPORT.md), [protocol and deviations log](reports/followup_initial_motion/PROTOCOL.md), [verification](reports/followup_initial_motion/verification.md), [development](reports/followup_initial_motion/dev_tables.md) and [confirmation](reports/followup_initial_motion/confirm_tables.md) tables.
 - **Final tables:** [per-seed comparison with paired 95 % intervals](reports/tables/final/comparison.md), [all methods and conditions](reports/tables/final/table.md), and [machine-readable summary](reports/tables/final/summary.json).
 - **Development tables**, used for checkpoint selection and not held out: [comparison](reports/tables/dev/comparison.md).
 - **Figures:** [final](reports/figures/final/), [development](reports/figures/dev/), and [README media provenance](docs/media/sources.json), built by [this script](scripts/build_readme_media.py).
