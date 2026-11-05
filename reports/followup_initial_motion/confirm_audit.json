@@ -1,0 +1,35 @@
+{
+ "t": "2026-11-04T20:51:32",
+ "n_processed_validation": 1141,
+ "n_final": 1000,
+ "n_candidates": 141,
+ "planned_extra_shards": "validation 00012-00015 (not obtained: interactive reauthentication required by the installed credential)",
+ "exposure": {
+  "scanned_manifests": 20,
+  "scanned_tracked_files": 254,
+  "scanned_run_text_files": 612,
+  "scanned_run_npz": 555,
+  "n_exposed": 0,
+  "exposed_examples": {},
+  "note": "processed/validation/manifest_*.json (preprocessing stats) list every processed window by construction; they record processing, not model use"
+ },
+ "segment": {
+  "method": "version-1 heuristic (scripts/segment_overlap.py), re-run over train+dev+final+candidates",
+  "n_candidates_linked_to_train_dev_final": 0,
+  "linked_ids": [],
+  "candidate_group_size_hist": {
+   "1": 141
+  },
+  "not_testable_by_heuristic": {
+   "train|no_moving_ngram": 2111,
+   "dev|no_moving_ngram": 119,
+   "final|no_moving_ngram": 239,
+   "candidate|no_moving_ngram": 37
+  },
+  "cross_split_components": {}
+ },
+ "contract_failures": [],
+ "n_eligible": 141,
+ "n_chosen": 141,
+ "shortfall_vs_target_500": 359
+}

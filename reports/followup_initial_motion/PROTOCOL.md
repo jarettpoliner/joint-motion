@@ -226,3 +226,24 @@ relabelled.
 ## Deviations log
 
 (Appended during execution; none at registration.)
+
+1. **Candidate count correction (§6).** The registered "153 unused processed validation windows"
+   was a miscount: the 1153 files in `processed/validation/` include 12 shard-manifest JSON files.
+   There are 1141 processed windows, 1000 of them in `final.json`, so **141** were unused. This was
+   found by `scripts/fu_confirm_set.py` after the freeze. It does not affect any estimator or
+   comparison choice.
+2. **Extra validation shards not obtained (§6).** `gsutil cp` of `validation.tfrecord-00012-of-00150`
+   failed with `google_reauth.errors.ReauthUnattendedError`: the installed credential requires an
+   interactive reauthentication that this unattended session cannot answer. No workaround was
+   attempted, and the empty target directory was removed. As the protocol prescribes, the
+   confirmation set is therefore the audited existing data only.
+   - All 141 candidates passed the audit:
+     - zero id exposure in manifests, tracked files, 612 run text files and 555 run `.npz` files;
+     - zero source-segment links to train, dev or final;
+     - zero contract failures.
+   - This is a **shortfall of 359 against the 500 target**.
+   - All 141 are singleton groups, so the cluster bootstrap reduces to a scene bootstrap. 37 of the
+     141 have a stationary SDC that the heuristic cannot test.
+   - The single confirmation pass is run on these 141 scenes with reduced power, which is disclosed.
+     Extending it to shards 12–15 requires `gcloud auth login` by the user. Such an extension would
+     be a new, separately labelled replication, not a re-run of this pass.
