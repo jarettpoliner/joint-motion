@@ -2,7 +2,7 @@
 confirmation), figures. Reads <runs>/followup_initmotion/<stage>/...; writes
 reports/followup_initial_motion/. See PROTOCOL.md for definitions.
 
-python -m waymo_av.initmotion_report --stage diag|dev|confirm|figures
+python -m waymo_av.initmotion_report --stage diag|dev|freeze|confirm|figures
 """
 from __future__ import annotations
 
@@ -248,6 +248,8 @@ def _contrasts(sel):
 
 def verdict(ds, dev_sign=None):
     """Per-seed CIs -> wording (PROTOCOL.md §6). dev_sign: expected direction (+1/-1) or None."""
+    if all(d["delta"] == 0 and d["ci_low"] == 0 and d["ci_high"] == 0 for d in ds):
+        return "identical by construction"
     signs = [np.sign(d["delta"]) for d in ds]
     excl = [(d["ci_low"] > 0) or (d["ci_high"] < 0) for d in ds]
     same = len(set(signs)) == 1
@@ -387,6 +389,250 @@ def stage_compare(st):
     print("\n".join(L))
 
 
+# ----------------------------------------------------------------------------- figures
+INK, INK2, GRID, SURF = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
+C_M0, C_M1, C_D0, C_ALT = "#2a78d6", "#eb6834", "#1baf7a", "#6250d6"  # validated (dataviz validate_palette.js, light)
+SIG = {"noise_0.1": 0.1, "noise_0.3": 0.3, "noise_0.5": 0.5, "noise_1": 1.0}
+
+
+def _style(ax, title):
+    ax.set_facecolor(SURF)
+    ax.grid(True, color=GRID, lw=0.8)
+    ax.set_axisbelow(True)
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+    for s in ("left", "bottom"):
+        ax.spines[s].set_color(INK2)
+    ax.tick_params(colors=INK2, labelsize=9)
+    ax.set_title(title, loc="left", fontsize=10.5, color=INK, fontweight="bold")
+
+
+def stage_figures():
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    plt.rcParams.update({"font.family": "DejaVu Sans", "axes.labelcolor": INK2, "axes.labelsize": 9.5})
+    sel = json.load(open(TRACKED / "selection.json"))["selected"]
+    diag = json.load(open(TRACKED / "diag_results.json"))
+    dev = json.load(open(TRACKED / "dev_results.json"))
+    con = json.load(open(TRACKED / "confirm_results.json"))
+    figdir = TRACKED / "figures"
+    figdir.mkdir(exist_ok=True)
+
+    # ---------------- mechanism figure
+    fig, axs = plt.subplots(2, 3, figsize=(16, 9.4), dpi=150, facecolor=SURF)
+    # (a) initial-motion error vs noise
+    ax = axs[0, 0]
+    _style(ax, "a  Initial-motion error vs position noise")
+    xs = [SIG[c] for c in NOISE]
+    for est, col, lab in (("orig", INK2, "version-1: OLS, last 0.5 s"), ("ols1s", C_ALT, "ols1s: OLS, full 1 s"), (sel, C_D0, f"{sel}: through anchor, 1 s")):
+        y = [diag["d0_error"][c][f"{est}|same"]["mean"] for c in NOISE]
+        ax.plot(xs, y, "-o", color=col, lw=2, ms=6, label=lab)
+        yb = diag["d0_error"][STRUCT][f"{est}|same"]["mean"]
+        ax.plot([1.15], [yb], "D", color=col, ms=7, mfc="white", mew=2)
+    ax.text(1.06, 0.86, "version-1 and\nanchored1s coincide", fontsize=7.5, color=INK2, ha="center")
+    ax.set_xlim(0, 1.25)
+    ax.set_ylim(0, None)
+    ax.set_xlabel("noise σ on history positions (m); ◇ = bias 0.5 m")
+    ax.set_ylabel("|d0(corrupted) − d0(uncorrupted)|  (m/s)")
+    ax.legend(frameon=False, fontsize=8.5, loc="upper left", labelcolor=INK)
+    ax.text(0.0, -0.155, "200 dev scenes; per target agent;\nreference = same estimator on uncorrupted history", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    # (b) d0 error vs trajectory error (dev, pooled seeds and noise levels)
+    ax = axs[0, 1]
+    _style(ax, "b  Initial-motion error vs trajectory error")
+    for mb, col in (("m0_pilot", C_M0), ("m1_pilot", C_M1)):
+        e_all, a_all, b_all = [], [], []
+        for s in SEEDS:
+            for c in NOISE:
+                dg = load_diag("dev", f"{mb}_s{s}", c)
+                e_all.append(np.nanmean(d0_err_ms(dg, "orig", "same"), axis=1))
+                a_all.append(load_metrics("dev", f"{mb}_s{s}", c, "orig")["joint_minADE_8s"])
+                b_all.append(load_metrics("dev", f"{mb}_s{s}", c, "oracle")["joint_minADE_8s"])
+        e, A, B = map(np.concatenate, (e_all, a_all, b_all))
+        ok = np.isfinite(A) & np.isfinite(B)
+        e, A, B = e[ok], A[ok], B[ok]
+        edges = np.quantile(e, np.linspace(0, 1, 11))
+        idx = np.clip(np.digitize(e, edges[1:-1]), 0, 9)
+        xm = [e[idx == k].mean() for k in range(10)]
+        ax.plot(xm, [A[idx == k].mean() for k in range(10)], "-o", color=col, lw=2, ms=5)
+        ax.plot(xm, [B[idx == k].mean() for k in range(10)], "--o", color=col, lw=2, ms=5, mfc="white")
+        lab = "M0" if mb == "m0_pilot" else "M1"
+        ax.text(xm[-1] + 0.08, A[idx == 9].mean(), f"{lab} original", color=INK, fontsize=8.5, va="center")
+        ax.text(xm[-1] + 0.08, B[idx == 9].mean(), f"{lab} oracle d0", color=INK2, fontsize=8.5, va="center")
+    ax.set_xlim(0, None)
+    ax.set_xlabel("version-1 d0 error, scene mean of two targets (m/s; decile bins)")
+    ax.set_ylabel("joint minADE@6, 8 s (m)")
+    ax.text(0.0, -0.155, "dev 500 scenes × 3 seeds × noise 0.1–1.0 m;\nsolid = original d0, dashed = ORACLE d0 (same tokens)", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    ax.margins(x=0.25)
+    # (c) error by horizon at noise 0.5
+    ax = axs[0, 2]
+    _style(ax, "c  Error by horizon, noise 0.5 m")
+    tt = np.arange(1, 17) * STEP_DT
+    for mb, col, lab in (("m0_pilot", C_M0, "M0"), ("m1_pilot", C_M1, "M1")):
+        for arm, ls, mfc, sfx in (("orig", "-", col, "original"), ("oracle", "--", "white", "oracle d0")):
+            y = np.nanmean(np.stack([np.nanmean(load_metrics("dev", f"{mb}_s{s}", "noise_0.5", arm)["step_jmin_err"], 0) for s in SEEDS]), 0)
+            ax.plot(tt, y, ls, color=col, lw=2, marker="o", ms=3.5, mfc=mfc)
+            ax.text(8.15, y[-1] + (0.9 if arm == "orig" else -0.9), f"{lab} {sfx}", color=INK if arm == "orig" else INK2, fontsize=8.5, va="center")
+        yc = np.nanmean(np.stack([np.nanmean(load_metrics("dev", f"{mb}_s{s}", "clean", "orig")["step_jmin_err"], 0) for s in SEEDS]), 0)
+        ax.plot(tt, yc, ":", color=col, lw=1.6)
+    ax.text(5.2, 2.0, "dotted: clean inputs", fontsize=8.5, color=INK2)
+    ax.set_xlim(0, 10.3)
+    ax.set_ylim(0, None)
+    ax.set_xlabel("forecast horizon (s)")
+    ax.set_ylabel("per-step joint min error over 6 samples (m)")
+    ax.text(0.0, -0.155, "dev 500 scenes, mean of 3 seeds;\na d0 error shifts step k by exactly k·Δd0", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    # (d) 2x2 decomposition
+    ax = axs[1, 0]
+    _style(ax, "d  Where the corruption penalty enters (2×2)")
+    groups = [("m0_pilot_s0", c) for c in ("noise_0.5", "noise_1", STRUCT)] + [("m1_pilot_s0", c) for c in ("noise_0.5", "noise_1", STRUCT)]
+    x = np.arange(len(groups))
+    w = 0.38
+    d0p = [diag["two_by_two"][f"{m}|{c}"]["d0_cleanfeat"] for m, c in groups]
+    cdp = [diag["two_by_two"][f"{m}|{c}"]["cond_cleand0"] for m, c in groups]
+    for off, vals, col, lab in ((-w / 2 - 0.01, d0p, C_D0, "d0 path only (clean features, corrupted d0)"), (w / 2 + 0.01, cdp, INK2, "conditioning path only (corrupted features, clean d0)")):
+        ax.bar(x + off, [v["delta"] for v in vals], w, color=col, label=lab, edgecolor=SURF, linewidth=1)
+        ax.errorbar(x + off, [v["delta"] for v in vals], yerr=[[v["delta"] - v["ci_low"] for v in vals], [v["ci_high"] - v["delta"] for v in vals]], fmt="none", ecolor=INK, lw=1, capsize=2)
+    ax.set_xticks(x, [f"{'M0' if m.startswith('m0') else 'M1'}\n" + {"noise_0.5": "σ 0.5", "noise_1": "σ 1.0", STRUCT: "bias"}[c] for m, c in groups], fontsize=8.5)
+    ax.set_ylabel("added joint minADE@6 vs clean (m)")
+    ax.set_ylim(0, 17)
+    ax.legend(frameon=False, fontsize=8.5, loc="upper left", labelcolor=INK)
+    ax.text(0.0, -0.155, "seed 0, 200 dev scenes; 95 % CI;\nthe two paths are not additive (diag_tables.md T3)", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    # (e) compensation
+    ax = axs[1, 1]
+    _style(ax, "e  Do generated tokens cancel the d0 error?")
+    for mb, col, lab in (("m0_pilot", C_M0, "M0 (clean training)"), ("m1_pilot", C_M1, "M1 (corruption training)")):
+        v = np.array([dev["compensation_c4"][f"{mb}|{c}"] for c in NOISE])
+        ax.plot(xs, v.mean(1), "-o", color=col, lw=2, ms=6, label=lab)
+        ax.fill_between(xs, v.min(1), v.max(1), color=col, alpha=0.15, lw=0)
+        vb = dev["compensation_c4"][f"{mb}|{STRUCT}"]
+        ax.plot([1.15], [np.mean(vb)], "D", color=col, ms=7, mfc="white", mew=2)
+    ax.axhline(0, color=INK2, lw=1)
+    ax.axhline(1, color=INK2, lw=1, ls=":")
+    ax.text(0.02, 0.98, "1 = full cancellation", fontsize=8.5, color=INK2, va="top")
+    ax.text(1.15, -0.72, "bias", ha="center", fontsize=8.5, color=INK2)
+    ax.set_xlim(0, 1.25)
+    ax.set_ylim(-0.8, 1.1)
+    ax.set_xlabel("noise σ (m); ◇ = bias 0.5 m")
+    ax.set_ylabel("compensation coefficient c₄ (2 s)")
+    ax.legend(frameon=False, fontsize=8.5, loc="lower left", labelcolor=INK)
+    ax.text(0.0, -0.155, "dev 500 scenes; line = mean, band = range over 3 seeds;\ndescriptive regression", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    # (f) share of excess removed by the oracle
+    ax = axs[1, 2]
+    _style(ax, "f  Noise penalty removed by oracle d0")
+    for res, mk, mfc_white, tag in ((dev, "o", False, "dev"), (con, "s", True, "confirmation")):
+        for mb, col, lab in (("m0_pilot", C_M0, "M0"), ("m1_pilot", C_M1, "M1")):
+            sh = []
+            for c in NOISE:
+                A = np.mean(res["means"][f"{mb}|orig|{c}"]); B = np.mean(res["means"][f"{mb}|oracle|{c}"]); Cl = np.mean(res["means"][f"{mb}|orig|clean"])
+                sh.append(100 * (A - B) / (A - Cl))
+            ax.plot(xs, sh, ("-" if tag == "dev" else "--") + mk, color=col, lw=2 if tag == "dev" else 1.4, ms=6, mfc="white" if mfc_white else col, label=f"{lab}, {tag}")
+    ax.set_xlim(0, 1.1)
+    ax.axhline(0, color=INK2, lw=1)
+    ax.set_xlabel("noise σ (m)")
+    ax.set_ylabel("(A − B) / (A − clean)  (%)")
+    ax.legend(frameon=False, fontsize=8.5, loc="upper left", labelcolor=INK, ncol=2)
+    ax.text(0.0, -0.155, "mean of 3 seeds; dev 500, confirmation 141 scenes;\ndescriptive; negative = oracle d0 worse", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    fig.suptitle("FU-IM mechanism: the initial-motion estimate shifts every step linearly, but most of M0's noise penalty enters through the corrupted input features",
+                 x=0.01, ha="left", fontsize=12, color=INK, fontweight="bold")
+    fig.tight_layout(rect=(0, 0.01, 1, 0.96), h_pad=3.2, w_pad=2.5)
+    fig.savefig(figdir / "fig_mechanism.png", facecolor=SURF)
+    plt.close(fig)
+
+    # ---------------- estimator / training comparison
+    fig, axs = plt.subplots(2, 2, figsize=(14.5, 9.6), dpi=150, facecolor=SURF)
+    xl = ["clean", "noise\n0.1 m", "noise\n0.3 m", "noise\n0.5 m", "noise\n1.0 m", "bias\n0.5 m"]
+    x = np.arange(len(CONDITIONS))
+    for ax, res, ttl, n in ((axs[0, 0], dev, "a  Development (exploratory)", "500 dev scenes"), (axs[0, 1], con, "b  Confirmation (one pass, frozen)", "141 unused validation scenes")):
+        _style(ax, ttl)
+        for mb, col, lab in (("m0_pilot", C_M0, "M0"), ("m1_pilot", C_M1, "M1")):
+            for arm, ls, mfc in (("orig", "-", col), (sel, "--", "white")):
+                y = [np.mean(res["means"][f"{mb}|{arm}|{c}"]) for c in CONDITIONS]
+                sd = [np.std(res["means"][f"{mb}|{arm}|{c}"]) for c in CONDITIONS]
+                dx = 0.06 if arm != "orig" else -0.06
+                ax.errorbar(x[:5] + dx, y[:5], yerr=sd[:5], fmt=ls + "o", color=col, lw=2, ms=6, mfc=mfc, mew=1.8, capsize=0, elinewidth=1, label=f"{lab} + {'version-1 d0' if arm == 'orig' else sel}")
+                ax.errorbar([x[5] + dx], [y[5]], yerr=[sd[5]], fmt="o", color=col, ms=6, mfc=mfc, mew=1.8, capsize=0, elinewidth=1)
+        ax.axvline(4.5, color=GRID, lw=1.5)
+        ax.legend(frameon=False, fontsize=8.5, loc="upper left", labelcolor=INK)
+        ax.set_xticks(x, xl, fontsize=9)
+        ax.set_xlim(-0.3, 5.4)
+        ax.set_ylim(0, 20)
+        ax.set_ylabel("joint minADE@6, 8 s (m)")
+        ax.text(0.0, -0.13, f"{n}; mean of 3 seeds (bar = SD across seeds);\nsolid = version-1 d0, dashed = {sel}; same tokens per pair; bias is not on the noise scale", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    ax = axs[1, 0]
+    _style(ax, f"c  Estimator effect: {sel} vs version-1 d0 (relative)")
+    for res, off, mfc_w, tag in ((dev, -0.09, False, "dev"), (con, 0.09, True, "confirmation")):
+        for cname, col, lab, o2 in (("E_on_M0", C_M0, "M0", -0.18), ("E_on_M1", C_M1, "M1", 0.18)):
+            ds = [res["contrasts"][f"{cname}|joint_minADE_8s|{o}"]["pooled"] for o, _ in OUTCOMES[:6]]
+            y = [100 * d["rel_delta"] for d in ds]
+            lo = [100 * (d["rel_delta"] - d["rel_ci_low"]) for d in ds]
+            hi = [100 * (d["rel_ci_high"] - d["rel_delta"]) for d in ds]
+            ax.errorbar(x + o2 + off, y, yerr=[lo, hi], fmt="o" if tag == "dev" else "s", color=col, ms=6, mfc="white" if mfc_w else col, mew=1.8, elinewidth=1.4, capsize=2, label=f"{lab}, {tag}")
+    ax.axhline(0, color=INK2, lw=1)
+    ax.axvline(4.5, color=GRID, lw=1.5)
+    ax.set_xticks(x, xl, fontsize=9)
+    ax.set_ylabel("Δ joint minADE@6 (%)  (negative = better)")
+    ax.legend(frameon=False, fontsize=8.5, loc="lower left", ncol=2, labelcolor=INK)
+    ax.text(0.0, -0.13, "pooled over 3 seeds; 95 % paired bootstrap CI; per-seed verdicts in confirm_tables.md", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    ax = axs[1, 1]
+    _style(ax, "d  Remaining advantage of corruption training (M1 − M0)")
+    for res, off, tag, mk in ((dev, -0.09, "dev", "o"), (con, 0.09, "confirmation", "s")):
+        for cname, col, lab, o2 in (("M1_vs_M0_orig", INK2, "version-1 d0", -0.18), ("M1_vs_M0_sel", C_D0, sel, 0.18)):
+            ds = [res["contrasts"][f"{cname}|joint_minADE_8s|{o}"]["pooled"] for o, _ in OUTCOMES[:6]]
+            ax.errorbar(x + o2 + off, [d["delta"] for d in ds], yerr=[[d["delta"] - d["ci_low"] for d in ds], [d["ci_high"] - d["delta"] for d in ds]],
+                        fmt=mk, color=col, ms=6, mfc="white" if tag != "dev" else col, mew=1.8, elinewidth=1.4, capsize=2, label=f"under {lab}, {tag}")
+    ax.axhline(0, color=INK2, lw=1)
+    ax.axvline(4.5, color=GRID, lw=1.5)
+    ax.set_xticks(x, xl, fontsize=9)
+    ax.set_ylabel("M1 − M0 joint minADE@6 (m)  (negative = M1 better)")
+    ax.legend(frameon=False, fontsize=8.5, loc="lower left", labelcolor=INK)
+    ax.text(0.0, -0.13, "pooled over 3 seeds; 95 % CI; a smaller gap would not by itself show mediation", transform=ax.transAxes, fontsize=7.5, color=INK2, va="top")
+    fig.suptitle(f"FU-IM comparison: {sel} lowers noisy-input error for both models; M1's advantage over M0 is nearly unchanged",
+                 x=0.01, ha="left", fontsize=12, color=INK, fontweight="bold")
+    fig.tight_layout(rect=(0, 0.01, 1, 0.96), h_pad=3.0, w_pad=2.5)
+    fig.savefig(figdir / "fig_estimator_training.png", facecolor=SURF)
+    plt.close(fig)
+    print("wrote", figdir / "fig_mechanism.png", figdir / "fig_estimator_training.png")
+
+
+# ----------------------------------------------------------------------------- freeze
+def stage_freeze():
+    """Write freeze.json once (PROTOCOL.md §6), after the dev comparison and before any confirmation
+    scene is accessed. Refuses to overwrite an existing freeze."""
+    import hashlib
+    import time
+
+    from waymo_av.initmotion import SAMPLING, CORRUPTION_GLOBAL_SEED
+
+    path = TRACKED / "freeze.json"
+    if path.exists():
+        raise SystemExit(f"{path} exists (frozen {json.load(open(path))['t']}); refusing to overwrite")
+    sel = json.load(open(TRACKED / "selection.json"))
+    ck = {}
+    for m in ("m0_pilot", "m1_pilot"):
+        for s in SEEDS:
+            p = json.load(open(out_root() / "dev" / f"{m}_s{s}" / "clean" / "sample_provenance.json"))
+            ck[f"{m}_s{s}"] = {"path": p["ckpt"], "sha256": p["ckpt_sha256"]}
+    h = lambda f: hashlib.sha256((Path(__file__).resolve().parents[2] / f).read_bytes()).hexdigest()
+    frz = {"t": time.strftime("%Y-%m-%dT%H:%M:%S"), "status": "FROZEN before any confirmation scene was downloaded, processed or read",
+           "selected_estimator": sel["selected"], "selection_rule": "PROTOCOL.md §4 (selection.json)",
+           "arms": ["orig", sel["selected"], "oracle"], "oracle_is_diagnostic_only": True,
+           "methods_primary": ["M0+orig", f"M0+{sel['selected']}", "M1+orig", f"M1+{sel['selected']}"],
+           "secondary": ["M0+oracle, M1+oracle (ORACLE diagnostics)", f"CV+orig, CV+{sel['selected']} (non-learned reference)"],
+           "conditions": CONDITIONS, "corruption_global_seed": CORRUPTION_GLOBAL_SEED, "sampling": SAMPLING,
+           "sampling_seed_rule": "crc32('fu_im|<model_tag>|<condition>')", "checkpoints": ck,
+           "contrasts": ["E_on_M0", "E_on_M1", "M1_vs_M0_orig", "M1_vs_M0_sel", "DiD", "oracle_on_M0", "oracle_on_M1"],
+           "outcomes": [o for o, _ in OUTCOMES],
+           "metrics": ["joint_minADE_8s (primary)", "joint_minFDE_8s", "joint_minADE_3s/5s", "overlap_rate_jointvalid", "offroad_frac", "initial-motion error (m/s)"],
+           "inference": "per-seed 95% paired cluster bootstrap (2000) over source-segment groups of the confirmation set; verdict wording PROTOCOL.md §6 against the dev pooled direction",
+           "confirm_manifest": "reports/followup_initial_motion/confirm_manifest.json", "confirm_groups": "reports/followup_initial_motion/confirm_groups.json",
+           "confirm_data_plan": "PROTOCOL.md §6: 153 unused processed validation windows + validation shards 00012-00015 (separate raw/processed dirs); audit; target 500 (rng 20261104)",
+           "code_sha256": {f: h(f) for f in ("src/waymo_av/initmotion.py", "src/waymo_av/initmotion_report.py", "src/waymo_av/tokenizer.py", "src/waymo_av/rollout.py", "src/waymo_av/features.py", "src/waymo_av/corruption.py", "src/waymo_av/evaluate.py", "src/waymo_av/metrics/stats.py")}}
+    json.dump(frz, open(path, "w"), indent=1)
+    print(f"wrote {path}")
+
+
 def _clean(o):
     if isinstance(o, dict):
         return {str(k): _clean(v) for k, v in o.items()}
@@ -403,13 +649,17 @@ def _clean(o):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", required=True, choices=["diag", "dev", "confirm", "figures"])
+    ap.add_argument("--stage", required=True, choices=["diag", "dev", "freeze", "confirm", "figures"])
     a = ap.parse_args(argv)
     TRACKED.mkdir(parents=True, exist_ok=True)
     if a.stage == "diag":
         stage_diag()
     elif a.stage in ("dev", "confirm"):
         stage_compare(a.stage)
+    elif a.stage == "figures":
+        stage_figures()
+    elif a.stage == "freeze":
+        stage_freeze()
     else:
         raise SystemExit(f"stage {a.stage}: not yet implemented")
 

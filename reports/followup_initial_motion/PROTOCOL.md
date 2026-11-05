@@ -247,3 +247,13 @@ relabelled.
    - The single confirmation pass is run on these 141 scenes with reduced power, which is disclosed.
      Extending it to shards 12–15 requires `gcloud auth login` by the user. Such an extension would
      be a new, separately labelled replication, not a re-run of this pass.
+3. **Analysis-module additions after the freeze.** `src/waymo_av/initmotion_report.py` differs from
+   the frozen hash only by additions:
+   - a verdict label "identical by construction" for oracle-vs-orig on clean, where B ≡ A and every
+     delta and CI is exactly 0; it was previously mislabelled "directionally consistent";
+   - the figure code;
+   - a refuse-to-overwrite `--stage freeze` that reproduces the freeze logic.
+
+   The runner (`initmotion.py`) and every version-1 module match their frozen hashes. Re-running the
+   dev analysis after the change reproduced every frozen dev number exactly. Only the verdict
+   wording changed.

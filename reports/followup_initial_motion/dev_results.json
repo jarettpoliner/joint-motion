@@ -2557,7 +2557,7 @@
     "mean_a": 3.7576541150788554,
     "mean_b": 3.7576541150788554
    },
-   "seed_agreement": "consistent sign"
+   "seed_agreement": "identical by construction"
   },
   "oracle_on_M0|joint_minADE_8s|noise 0.1": {
    "per_seed": [
@@ -3013,7 +3013,7 @@
     "mean_a": 3.4782669325062106,
     "mean_b": 3.4782669325062106
    },
-   "seed_agreement": "consistent sign"
+   "seed_agreement": "identical by construction"
   },
   "oracle_on_M1|joint_minADE_8s|noise 0.1": {
    "per_seed": [

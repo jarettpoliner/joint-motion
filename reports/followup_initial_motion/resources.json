@@ -1,0 +1,31 @@
+{
+ "gpu": "1 \u00d7 NVIDIA RTX 4000 Ada (cuda:0 via CUDA_VISIBLE_DEVICES=0); one job at a time; torch 2.5.1+cu124",
+ "gpu_cap_hours": 3.0,
+ "gpu_ledger_hours_total": 0.0396,
+ "gpu_ledger_definition": "phase-1 process wall-clock per (model, condition) job while holding the GPU: feature building + sampling + decoding of all arms",
+ "per_stage": {
+  "diag": {
+   "jobs": 18,
+   "gpu_ledger_s": 17.5,
+   "cpu_metric_wall_s": 18.7
+  },
+  "dev": {
+   "jobs": 42,
+   "gpu_ledger_s": 90.0,
+   "cpu_metric_wall_s": 63.1
+  },
+  "confirm": {
+   "jobs": 42,
+   "gpu_ledger_s": 35.0,
+   "cpu_metric_wall_s": 29.1
+  }
+ },
+ "cpu_metric_workers": 8,
+ "cpu_nice": 5,
+ "pre_registration_smoke_test": "32 dev scenes, M0 seed 0 + CV, noise_0.5, scratch directory (< 2 s GPU)",
+ "disk_runs_followup_bytes_approx": "218 MB (<runs>/followup_initmotion)",
+ "downloads": "none (planned 4 validation shards blocked by interactive reauthentication; 0 bytes written)",
+ "training_or_rl": "none",
+ "ledger_file": "<runs>/followup_initmotion/gpu_ledger.jsonl (separate from version-1 registry/gpu_hours.jsonl, which is unchanged)",
+ "v1_outputs_unchanged_check": "sha256 of all 1083 files under <runs>/eval_dev, eval_final, eval_dev_prelim identical before and after the follow-up"
+}

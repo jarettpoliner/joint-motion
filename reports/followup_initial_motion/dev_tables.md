@@ -71,7 +71,7 @@ all 500 dev scenes (manifests/dev.json); checkpoints m0_pilot_s{0,1,2}, m1_pilot
 | 1 | +0.000 [+0.000, +0.000] (+0.0 %) | -0.063 [-0.106, -0.020] (-1.0 %) | -0.521 [-0.657, -0.387] (-4.7 %) | -1.137 [-1.375, -0.900] (-8.4 %) | -3.444 [-3.861, -3.019] (-20.4 %) | -0.646 [-0.759, -0.531] (-8.0 %) | -1.291 [-1.424, -1.164] (-10.9 %) | -1.162 [-1.270, -1.057] (-10.5 %) |
 | 2 | +0.000 [+0.000, +0.000] (+0.0 %) | -0.099 [-0.141, -0.059] (-1.7 %) | -0.503 [-0.635, -0.372] (-4.5 %) | -0.886 [-1.126, -0.658] (-6.0 %) | -2.358 [-2.785, -1.929] (-11.9 %) | -0.927 [-1.034, -0.824] (-12.4 %) | -0.961 [-1.093, -0.833] (-7.5 %) | -0.955 [-1.066, -0.846] (-8.1 %) |
 | pooled | +0.000 [+0.000, +0.000] (+0.0 %) | -0.093 [-0.124, -0.062] (-1.6 %) | -0.474 [-0.584, -0.365] (-4.2 %) | -0.964 [-1.153, -0.782] (-6.7 %) | -2.678 [-2.998, -2.352] (-14.6 %) | -0.792 [-0.885, -0.702] (-10.3 %) | -1.052 [-1.160, -0.951] (-8.4 %) | -1.000 [-1.089, -0.914] (-8.6 %) |
-| seed agreement | consistent sign | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 |
+| seed agreement | identical by construction | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 |
 
 ## C2 · ORACLE diagnostic on M1: M1+oracle − M1+orig (jminADE@6 8 s, m; negative = lower error)
 
@@ -81,7 +81,7 @@ all 500 dev scenes (manifests/dev.json); checkpoints m0_pilot_s{0,1,2}, m1_pilot
 | 1 | +0.000 [+0.000, +0.000] (+0.0 %) | -0.020 [-0.058, +0.020] (-0.5 %) | -0.214 [-0.327, -0.093] (-4.4 %) | -0.555 [-0.734, -0.381] (-9.3 %) | -2.311 [-2.648, -1.987] (-24.8 %) | -0.678 [-0.787, -0.573] (-11.2 %) | -0.775 [-0.884, -0.674] (-12.9 %) | -0.756 [-0.850, -0.667] (-12.5 %) |
 | 2 | +0.000 [+0.000, +0.000] (+0.0 %) | +0.027 [-0.015, +0.068] (+0.7 %) | +0.062 [-0.050, +0.175] (+1.3 %) | -0.185 [-0.361, -0.015] (-3.2 %) | -2.376 [-2.730, -2.062] (-26.2 %) | -0.825 [-0.936, -0.720] (-13.4 %) | -0.618 [-0.716, -0.523] (-10.4 %) | -0.659 [-0.745, -0.579] (-11.0 %) |
 | pooled | +0.000 [+0.000, +0.000] (+0.0 %) | -0.004 [-0.034, +0.026] (-0.1 %) | -0.121 [-0.208, -0.033] (-2.4 %) | -0.392 [-0.538, -0.251] (-6.6 %) | -2.412 [-2.709, -2.150] (-26.1 %) | -0.798 [-0.885, -0.714] (-13.0 %) | -0.732 [-0.817, -0.654] (-12.1 %) | -0.745 [-0.821, -0.676] (-12.3 %) |
-| seed agreement | consistent sign | MIXED sign | MIXED sign | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 |
+| seed agreement | identical by construction | MIXED sign | MIXED sign | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 | all seeds exclude 0 |
 
 ## C2 · Estimator effect on M0: M0+anchored1s − M0+orig (jminFDE@6 8 s, m; negative = lower error)
 
